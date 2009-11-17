@@ -1,0 +1,30 @@
+# This file builds webapp for local running
+
+# makes the dir for downloaded files
+mkdir cache 
+cd cache
+
+# download dependencies
+wget http://gwtwiki.googlecode.com/files/bliki.3.0.13.zip
+wget http://googleappengine.googlecode.com/files/appengine-java-sdk-1.2.6.zip
+wget http://mirrors.ibiblio.org/pub/mirrors/maven2/commons-fileupload/commons-fileupload/1.2.1/commons-fileupload-1.2.1.jar
+wget http://localhost:8005/commons-io-1.4.jar
+
+# unzipping the GAE SDK and bliki
+echo "unpacking AppEngine SDK..."
+unzip -d ../ appengine-java-sdk-1.2.6.zip > /dev/null
+echo "unpacking bliki..."
+unzip -j -d ../war/WEB-INF/lib bliki.3.0.13.zip info.bliki.wiki/bliki-core/target/bliki-core-3.0.13.jar > /dev/null
+
+# copying Apache Commons libraries
+cp *.jar ../war/WEB-INF/lib
+
+# go to the build directory and run Ant build script
+#rm list
+cd ../build
+mkdir -p ../war/WEB-INF/classes
+mkdir -p ../war/WEB-INF/lib
+ant compile && echo "Done, enjoy!"
+
+
+

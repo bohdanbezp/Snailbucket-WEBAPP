@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<taglib xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd"
+	version="2.1">
+    <tlib-version>1.2</tlib-version>
+	<tag>
+		<name>UserCheck</name>
+		<tagclass>net.rwchess.site.tags.UserCheckTag</tagclass>
+		<bodycontent>scriptless</bodycontent>
+		<attribute>
+			<name>status</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>checkFor</name>
+			<required>true</required>
+		</attribute>
+	</tag>
+
+</taglib>

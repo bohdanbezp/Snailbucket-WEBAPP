@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
+
+	<jsp-config>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/core</taglib-uri>
+			<taglib-location>/WEB-INF/c.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/fmt</taglib-uri>
+			<taglib-location>/WEB-INF/fmt.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>/WEB-INF/tags</taglib-uri>
+			<taglib-location>/WEB-INF/rwsite.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+
+    <servlet>
+		<servlet-name>mainpage</servlet-name>
+		<jsp-file>index.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>useredit</servlet-name>
+		<jsp-file>/users/edituser.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>userprofile</servlet-name>
+		<jsp-file>/users/profile.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>userdesc</servlet-name>
+		<jsp-file>/users/memberprofile.jsp</jsp-file>
+	</servlet>
+
+	<servlet>
+		<servlet-name>login</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.Login</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>import</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.Import</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>post</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.PostMessage</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>fileUpload</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.FileUpload</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>submembrs</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.SubmitMember</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>userdelete</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.UserDelete</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>fileDownld</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.FileDownload</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>wiki</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.Wiki</servlet-class>
+	</servlet>
+
+
+	<filter>
+		<filter-name>authorizationFilter</filter-name>
+		<filter-class>net.rwchess.site.AuthorizationFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>authorizationFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<!--
+		<filter> <filter-name>cacheFilter</filter-name>
+		<filter-class>net.rwchess.site.CacheFilter</filter-class> </filter>
+		<filter-mapping> <filter-name>cacheFilter</filter-name>
+		<url-pattern>/</url-pattern> </filter-mapping>
+	-->
+
+	<session-config>
+		<session-timeout>60</session-timeout>
+	</session-config>
+
+	<servlet-mapping>
+		<servlet-name>mainpage</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>userdesc</servlet-name>
+		<url-pattern>/members/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>fileDownld</servlet-name>
+		<url-pattern>/files/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>useredit</servlet-name>
+		<url-pattern>/users/edit</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>userprofile</servlet-name>
+		<url-pattern>/users/profile</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>userdelete</servlet-name>
+		<url-pattern>/actions/userdelete</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>fileUpload</servlet-name>
+		<url-pattern>/actions/upload</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>import</servlet-name>
+		<url-pattern>/actions/import</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>login</servlet-name>
+		<url-pattern>/actions/login</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>post</servlet-name>
+		<url-pattern>/actions/post</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>submembrs</servlet-name>
+		<url-pattern>/actions/admin/submembrs</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>wiki</servlet-name>
+		<url-pattern>/wiki/*</url-pattern>
+	</servlet-mapping>
+</web-app>
