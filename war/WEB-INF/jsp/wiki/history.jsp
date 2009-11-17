@@ -11,6 +11,7 @@
 
 <head>
   <title>RWarriors Wiki - <%=wikiPage.getName() %></title>
+  <meta name="robots" content="noindex,nofollow" />
   <link href="/static/jspwiki.css" type="text/css" rel="stylesheet" />
 
 </head>
