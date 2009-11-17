@@ -17,13 +17,13 @@ echo "unpacking bliki..."
 unzip -j -d ../war/WEB-INF/lib bliki.3.0.13.zip info.bliki.wiki/bliki-core/target/bliki-core-3.0.13.jar > /dev/null
 
 # copying Apache Commons libraries
+mkdir -p ../war/WEB-INF/classes
+mkdir -p ../war/WEB-INF/lib
 cp *.jar ../war/WEB-INF/lib
 
 # go to the build directory and run Ant build script
 #rm list
 cd ../build
-mkdir -p ../war/WEB-INF/classes
-mkdir -p ../war/WEB-INF/lib
 ant compile && echo "Done, enjoy!"
 
 
