@@ -1,4 +1,3 @@
-<%@ taglib uri="/WEB-INF/tags" prefix="rws" %>
 <%@ page import="net.rwchess.wiki.*"%>
 
 <!DOCTYPE html 

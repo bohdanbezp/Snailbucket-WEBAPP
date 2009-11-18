@@ -1,14 +1,15 @@
-<%@ taglib uri="/WEB-INF/tags" prefix="rws"%>
+<%@ page import="net.rwchess.site.data.RWMember"%>
 
 <div id="user-menu">
 <ul>
-
-	<rws:UserCheck status="anonymous" checkFor="equality">
+    <% RWMember user = (RWMember) pageContext.getSession().getAttribute("user"); 
+       if (user == null) {  
+    %>	
 		<li><a href="/wiki/Special:Login" title="Special:Login">Login</a></li>
-	</rws:UserCheck>
-	<rws:UserCheck status="anonymous" checkFor="inequality">
+	<% }
+	   else { %>
 		<li><a href="/wiki/Special:Exit" title="Special:Exit">Exit</a></li>
-	</rws:UserCheck>
+	<% } %>
 
 </ul>
 </div>
