@@ -10,6 +10,7 @@
 	<sessions-enabled>true</sessions-enabled>
 	
 	<static-files>
+        <include path="/robots.txt" />
         <include path="/favicon.ico" />
         <include path="/static/**" />
     </static-files>
