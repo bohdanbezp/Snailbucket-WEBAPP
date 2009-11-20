@@ -18,8 +18,9 @@
 			value="Submit" /></div>
 		</td>
 	</tr>
-
+    
 </table>
+<input type="hidden" name="ref" value="<%=request.getParameter("ref") %>"/>
 
 <% if (session.getAttribute("LoginError") != null)  { 	%>
        <%= session.getAttribute("LoginError")%>

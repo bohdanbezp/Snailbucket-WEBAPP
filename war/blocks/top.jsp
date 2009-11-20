@@ -9,7 +9,7 @@
 <div id="wrapper">
 
 	<div id="top">
-	     <img src="/static/images/logo.png">
+	     <img src="/static/images/logo.png">	     
 	</div>
 	
 	<jsp:include page="menu.jsp"></jsp:include>

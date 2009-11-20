@@ -47,6 +47,11 @@ public class AuthorizationFilter implements Filter {
 			if (fireIfNotRegistered(httpReq, response)) return; 
 			String action = uri.substring(9);
 
+			if (action.equals("exit")) {
+				httpReq.getSession().removeAttribute("user");
+				((HttpServletResponse) response).sendRedirect("/");
+				return;
+			}
 			if (action.startsWith("admin") || action.equals("/actions/userdelete")) {
 				if (getUserGroup(httpReq.getSession()) < RWMember.MODERATOR) {
 					ErrorsManager.display(ErrorsManager.MODERATOR_ONLY,

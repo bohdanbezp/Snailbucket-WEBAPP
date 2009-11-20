@@ -4,6 +4,9 @@
 
 <div id="left">
 <div class="leftitem">
+
+<jsp:include page="/WEB-INF/jsp/wiki/reg.jsp"></jsp:include>
+
 <ul>
 	<h2>Current Events</h2>
 	<ul>

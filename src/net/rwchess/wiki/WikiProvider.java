@@ -49,7 +49,7 @@ public class WikiProvider {
 	public static void displayLoginPage(HttpServletRequest req,
 			HttpServletResponse res) {
 		try {
-			req.getRequestDispatcher("/WEB-INF/jsp/wiki/login.jsp")
+			req.getRequestDispatcher("/WEB-INF/jsp/wiki/wiki-login.jsp")
 					.include(req, res);
 		} 
 		catch (ServletException e) {

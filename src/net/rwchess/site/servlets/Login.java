@@ -39,10 +39,11 @@ public class Login extends HttpServlet {
 			}
 			else {
 				req.getSession().setAttribute("user", rst);
+				res.sendRedirect(req.getParameter("ref"));
+				return;
 			}
 		}
-		catch (JDOObjectNotFoundException e) {
-			
+		catch (JDOObjectNotFoundException e) {			
 			addLoginError("There is no such user. Please try again.",
 					req.getSession());   
 		}
@@ -50,10 +51,10 @@ public class Login extends HttpServlet {
 			pm.close();
 		}
 		
-		res.sendRedirect("/");
+		res.sendRedirect("/users/login.jsp?ref="+req.getParameter("ref"));
 	}
 
 	private void addLoginError(String text, HttpSession session) {
-			session.setAttribute("LoginError", text);			
+			session.setAttribute("LoginError", text);	
 	}
 }
