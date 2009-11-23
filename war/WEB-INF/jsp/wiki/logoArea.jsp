@@ -1,0 +1,1 @@
+<img src="http://upload.wikimedia.org/wikipedia/commons/f/f0/Crystal_Project_package_games_strategy.png" height="154" width="125"/>

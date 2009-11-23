@@ -19,7 +19,7 @@
 <div id="wiki-navigation">
 	<div id="logo">
 	
-	<a class="logo" href="/wiki/en/StartingPoints"><img border="0" src="/wiki/images/logo_oliver.gif" alt="" /></a>
+	<jsp:include page="/WEB-INF/jsp/wiki/logoArea.jsp"></jsp:include>
 	</div>
 	<br />
 	

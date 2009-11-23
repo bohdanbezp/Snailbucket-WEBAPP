@@ -1,22 +1,9 @@
-/*
- *                    MediaWiki
- *
- *
- * A template which makes JSP-Wiki(http://jspwiki.org/) 
- * look like MediaWiki(http://mediawiki.org/)
- *
- * (c) 2005 Martin Unger (martin.ung@utanet.at) 
- * Based on the Monobook-Skin for Mediawiki by
- * Gabriel Wicke and the Default-Skin for JSP-Wiki 
- *
- * License: GPL (http://www.gnu.org/copyleft/gpl.html)
- */
 /* blue theme */
 
 /* defaults */
 
 body {
-	background: #f9f9f9 url(../images/denalibg.jpg) 0 0 no-repeat;
+	background: #f9f9f9 url(http://jamwiki.org/wiki/images/denalibg.jpg) 0 0 no-repeat;
 	color: black;
 	margin: 0;
 	padding: 0;
@@ -35,7 +22,7 @@ a.logo {
 	border: 0;
 }
 a.externallink:after {
-	content:url("../images/external.png");
+	content:url("http://jamwiki.org/wiki/images/external.png");
 }
 a.edit {
 	color: #aa1111;
@@ -50,10 +37,10 @@ a.redirect {
 	margin-left: 20px;
 }
 a.redirect:before {
-	content:url("../images/redirect-arrow.png");
+	content:url("http://jamwiki.org/wiki/images/redirect-arrow.png");
 }
 a.interwiki:after {
-	content:url("../images/external.png");
+	content:url("http://jamwiki.org/wiki/images/external.png");
 }
 p {
 	margin: .4em 0 .5em 0;
@@ -115,7 +102,7 @@ dd {
 ul {
 	line-height: 1.5em;
 	list-style-type: square;
-	list-style-image: url(../images/bullet.gif);
+	list-style-image: url(http://jamwiki.org/wiki/images/bullet.gif);
 	margin: .3em 0 0 1.5em;
 	padding: 0;
 }
