@@ -55,7 +55,7 @@ public class Wiki extends HttpServlet {
 				} 
 				else if (action.startsWith("Create")) {
 					WikiPage pg = new WikiPage();
-					pg.setName(req.getParameter("page"));
+					pg.setName(req.getParameter("page").replace('_', ' '));
 					WikiProvider.displayPageCreate(pg, req, res);
 				}
 				return;
