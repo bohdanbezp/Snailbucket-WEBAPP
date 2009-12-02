@@ -20,7 +20,7 @@
 	</tr>
     
 </table>
-<input type="hidden" name="ref" value="<%=request.getParameter("ref") %>"/>
+<input type="hidden" name="ref" value="<%=request.getHeader("Referer")%>"/>
 
 <% if (session.getAttribute("LoginError") != null)  { 	%>
        <%= session.getAttribute("LoginError")%>

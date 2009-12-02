@@ -38,8 +38,6 @@
 </div>
 <div id="wiki-content">
 	
-<jsp:include page="/WEB-INF/jsp/wiki/reg.jsp"></jsp:include>
-
 <div class="clear"></div>
 
 	
