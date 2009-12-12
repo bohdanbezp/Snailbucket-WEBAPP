@@ -21,6 +21,15 @@ public class T41Player implements Serializable {
 		
 	@Persistent
 	private String preferedSection;
+	
+	@Persistent
+	private int fixedRating;
+	
+	@Persistent
+	private double points;
+	
+	@Persistent
+	private double games;
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
@@ -48,5 +57,29 @@ public class T41Player implements Serializable {
 
 	public void setPreferedSection(String preferedSection) {
 		this.preferedSection = preferedSection;
+	}
+
+	public int getFixedRating() {
+		return fixedRating;
+	}
+
+	public double getPoints() {
+		return points;
+	}
+
+	public double getGames() {
+		return games;
+	}
+
+	public void setFixedRating(int fixedRating) {
+		this.fixedRating = fixedRating;
+	}
+
+	public void setPoints(double points) {
+		this.points = points;
+	}
+
+	public void setGames(double games) {
+		this.games = games;
 	}
 }

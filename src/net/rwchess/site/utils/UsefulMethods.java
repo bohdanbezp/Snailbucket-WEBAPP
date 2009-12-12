@@ -144,8 +144,8 @@ public final class UsefulMethods {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
+	}	
+	
 	public static Text getHtml(Text rawText) {
 		return new Text(wikiModel.render(rawText.getValue()));
 	}	
