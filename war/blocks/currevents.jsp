@@ -11,11 +11,7 @@
 	<h2>Current Events</h2>
 	<ul>
 		<li><a style="font-size: 15px;"
-			href="/t40">T40</a></li>
-	</ul>
-	<ul>
-		<li><a style="font-size: 15px;"
-			href="/swiss">RW Swiss</a></li>
+			href="/t41">T41</a></li>
 	</ul>
 	<ul>
 		<li><a style="font-size: 15px;"

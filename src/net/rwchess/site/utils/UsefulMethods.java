@@ -148,5 +148,20 @@ public final class UsefulMethods {
 	
 	public static Text getHtml(Text rawText) {
 		return new Text(wikiModel.render(rawText.getValue()));
+	}
+
+	/**
+	 * @param content Result in string representation
+	 * @param isRwFirst count points for first or second team
+	 * @return number of points what RW members have won
+	 */
+	public static double parseStringToPoints(String content, boolean isRwFirst) {
+		if (content.equals("1/2-1/2"))
+			return 0.5;
+		else if (((content.equals("1-0") || content.equals("i-o")) && isRwFirst)
+				|| ((content.equals("0-1") || content.equals("o-i"))
+				&& !isRwFirst))
+			return 1;
+		return 0;
 	}	
 }

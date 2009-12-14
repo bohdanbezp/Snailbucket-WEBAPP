@@ -7,6 +7,8 @@ import java.util.List;
 
 import nanoxml.XMLElement;
 import nanoxml.XMLParseException;
+import net.rwchess.site.data.DAO;
+import net.rwchess.site.data.TeamDuel;
 
 public class TlPairingsParser {
 	
@@ -96,18 +98,19 @@ public class TlPairingsParser {
 			
 			root.parseString(s); // the culmination moment
 			
+			String ratingSection = "";	
+			
 			for (Object e: root.getChildren()) {
 				/* non-generics vector obviously isn't my favorite datatype
 				 * now we are iterating though about a dozen "table" nodes, 
 				 * their children count can easily tell us who's who
 				 */
-	            XMLElement m = (XMLElement) e; 
-	            String ratingSection = "";	            
+	            XMLElement m = (XMLElement) e; 	                        
 	            
 	            if (m.countChildren() == 1) { // the declaration of rating section
 	            	// we can extract it with 2 simple steps without a real headache
-	            	String p = m.toString().substring(15);
-	            	ratingSection = p.substring(0, p.length()-18);
+	            	String p = m.toString().substring(15);	            	
+	            	ratingSection = p.substring(0, p.length()-18);	            	
 	            }
 	            else if (m.countChildren() == 5) { // match sections
 	            	XMLElement fir = (XMLElement) m.getChildren().get(0); // getting 1st child
@@ -127,6 +130,14 @@ public class TlPairingsParser {
 	            	duel.setOpponentTeamname(
 	            			!mightyWarriorsPlaying(firstTeam) ? firstTeam.getContent() :
 	            				secondTeam.getContent());
+	            	if (duel.getFixated() == null) {
+	            		List<Boolean> fix = new ArrayList<Boolean>();
+	            		for (int j = 0; j < 4; j++) {
+	            			fix.add(false);
+	            		}
+	            		duel.setFixated(fix);
+	            	}
+	            	List<Boolean> fix = duel.getFixated();
 	            	
 	            	for (int i = 1; i < 5; i++) {
 	            		XMLElement el = (XMLElement) m.getChildren().get(i);
@@ -137,8 +148,25 @@ public class TlPairingsParser {
 		            			firstPl.getContent() : secondPl.getContent());
 		            	duel.addOpponentPlayer(!mightyWarriorsPlaying(firstTeam) ? 
 		            			firstPl.getContent() : secondPl.getContent());
-		            	duel.addResult(result.getContent());
+		            	duel.addResult(result.getContent());		
+		            	
+						if (matchesResultPattern(result.getContent())) {
+							if (!fix.get(i - 1)) {
+								fix.set(i - 1, true);
+								double points = UsefulMethods.parseStringToPoints(
+												result.getContent(),
+												mightyWarriorsPlaying(firstTeam));
+								DAO.fixateResult(mightyWarriorsPlaying(firstTeam) ? 
+												firstPl.getContent() :
+													secondPl.getContent(), points);								
+								duel.setFixated(fix);
+							}
+		            	}
+		            	
 	            	}
+	            	duel.setWhiteFirst(((XMLElement) ((XMLElement) m.getChildren().get(1))
+	            			.getChildren().get(0)).getContent().equals("White"));
+	            	duel.setKey(UsefulMethods.getMD5(ratingSection+roundNumber));
 	            	duels.add(duel);
 	            }
 	        }			
@@ -147,6 +175,12 @@ public class TlPairingsParser {
 			// if we get here, then the input was totally f****d up
 			e.printStackTrace(); // I'll see it in logs anyway
 		}
+	}
+
+	private boolean matchesResultPattern(String content) {
+		return content.equals("1/2-1/2") || content.equals("1-0")
+				|| content.equals("0-1") || content.equals("i-o")
+				|| content.equals("o-i");
 	}
 
 	/**

@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.data.T41Player;
+import net.rwchess.site.utils.UsefulMethods;
 
 /**
  * Used to import the preliminary data for once 
@@ -68,6 +70,17 @@ public class Import extends HttpServlet {
 		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		
+		// test for tl system
+		String[] nams = { "HerrGott", "Nitreb", "Bodia", "pchesso", "Maras", 
+				"iwulu", "WilkBardzoZly", "SachinRavi" };
+		for (int i = 0; i < nams.length; i++) {
+			T41Player player = new T41Player();
+			player.setAvailability((byte)0);
+			player.setPreferedSection("Any section");
+			player.setUsername(nams[i]);
+			pm.makePersistent(player);
 		}
 	}
 }

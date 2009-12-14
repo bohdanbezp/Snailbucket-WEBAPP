@@ -2,6 +2,7 @@ package net.rwchess.site.servlets;
 
 import java.io.IOException;
 
+import javax.jdo.PersistenceManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

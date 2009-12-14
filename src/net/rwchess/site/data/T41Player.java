@@ -29,11 +29,7 @@ public class T41Player implements Serializable {
 	private double points;
 	
 	@Persistent
-	private double games;
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
+	private int games;
 
 	public String getUsername() {
 		return username;
@@ -67,7 +63,7 @@ public class T41Player implements Serializable {
 		return points;
 	}
 
-	public double getGames() {
+	public int getGames() {
 		return games;
 	}
 
@@ -79,7 +75,11 @@ public class T41Player implements Serializable {
 		this.points = points;
 	}
 
-	public void setGames(double games) {
+	public void setGames(int games) {
 		this.games = games;
+	}
+	
+	public String toString() {
+		return username + " Points: " + points + " Games: " + games;
 	}
 }

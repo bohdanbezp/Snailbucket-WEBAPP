@@ -19,6 +19,7 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
+import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
 
 import com.google.appengine.api.datastore.Blob;
@@ -129,6 +130,47 @@ public final class DAO {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
 			return (WikiPage) pm.getObjectById(WikiPage.class, pageName);
+		} 
+		catch (JDOObjectNotFoundException e) {
+			return null;
+		}
+	}
+	
+	public static List<TeamDuel> getCurrRoundTeamDuels() {
+		try {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();
+			Query query = pm.newQuery(TeamDuel.class);
+			query.setOrdering("roundNumber desc");
+			query.setRange(0, 3);
+			return (List<TeamDuel>) query.execute();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			return null;
+		}
+	}
+
+	public static void fixateResult(String player, double winningPoints) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		try {
+			T41Player mem = (T41Player) pm.getObjectById(
+					T41Player.class, player);
+			mem.setGames(mem.getGames()+1);
+			mem.setPoints(mem.getPoints()+winningPoints);
+			//System.out.println(mem);
+		}
+		catch (JDOObjectNotFoundException e) {			
+		}
+		finally {
+			pm.close();
+		}
+	}
+	
+	public static List<T41Player> getTlParticipants() {
+		try {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();
+			Query query = pm.newQuery(T41Player.class);
+			query.setOrdering("points desc");
+			return (List<T41Player>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {
 			return null;
