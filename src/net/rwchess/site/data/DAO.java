@@ -19,7 +19,6 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
-import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
 
 import com.google.appengine.api.datastore.Blob;
@@ -58,35 +57,21 @@ public final class DAO {
 	}
 
 	public static Object[] getNewsList(int amount) {
-		
-		Object[] lst;
-		if ((lst = (Object[]) cache.get(("NewsList"))) == null) {
-			PersistenceManager pm = pmfInstance.getPersistenceManager();
-			Query query = pm.newQuery(ForumMessage.class);
-			query.setFilter("forumName == lastNameParam");
-			query.setOrdering("timestamp desc");
-			query.declareParameters("String lastNameParam");
-			query.setRange(0, amount);
-			lst = ((List<ForumMessage>) query.execute("news")).toArray();
-			cache.put("NewsList", lst);
-			return lst;
-		}
-
-		return lst;	
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(ForumMessage.class);
+		query.setFilter("forumName == lastNameParam");
+		query.setOrdering("timestamp desc");
+		query.declareParameters("String lastNameParam");
+		query.setRange(0, amount);
+		Object[] lst = ((List<ForumMessage>) query.execute("news")).toArray();
+		return lst;		
 	}
 	
 	public static Object[] getAllPlayers() {
-		
-		Object[] lst;
-		if ((lst = (Object[]) cache.get(("AllPlayers"))) == null) {
-			PersistenceManager pm = pmfInstance.getPersistenceManager();
-			Query query = pm.newQuery(RWMember.class);
-			query.setOrdering("username asc");			
-			lst = ((List<RWMember>) query.execute()).toArray();
-			cache.put("AllPlayers", lst);
-			return lst;
-		}
-
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(RWMember.class);
+		query.setOrdering("username asc");
+		Object[] lst = ((List<RWMember>) query.execute()).toArray();
 		return lst;
 	}
 	

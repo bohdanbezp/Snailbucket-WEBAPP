@@ -47,7 +47,10 @@
 
 	
 <div id="tab-menu">	
+	<div class="tab-item"><a href="/wiki/<%=wikiPage.getName().replace(' ', '_') %>">Article</a></div>
+
 	
+	<div class="tab-item"><a href="/wiki/Special:Edit?page=<%=wikiPage.getName().replace(' ', '_') %>">Edit</a></div>
 </div>
 <div class="clear"></div>
 
@@ -55,7 +58,6 @@
 	
 	<ul>
 	<%
-	  if (wikiPage.getHistory() == null) System.out.println("nukk");
 	  for (String line: wikiPage.getHistory()) {
 		  out.println("<li>"+line+"</li>");
 	  }

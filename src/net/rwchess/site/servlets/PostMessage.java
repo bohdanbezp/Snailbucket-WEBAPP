@@ -27,12 +27,13 @@ public class PostMessage extends HttpServlet {
 		String forum = req.getParameter("forum");
 		String message = req.getParameter("message");
 		Date timestamp = new Date(System.currentTimeMillis());
-
+		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
 			if (thereIsSuchForum(pm, forum)) {
 				pm.makePersistent(new ForumMessage(username, forum, timestamp,
 						title, new Text(message)));
+				pm.refreshAll();
 			}
 		} 
 		finally {

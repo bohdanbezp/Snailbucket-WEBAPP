@@ -5,16 +5,16 @@
 <% 
 
 Object[] results = DAO.getNewsList(5);
-		
+
 for (Object o : results) { 	
 	ForumMessage m = (ForumMessage) o;   	
 
 %>
-<h2><%=m.getTitle() %>!</h2>
+<h2><%=m.getTitle() %></h2>
 <br />
 <%=UsefulMethods.parseNewsText(m.getMessage().getValue()) %>
 <br />
-<b>Posted by&nbsp;<%=m.getUsername() %> on <%=m.getTimestamp() %></b>
+<small></small><b>Posted by&nbsp;<%=m.getUsername() %> on <%=m.getTimestamp() %></b></small>
 
 <% 	}
 %>

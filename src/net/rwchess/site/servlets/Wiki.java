@@ -36,7 +36,6 @@ public class Wiki extends HttpServlet {
 		
 		if (pageName.startsWith("Special")) {
 			String action = pageName.substring(8);
-			
 			/*
 			 * We use action.startsWith() here instead of action.equals()
 			 * because the URI can contain some parameters which 
@@ -112,7 +111,7 @@ public class Wiki extends HttpServlet {
 					}
 					String date = new Date().toString(); // TODO: make the date formatted properly
 					String userName = UsefulMethods.getUsername(req.getSession());
-					s.push(date + " <a href=\"members\""+userName+"\">"+userName+"</a>" );
+					s.push(date + " by <a href=\"members\""+userName+"\">"+userName+"</a>" );
 					
 					res.sendRedirect("/wiki/"+page.getName());
 				}

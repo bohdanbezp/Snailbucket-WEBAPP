@@ -25,7 +25,6 @@ public class Login extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
 		String username = req.getParameter("login");
-		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
 			RWMember rst = pm.getObjectById(RWMember.class, username);

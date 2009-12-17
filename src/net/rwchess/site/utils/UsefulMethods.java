@@ -163,5 +163,13 @@ public final class UsefulMethods {
 				&& !isRwFirst))
 			return 1;
 		return 0;
+	}
+
+	public static boolean lookLikeXss(String uname) {
+		for (char c: uname.toCharArray()) {
+			if (c == '<' || c == '>' || c == ' ' || c == '/')
+				return true;
+		}
+		return false;
 	}	
 }

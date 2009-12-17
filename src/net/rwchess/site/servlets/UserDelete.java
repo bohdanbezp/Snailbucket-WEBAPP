@@ -16,6 +16,12 @@ public class UserDelete extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse res)
 			throws IOException {
 		if (req.getSession().getAttribute("DeleteConfirmation") == null) {
+			String uname = req.getParameter("username");		
+			if (UsefulMethods.lookLikeXss(uname)) {
+				res.getWriter().println("XSS attempt detected");
+				return;
+			}				
+			
 			res.getWriter().println("<h3>Please confirm you're really want to delete "+
 					req.getParameter("username")+"</h3>");
 			res.getWriter().println("<center><a href=\"/actions/userdelete\">Yes</a><br/>" +
@@ -34,6 +40,7 @@ public class UserDelete extends HttpServlet {
 				res.sendRedirect("/users/edit");
 			} 
 			finally {
+				pm.refreshAll();
 				pm.close();
 			}
 		}

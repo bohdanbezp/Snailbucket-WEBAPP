@@ -37,7 +37,7 @@ public class AuthorizationFilter implements Filter {
 		HttpServletRequest httpReq = ((HttpServletRequest) request);
 		String uri = httpReq.getRequestURI();
 		response.setCharacterEncoding("utf-8");
-
+		
 		if (uri.equals("/actions/login") || uri.equals("/")
 				|| uri.equals("/actions/import") || uri.equals("/index.jsp") ||
 				uri.startsWith("/static")) {
