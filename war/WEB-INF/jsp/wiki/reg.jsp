@@ -9,6 +9,10 @@
 	<% }
 	   else { %>
 		<li><a href="/actions/exit">Exit [<%=user.getUsername() %>]</a></li>
+		<li><a href="/users/profile">Profile</a></li>	
+		<% if (user.getGroup() >= RWMember.MODERATOR) { %>
+    	   <li style="color:red"><a href="/users/edit">User management</a></li>	
+        <% } %>
 	<% } %>
 
 </ul>

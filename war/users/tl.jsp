@@ -1,5 +1,10 @@
+<%@ page import="net.rwchess.site.data.DAO"%>
+<%@ page import="net.rwchess.site.utils.UsefulMethods"%>
+
 <jsp:include page="/blocks/top.jsp"></jsp:include>
 <jsp:include page="/blocks/currevents.jsp"></jsp:include>
+
+<% if (!DAO.playsInT41(UsefulMethods.getUsername(session))) { %>
 
 <p>T41 will start in early January 2010. Our club is known for not
 missing a single season already a few years. Here you can register
@@ -26,5 +31,6 @@ You want to play in:<br/>
 <br/>
 <input type="submit" value="Submit" />
 </form>
+<% } %>
 
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>

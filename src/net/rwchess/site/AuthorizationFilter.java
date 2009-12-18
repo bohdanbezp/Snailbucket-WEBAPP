@@ -82,8 +82,8 @@ public class AuthorizationFilter implements Filter {
 				uri.startsWith("/swiss") || uri.startsWith("/wiki"))
 			chain.doFilter(request, response);
 		else
-			//((HttpServletResponse) response).sendError(404);
-			chain.doFilter(request, response);
+			((HttpServletResponse) response).sendError(404);
+			//chain.doFilter(request, response);
 	}
 
 	private boolean fireIfNotRegistered(HttpServletRequest httpReq,

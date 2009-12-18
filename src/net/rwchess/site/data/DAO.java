@@ -25,7 +25,7 @@ import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.memcache.stdimpl.GCacheFactory;
 
 /**
- * Persistence manager class. 
+ * Data access object 
  */
 public final class DAO {
 	private static final PersistenceManagerFactory pmfInstance = JDOHelper
@@ -141,9 +141,23 @@ public final class DAO {
 					T41Player.class, player);
 			mem.setGames(mem.getGames()+1);
 			mem.setPoints(mem.getPoints()+winningPoints);
-			//System.out.println(mem);
 		}
 		catch (JDOObjectNotFoundException e) {			
+		}
+		finally {
+			pm.close();
+		}
+	}
+	
+	public static boolean playsInT41(String name) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		try {
+			T41Player mem = (T41Player) pm.getObjectById(
+					T41Player.class, name);
+			return true;
+		}
+		catch (JDOObjectNotFoundException e) {
+			return false;
 		}
 		finally {
 			pm.close();
