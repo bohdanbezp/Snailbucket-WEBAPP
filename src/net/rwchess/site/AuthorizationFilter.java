@@ -62,7 +62,8 @@ public class AuthorizationFilter implements Filter {
 			
 			chain.doFilter(request, response); // go to the requested page
 		} 
-		else if (uri.startsWith("/users")) {			
+		else if (uri.startsWith("/users")) {
+			if (fireIfNotRegistered(httpReq, response)) return;
 			String action = uri.substring(7);
 			
 			if (action.equals("edit")
@@ -82,8 +83,8 @@ public class AuthorizationFilter implements Filter {
 				uri.startsWith("/swiss") || uri.startsWith("/wiki"))
 			chain.doFilter(request, response);
 		else
-			((HttpServletResponse) response).sendError(404);
-			//chain.doFilter(request, response);
+			//((HttpServletResponse) response).sendError(404);
+			chain.doFilter(request, response);
 	}
 
 	private boolean fireIfNotRegistered(HttpServletRequest httpReq,
