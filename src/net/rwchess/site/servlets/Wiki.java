@@ -31,8 +31,8 @@ public class Wiki extends HttpServlet {
 			res.sendRedirect("/wiki/Main_Page");
 			return;
 		}
-		
-		String pageName = req.getRequestURI().substring(6).replace('_', ' ');		
+		String pageName = UsefulMethods.capitalize(
+				req.getRequestURI().substring(6).replace('_', ' '));		
 		
 		if (pageName.startsWith("Special")) {
 			String action = pageName.substring(8);

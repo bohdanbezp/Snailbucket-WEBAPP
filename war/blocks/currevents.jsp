@@ -19,6 +19,11 @@
 	</ul>
 	</ul>
 <br/>
+<h2>Old events</h2>
+<ul>
+		<li><a style="font-size: 15px;"
+			href="/swiss">RW Swiss</a></li>
+	</ul><br/>
 <h2>Latest activities</h2>
 <% 
    Object[] files = DAO.getLatestUploadedFiles();

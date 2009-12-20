@@ -23,6 +23,22 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>userdesc</servlet-name>
 		<jsp-file>/users/memberprofile.jsp</jsp-file>
 	</servlet>
+	<servlet>
+		<servlet-name>t41</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/t41.jsp</jsp-file>
+	</servlet>	
+	<servlet>
+		<servlet-name>swiss</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/rwswiss.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>archive</servlet-name>
+		<jsp-file>/WEB-INF/jsp/archive.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>viewer</servlet-name>
+		<jsp-file>/WEB-INF/jsp/viewer.jsp</jsp-file>
+	</servlet>
 
 	<servlet>
 		<servlet-name>login</servlet-name>
@@ -55,6 +71,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet>
 		<servlet-name>wiki</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.Wiki</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>check</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.CheckOutTl</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>signtl</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.TlSignup</servlet-class>
 	</servlet>
 
 
@@ -114,6 +138,30 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>mainpage</servlet-name>
 		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>check</servlet-name>
+		<url-pattern>/special/check</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>t41</servlet-name>
+		<url-pattern>/t41</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>signtl</servlet-name>
+		<url-pattern>/actions/signtl</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>swiss</servlet-name>
+		<url-pattern>/swiss</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>archive</servlet-name>
+		<url-pattern>/archive</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>viewer</servlet-name>
+		<url-pattern>/viewer</url-pattern>
 	</servlet-mapping>
 	
 </web-app>
