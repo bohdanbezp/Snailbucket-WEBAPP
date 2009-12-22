@@ -5,9 +5,18 @@
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
 
-    
 
-        <servlet>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/jsp/error404.jsp</location>
+	</error-page> 
+	
+	<error-page>
+		<error-code>403</error-code>
+		<location>/WEB-INF/jsp/error403.jsp</location>
+	</error-page> 
+
+	<servlet>
 		<servlet-name>mainpage</servlet-name>
 		<jsp-file>/index.jsp</jsp-file>
 	</servlet>

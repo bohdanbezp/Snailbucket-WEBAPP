@@ -59,4 +59,8 @@ public class WikiPage implements Serializable {
 		if (history == null) history = new Stack<String>();
 		return history;
 	}
+
+	public void setHistory(Stack<String> history) {
+		this.history = history;
+	}
 }

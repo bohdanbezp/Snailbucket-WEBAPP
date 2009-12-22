@@ -1,6 +1,7 @@
 <%@ page import="net.rwchess.site.data.DAO"%>
 <%@ page import="net.rwchess.site.utils.UsefulMethods"%>
 <%@ page import="net.rwchess.site.data.ForumMessage"%>
+<%@ page import="net.rwchess.site.data.RWMember"%>
 <%@ page import="java.util.List"%>
 <% 
 
@@ -14,11 +15,14 @@ for (Object o : results) {
 <br />
 <%=UsefulMethods.parseNewsText(m.getMessage().getValue()) %>
 <br />
-<small></small><b>Posted by&nbsp;<%=m.getUsername() %> on <%=m.getTimestamp() %></b></small>
+<small><b>Posted by&nbsp;<%=m.getUsername() %> on <%=m.getTimestamp() %></b></small>
 
 <% 	}
 %>
 <br/>
 <br/>
-<center><a href="/users/postmessage.jsp">[Post message]</a></a></center>
-
+<% RWMember user = (RWMember) pageContext.getSession().getAttribute("user"); 
+       if (user != null) {  
+%>	
+<center><a href="/users/postmessage.jsp">[Post message]</a></center>
+<% } %>

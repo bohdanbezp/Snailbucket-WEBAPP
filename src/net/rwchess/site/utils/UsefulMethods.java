@@ -10,6 +10,8 @@ import info.bliki.wiki.model.WikiModel;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -28,8 +30,10 @@ import net.rwchess.site.data.RWMember;
 public final class UsefulMethods {
 	
 	private static final WikiModel wikiModel = new WikiModel(
-			"http://rwchess.appspot.com/wiki/${image}",
-			"http://rwchess.appspot.com/wiki/${title}");
+			"/files/${image}",
+			"/wiki/${title}");
+	
+	private static SimpleDateFormat dateFormat;
 
 	private UsefulMethods() {} // provides non-instensability
 	
@@ -181,6 +185,13 @@ public final class UsefulMethods {
 		return new StringBuffer(strLen).append(
 				Character.toTitleCase(str.charAt(0))).append(str.substring(1))
 				.toString();
+	}
+
+	public static SimpleDateFormat getWikiDateFormatter() {
+		if (dateFormat == null)
+			dateFormat = new SimpleDateFormat("h:mm, d MMMMM yyyy", Locale.US);
+		
+		return dateFormat;
 	}
 
 }

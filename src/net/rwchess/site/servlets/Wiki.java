@@ -28,7 +28,7 @@ public class Wiki extends HttpServlet {
 		
 		if (req.getRequestURI().equals("/wiki") ||
 				req.getRequestURI().equals("/wiki/")) {
-			res.sendRedirect("/wiki/Main_Page");
+			res.sendRedirect("/wiki/Main_page");
 			return;
 		}
 		String pageName = UsefulMethods.capitalize(
@@ -42,29 +42,30 @@ public class Wiki extends HttpServlet {
 			 * cannot be adequately compared 
 			 */
 			
-			if (isAuthorized(req.getSession())) {	
+			if (isAuthorized(req.getSession())) {
 				// only members can do following actions
 				if (action.startsWith("Edit")) {
-					WikiPage pg = DAO.getWikiPage(req.getParameter("page"));
+					WikiPage pg = DAO.getWikiPage(req.getParameter("page").replace('_', ' '));
 					if (pg == null) {
 						res.sendError(404);						
 					}
 
 					WikiProvider.displayPageEdit(pg, req, res);
+					return;
 				} 
 				else if (action.startsWith("Create")) {
 					WikiPage pg = new WikiPage();
 					pg.setName(req.getParameter("page").replace('_', ' '));
 					WikiProvider.displayPageCreate(pg, req, res);
-				}
-				return;
+					return;
+				}				
 			}
-			else if (action.startsWith("Login")) {
+			if (action.startsWith("Login")) {
 				WikiProvider.displayLoginPage(req, res);
 				return;
 			} 
 			else if (action.startsWith("History")) {
-				WikiPage pg = DAO.getWikiPage(req.getParameter("page"));
+				WikiPage pg = DAO.getWikiPage(req.getParameter("page").replace('_', ' '));
 				if (pg == null) {
 					res.sendError(404);
 					return;
@@ -95,7 +96,7 @@ public class Wiki extends HttpServlet {
 	throws ServletException, IOException {
 		HttpServletRequest httpReq = ((HttpServletRequest) req);		
 		
-		if (httpReq.getRequestURI().equals("/wiki/Special:Edit")) {
+		if (httpReq.getRequestURI().startsWith("/wiki/Special:Edit")) {
 			String pageName = req.getParameter("pageName").replace('_', ' ');
 			if (req.getParameter("save") != null) { // user pressed "save" button
 				PersistenceManager pm = DAO.get().getPersistenceManager();
@@ -103,17 +104,10 @@ public class Wiki extends HttpServlet {
 					WikiPage page = pm.getObjectById(WikiPage.class, req.getParameter("pageName"));
 					page.setName(pageName);
 					page.setRawText(new Text(req.getParameter("contents")));
-					
-					// the history stack can contain maximum 15 history items 
-					Stack<String> s = page.getHistory();
-					if (s.size() == 15) {
-						s.remove(s.size()-1);
-					}
-					String date = new Date().toString(); // TODO: make the date formatted properly
-					String userName = UsefulMethods.getUsername(req.getSession());
-					s.push(date + " by <a href=\"members\""+userName+"\">"+userName+"</a>" );
-					
-					res.sendRedirect("/wiki/"+page.getName());
+					dealWithHistoryStack(page.getHistory(), UsefulMethods
+							.getUsername(req.getSession()));
+
+					res.sendRedirect("/wiki/"+page.getName().replace(' ', '_'));
 				}
 				finally {
 					pm.close();
@@ -126,16 +120,19 @@ public class Wiki extends HttpServlet {
 				WikiProvider.displayPagePreview(page, false, req, res);				
 			}
 		}
-		else if (httpReq.getRequestURI().equals("/wiki/Special:Create")) {
-			String pageName = req.getParameter("pageName").replace('_', ' ');
+		else if (httpReq.getRequestURI().startsWith("/wiki/Special:Create")) {
+			String pageName = UsefulMethods.capitalize(
+					req.getParameter("pageName").replace('_', ' '));
 			if (req.getParameter("save") != null) {
 				PersistenceManager pm = DAO.get().getPersistenceManager();
 				try {
 					WikiPage page = new WikiPage();
 					page.setName(pageName);
 					page.setRawText(new Text(req.getParameter("contents")));
+					dealWithHistoryStack(page.getHistory(), UsefulMethods
+							.getUsername(req.getSession()));
 					pm.makePersistent(page);
-					res.sendRedirect("/wiki/"+page.getName());
+					res.sendRedirect("/wiki/"+page.getName().replace(' ', '_'));
 				}
 				finally {
 					pm.close();
@@ -148,10 +145,18 @@ public class Wiki extends HttpServlet {
 				WikiProvider.displayPagePreview(page, true, req, res);				
 			}			
 		}
-		else if (httpReq.getRequestURI().equals("/wiki/Special:Login")) {
+		else if (httpReq.getRequestURI().startsWith("/wiki/Special:Login")) {
 			new Login().doPost(req, res); // go to the main login procedure
 		}		
 		else
 			res.sendError(404);
+	}
+
+	private void dealWithHistoryStack(Stack<String> history, String username) {
+		if (history.size() == 30) {
+			history.remove(history.size()-1);
+		}
+		String date = UsefulMethods.getWikiDateFormatter().format(new Date());
+		history.push(date + " by <a href=\"/members/"+username+"\">"+username+"</a>" );	
 	}
 }

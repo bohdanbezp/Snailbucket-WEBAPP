@@ -55,9 +55,13 @@
 <div class="clear"></div>
 
 	<div id="contents" >
+	<h1 id="contents-header">History <%=wikiPage.getName() %></h1>
 	
+
+
+<div id="content-article">
 	<ul>
-	<%
+	<%	
 	  for (String line: wikiPage.getHistory()) {
 		  out.println("<li>"+line+"</li>");
 	  }
@@ -65,6 +69,7 @@
 	</ul>
 	<br />
 	</div>
+</div>
 </div>
 <jsp:include page="/WEB-INF/jsp/wiki/footer.jsp"></jsp:include>
 </div>
