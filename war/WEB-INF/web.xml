@@ -89,6 +89,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>signtl</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.TlSignup</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>changepasswd</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.ChangePassword</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>addmember</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.AddMember</servlet-class>
+	</servlet>
 
 
 	<filter>
@@ -135,6 +143,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>post</servlet-name>
 		<url-pattern>/actions/post</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>changepasswd</servlet-name>
+		<url-pattern>/actions/changepasswd</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>addmember</servlet-name>
+		<url-pattern>/actions/addmember</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>submembrs</servlet-name>

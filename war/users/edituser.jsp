@@ -35,5 +35,5 @@
 <br/>
 
 <br/>
-<center><a href="/users/addmember.jsp">[Add member]</a></a></center>
+<center><a href="/users/addmember.jsp">[Add member]</a></center>
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>
