@@ -1,9 +1,9 @@
 <jsp:include page="/blocks/top.jsp"></jsp:include>
 <jsp:include page="/blocks/currevents.jsp"></jsp:include>
 
-<p>Currently you can upload a file with description. It might be anything
-chess-related or may be interesting to club members. Please don't violate
-copyright and other laws.</p><br/>
+<p>Currently you can upload a file with description. The description is used to
+notify admins. It might be anything chess-related or may be interesting to club 
+members. Please don't violate copyright and other laws.</p><br/>
 
 <form name="filesForm" action="/actions/upload" method="post" enctype="multipart/form-data">
 <input type="file" name="downldFile"><br/><br/>

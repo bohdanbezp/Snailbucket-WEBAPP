@@ -69,7 +69,7 @@
     for (T41Player pl: DAO.getTlParticipants()) {
     	out.println(i++ + ". " + pl.getUsername() + " " + pl.getPoints()+"/"+pl.getGames()+"<br/>");
     }
-%>
+%> 
 
 
 

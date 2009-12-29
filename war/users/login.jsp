@@ -1,3 +1,11 @@
+<%@ page import="net.rwchess.site.utils.UsefulMethods"%>
+
+<%
+String ref = request.getHeader("Referer");
+
+if (request.getRequestURI().equals("/WEB-INF/jsp/error403.jsp")) {
+	ref = UsefulMethods.getRealQueryURI(request.toString());
+} %>
 <form action="/actions/login" method="post">
 <table class="wwFormTable">
 	<tr>
@@ -20,7 +28,7 @@
 	</tr>
     
 </table>
-<input type="hidden" name="ref" value="<%=request.getHeader("Referer")%>"/>
+<input type="hidden" name="ref" value="<%=ref%>"/>
 
 <% if (session.getAttribute("LoginError") != null)  { 	%>
        <%= session.getAttribute("LoginError")%>

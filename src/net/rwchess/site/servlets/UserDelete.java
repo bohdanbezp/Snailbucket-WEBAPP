@@ -21,7 +21,7 @@ public class UserDelete extends HttpServlet {
 				res.getWriter().println("XSS attempt detected");
 				return;
 			}				
-			
+			res.getWriter().println("<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\" /> </head>");
 			res.getWriter().println("<h3>Please confirm you're really want to delete "+
 					req.getParameter("username")+"</h3>");
 			res.getWriter().println("<center><a href=\"/actions/userdelete\">Yes</a><br/>" +

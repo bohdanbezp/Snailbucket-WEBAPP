@@ -175,4 +175,14 @@ public final class DAO {
 			return null;
 		}
 	}
+	
+	public static LatestEvents<String> getEvents() {
+		try {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();			
+			return pm.getObjectById(LatestEvents.class, "LatestEvents");
+		} 
+		catch (JDOObjectNotFoundException e) {
+			return null;
+		}
+	}
 }

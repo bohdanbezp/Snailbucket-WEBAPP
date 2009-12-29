@@ -74,4 +74,9 @@ public class WikiProvider {
 			e.printStackTrace();
 		}
 	}
+
+	public static void displayPageNonExistentUser(WikiPage pg,
+			HttpServletRequest req, HttpServletResponse res) {
+		diplay("/WEB-INF/jsp/wiki/userpage-nonexist.jsp", pg, req, res);	
+	}
 }

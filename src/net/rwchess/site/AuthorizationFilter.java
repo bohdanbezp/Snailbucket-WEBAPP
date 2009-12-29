@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.utils.UsefulMethods;
 
 /**
  * All request go though this class. Practically all security is 
@@ -79,9 +80,23 @@ public class AuthorizationFilter implements Filter {
 			
 			chain.doFilter(request, response);
 		}
-		else if (uri.startsWith("/members") || uri.startsWith("/archive") ||
-				uri.startsWith("/swiss") || uri.startsWith("/wiki"))
-			chain.doFilter(request, response);
+		else if (uri.startsWith("/members")) {
+			if (uri.length() <= 8) {
+				UsefulMethods.doDesignHeader(request, response);
+				request.getRequestDispatcher("/users/members.jsp").include(request,
+						response);
+				UsefulMethods.doDesignFooter(request, response);
+			}
+			   
+			else {
+				String username = uri.substring(9);
+				((HttpServletResponse) response).
+				sendRedirect("/wiki/User:"+username);
+			   }
+			return;
+		}			
+		else if (uri.startsWith("/ladder"))
+			((HttpServletResponse) response).sendError(404);
 		else
 			//((HttpServletResponse) response).sendError(404);
 			chain.doFilter(request, response);

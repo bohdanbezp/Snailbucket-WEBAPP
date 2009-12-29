@@ -84,7 +84,7 @@ public final class UsefulMethods {
 	public static String getUsername(HttpSession s) {
 		if (s.getAttribute("user") != null)
 		     return ((RWMember) s.getAttribute("user")).getUsername();
-		else throw new RuntimeException("User attribute is null");
+		else return "null";
 	}
 	
 	/**
@@ -192,6 +192,47 @@ public final class UsefulMethods {
 			dateFormat = new SimpleDateFormat("h:mm, d MMMMM yyyy", Locale.US);
 		
 		return dateFormat;
+	}
+	
+	/**
+	 * A dirty hack that retrieves the actually requested URI from 
+	 * an HTTP request
+	 * @param request Text of HTTP request
+	 * @return URI
+	 */
+	public static String getRealQueryURI(String request) {
+		boolean start = false;
+		StringBuffer buf = new StringBuffer();
+		for (char c: request.toCharArray()) {
+			if (c == ' ' && start) 
+				break;
+			
+			if (c == ' ') {
+				start = true;
+				continue;
+			}
+			
+			if (c == '\n')
+				break;
+			
+			if (start)
+				buf.append(c);
+		}
+		return buf.toString();
+	}
+	
+	public static String avlbByteToString(byte a) {
+		switch(a) {
+		case 0:
+			return "All time";
+		case 1:
+			return "Most time";
+		case 2:
+			return "Unavailable most time";
+		case 3:
+			return "Reserve player";	
+		}
+		return "";
 	}
 
 }

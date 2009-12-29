@@ -1,6 +1,6 @@
 <%@ page import="java.util.List"%>
 <%@ page import="net.rwchess.site.data.DAO"%>
-<%@ page import="net.rwchess.site.data.UploadedFile"%>
+<%@ page import="net.rwchess.site.data.LatestEvents"%>
 
 <div id="left">
 <div class="leftitem">
@@ -25,13 +25,15 @@
 			href="/swiss">RW Swiss</a></li>
 	</ul><br/>
 <h2>Latest activities</h2>
-<% 
-   Object[] files = DAO.getLatestUploadedFiles();
-   for (Object o: files) {
-	   UploadedFile file = (UploadedFile) o;
+
+<% LatestEvents<String> m = DAO.getEvents();
+   if (m != null) {
+	   for (String s: m) {
+		   out.println(s+"<br/>");
+	   }
+   }
 %>
-   <p><i><a href="/members/<%=file.getUploaderName() %>"><%=file.getUploaderName() %></a> has uploaded file <%=file.getFileName() %></i></p>
-<%} %>
+
 </div>
 </div>
 <div id="right">

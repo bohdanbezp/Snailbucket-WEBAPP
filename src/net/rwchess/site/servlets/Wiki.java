@@ -76,13 +76,17 @@ public class Wiki extends HttpServlet {
 			}
 			res.sendError(403); // send forbidden
 			return;
-		}	
+		}
 		
 		WikiPage pg = DAO.getWikiPage(pageName);
 		if (pg == null) {
 			pg = new WikiPage();
 			pg.setName(pageName);
-			WikiProvider.displayPageNonExistent(pg, req, res);
+			if (pageName.startsWith("User:") && !pageName.substring(5).equals(
+							UsefulMethods.getUsername(req.getSession())))
+				WikiProvider.displayPageNonExistentUser(pg, req, res);
+			else
+				WikiProvider.displayPageNonExistent(pg, req, res);
 		}
 		else
 			WikiProvider.displayPage(pg, req, res);
@@ -123,6 +127,13 @@ public class Wiki extends HttpServlet {
 		else if (httpReq.getRequestURI().startsWith("/wiki/Special:Create")) {
 			String pageName = UsefulMethods.capitalize(
 					req.getParameter("pageName").replace('_', ' '));
+			
+			if (pageName.startsWith("User:") && !pageName.substring(5).
+					equals(UsefulMethods.getUsername(req.getSession()))) {
+				res.sendError(403);
+				return;
+			}				
+			
 			if (req.getParameter("save") != null) {
 				PersistenceManager pm = DAO.get().getPersistenceManager();
 				try {
@@ -131,7 +142,7 @@ public class Wiki extends HttpServlet {
 					page.setRawText(new Text(req.getParameter("contents")));
 					dealWithHistoryStack(page.getHistory(), UsefulMethods
 							.getUsername(req.getSession()));
-					pm.makePersistent(page);
+					pm.makePersistent(page);					
 					res.sendRedirect("/wiki/"+page.getName().replace(' ', '_'));
 				}
 				finally {
