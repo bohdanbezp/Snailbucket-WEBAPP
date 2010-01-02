@@ -16,11 +16,11 @@ for (Object o : results) {
 <%=UsefulMethods.parseNewsText(m.getMessage().getValue()) %>
 <br />
 <small><b>Posted by&nbsp;<%=m.getUsername() %> on <%=m.getTimestamp() %></b></small>
-
+<br/>
+<br/>
 <% 	}
 %>
-<br/>
-<br/>
+
 <% RWMember user = (RWMember) pageContext.getSession().getAttribute("user"); 
        if (user != null) {  
 %>	

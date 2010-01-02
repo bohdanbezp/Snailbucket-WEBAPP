@@ -66,7 +66,7 @@
 	<h2>Most successful players</h2></br> 
     
 <%  int i = 1;
-    for (T41Player pl: DAO.getTlParticipants()) {
+    for (T41Player pl: DAO.getTlParticipants(true)) {
     	out.println(i++ + ". " + pl.getUsername() + " " + pl.getPoints()+"/"+pl.getGames()+"<br/>");
     }
 %> 

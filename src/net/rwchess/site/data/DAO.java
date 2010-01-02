@@ -164,11 +164,14 @@ public final class DAO {
 		}
 	}
 	
-	public static List<T41Player> getTlParticipants() {
+	public static List<T41Player> getTlParticipants(boolean sortByPoints) {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
 			Query query = pm.newQuery(T41Player.class);
-			query.setOrdering("points desc");
+			if (sortByPoints)
+				query.setOrdering("points desc");
+			else
+				query.setOrdering("fixedRating desc");
 			return (List<T41Player>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {

@@ -10,33 +10,61 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 @PersistenceCapable(identityType = IdentityType.DATASTORE)
-public class LatestEvents<E> extends Stack<String> {
-	private static final long serialVersionUID = 1L;
+public class LatestEvents {	
+	private static final long serialVersionUID = 17L;
 	
 	@PrimaryKey
 	@Persistent
 	private String key;
 	
-	private LatestEvents() {
+	@Persistent
+	private Stack<String> stack;	
+	
+	private static String getLinkToUser(String username) {		
+		return "<a href=\"/members/"+username+"\">"+username+"</a>";
+	}
+	
+	public LatestEvents() {
 		key = "LatestEvents";
 	}
 	
-	private static String getLinkToUser(String username) {		
-		return "<a href=\"//members//"+username+"\">"+username+"</a>";
-	}
-	
-	public static void addWikiPageCreation(String title, String username) {
+	public static void addWikiPageCreation(String title, String username) {		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
+		LatestEvents m;
 		try {
-			LatestEvents<String> m = pm.getObjectById(LatestEvents.class, "LatestEvents");
-			if (m.size() > 4) {
-				m.remove(m.size()-1);
+			m = pm.getObjectById(LatestEvents.class, "LatestEvents");	
+			if (m.getStack().size() > 4) {
+				m.getStack().remove(m.getStack().size()-1);
 			}
-			m.add(getLinkToUser(username)+" created wiki article " +
-					"<a href=\"//wiki//"+title+"\">"+title+"</a>");
+			m.getStack().add("<small>"+getLinkToUser(username)+" has created wiki article " +
+					"<a href=\"/wiki/"+title+"\">"+title+"</a></small>");
 		} 
 		catch (JDOObjectNotFoundException e) {
-			LatestEvents<String> m = new LatestEvents<String>();
+			m = new LatestEvents();
+			m.getStack().add("<small>"+getLinkToUser(username)+" has created wiki article " +
+					"<a href=\"/wiki/"+title+"\">"+title+"</a></small>");
+			DAO.get().getPersistenceManager().makePersistent(m);
+		}
+		finally {
+			pm.close();
+		}		
+	}
+
+	public static void addFileUpload(String filename, String username) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		LatestEvents m;
+		try {
+			m = pm.getObjectById(LatestEvents.class, "LatestEvents");
+			if (m.getStack().size() > 4) {
+				m.getStack().remove(m.getStack().size()-1);
+			}
+			m.getStack().add("<small>"+getLinkToUser(username)+" has uploaded file " +
+					"<a href=\"/files//"+filename+"\">"+filename+"</a></small>");
+		} 
+		catch (JDOObjectNotFoundException e) {
+			m = new LatestEvents();
+			m.getStack().add("<small>"+getLinkToUser(username)+" has uploaded file " +
+					"<a href=\"/files//"+filename+"\">"+filename+"</a></small>");
 			DAO.get().getPersistenceManager().makePersistent(m);
 		}
 		finally {
@@ -44,22 +72,25 @@ public class LatestEvents<E> extends Stack<String> {
 		}
 	}
 
-	public static void addFileUpload(String filename, String username) {
-		PersistenceManager pm = DAO.get().getPersistenceManager();
-		try {
-			LatestEvents<String> m = pm.getObjectById(LatestEvents.class, "LatestEvents");
-			if (m.size() > 4) {
-				m.remove(m.size()-1);
-			}
-			m.add(getLinkToUser(username)+" has uploaded file " +
-					"<a href=\"//files//"+filename+"\">"+filename+"</a>");
-		} 
-		catch (JDOObjectNotFoundException e) {
-			LatestEvents<String> m = new LatestEvents<String>();
-			DAO.get().getPersistenceManager().makePersistent(m);
-		}
-		finally {
-			pm.close();
-		}
+	public Stack<String> getStack() {
+		if (stack == null)
+			stack = new Stack<String>();
+		
+		return stack;
+	}
+
+	public void setStack(Stack<String> stack) {
+		this.stack = stack;
+	}
+
+	public String getKey() {
+		if (key == null)
+			key = "LatestEvents";
+		
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
 	}
 }

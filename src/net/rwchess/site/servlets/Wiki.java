@@ -14,6 +14,7 @@ import javax.servlet.http.HttpSession;
 import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.DAO;
+import net.rwchess.site.data.LatestEvents;
 import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
 import net.rwchess.wiki.WikiProvider;
@@ -142,7 +143,9 @@ public class Wiki extends HttpServlet {
 					page.setRawText(new Text(req.getParameter("contents")));
 					dealWithHistoryStack(page.getHistory(), UsefulMethods
 							.getUsername(req.getSession()));
-					pm.makePersistent(page);					
+					pm.makePersistent(page);
+					LatestEvents.addWikiPageCreation(pageName, UsefulMethods
+							.getUsername(req.getSession()));
 					res.sendRedirect("/wiki/"+page.getName().replace(' ', '_'));
 				}
 				finally {

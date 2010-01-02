@@ -10,13 +10,15 @@
 <table width="80%"  border="1" cellpadding="0" cellspacing="2">
 <tr bgcolor="#5e410f">
 	       <td>Username</td>
+	       <td>Fixed rating</td>
 	       <td>Preffered section</td>
 	       <td>Availability</td>
 </tr> 
 <% 
-for (T41Player pl: DAO.getTlParticipants()) { %>
+for (T41Player pl: DAO.getTlParticipants(false)) { %>
 	    <tr>
 	       <td><%=pl.getUsername() %></td>
+	       <td><%=pl.getFixedRating() %></td>
 	       <td><%=pl.getPreferedSection() %></td> 
 	       <td><%=UsefulMethods.avlbByteToString(pl.getAvailability()) %></td>
 	    </tr>

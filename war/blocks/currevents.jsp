@@ -1,4 +1,5 @@
 <%@ page import="java.util.List"%>
+<%@ page import="java.util.Stack"%>
 <%@ page import="net.rwchess.site.data.DAO"%>
 <%@ page import="net.rwchess.site.data.LatestEvents"%>
 
@@ -25,15 +26,15 @@
 			href="/swiss">RW Swiss</a></li>
 	</ul><br/>
 <h2>Latest activities</h2>
-
-<% LatestEvents<String> m = DAO.getEvents();
-   if (m != null) {
-	   for (String s: m) {
-		   out.println(s+"<br/>");
+<ul>
+<% LatestEvents ev = DAO.getEvents();   
+   if (ev != null) {
+	   for (String s: ev.getStack()) {
+		   out.println("<li>"+s+"</li><br/>");
 	   }
    }
 %>
-
+</ul>
 </div>
 </div>
 <div id="right">

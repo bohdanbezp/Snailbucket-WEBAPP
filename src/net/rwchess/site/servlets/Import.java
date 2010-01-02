@@ -1,24 +1,61 @@
 package net.rwchess.site.servlets;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
+import javax.mail.*;
+import javax.mail.internet.*;
 
-import javax.jdo.PersistenceManager;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.rwchess.site.data.DAO;
-import net.rwchess.site.data.RWMember;
 import net.rwchess.site.data.T41Player;
 import net.rwchess.site.utils.UsefulMethods;
+
 
 /**
  * Used to import the preliminary data for once 
  */
 public class Import extends HttpServlet {
+	
+	private static Map m;
+	
+	public static int getRatingFor(String username) {
+		if (username.equalsIgnoreCase("roberttorma")) return 2189;
+		if (username.equalsIgnoreCase("PeterSanderson")) return 2206;
+		if (username.equalsIgnoreCase("Maras")) return 2162;
+		if (username.equalsIgnoreCase("Karima")) return 2175;
+		if (username.equalsIgnoreCase("iwulu")) return 2172;
+		if (username.equalsIgnoreCase("AIDog")) return 2086;
+		if (username.equalsIgnoreCase("zalik")) return 2140;
+		if (username.equalsIgnoreCase("Pallokala")) return 2066;
+		if (username.equalsIgnoreCase("jussu")) return 1941;
+		if (username.equalsIgnoreCase("ivohristov")) return 1961;
+		if (username.equalsIgnoreCase("WilkBardzoZly")) return 1734;
+		if (username.equalsIgnoreCase("sangalla")) return 1975;
+		if (username.equalsIgnoreCase("NatIN")) return 1875;
+		if (username.equalsIgnoreCase("AlesD")) return 1879;
+		if (username.equalsIgnoreCase("Acho")) return 1819;
+		if (username.equalsIgnoreCase("NoiroP")) return 1815;
+		if (username.equalsIgnoreCase("bodzolca")) return 1742;
+		if (username.equalsIgnoreCase("Bodia")) return 1735;
+		if (username.equalsIgnoreCase("HerrGott")) return 1658;
+		if (username.equalsIgnoreCase("pchesso")) return 1697;
+		if (username.equalsIgnoreCase("SachinRavi")) return 1624;
+		if (username.equalsIgnoreCase("Gavrilo")) return 1644;
+		if (username.equalsIgnoreCase("piorgovici")) return 1581;
+		if (username.equalsIgnoreCase("lutom")) return 1539;
+		if (username.equalsIgnoreCase("wfletcher")) return 1533;
+		if (username.equalsIgnoreCase("Nitreb")) return 1269;
+		else return 0;
+	}
 
-	public void doGet(HttpServletRequest req, HttpServletResponse res) {
-		PersistenceManager pm = DAO.get().getPersistenceManager();
+	public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {	
+                Properties props = new Properties();		
+		/**PersistenceManager pm = DAO.get().getPersistenceManager();
 		String[] names = { "HerrGott", "Noiro", "piorgovici", "pchesso",
 				"Bodia", "Acho", "sachinravi", "jussu", "Natin", "Nitreb",
 				"roberttorma", "WilkBardzoZly", "iwulu", "wfletcher", "ivohristov",
@@ -64,17 +101,6 @@ public class Import extends HttpServlet {
 		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		/*
-		// test for tl system
-		String[] nams = { "HerrGott", "Nitreb", "Bodia", "pchesso", "Maras", 
-				"iwulu", "WilkBardzoZly", "SachinRavi" };
-		for (int i = 0; i < nams.length; i++) {
-			T41Player player = new T41Player();
-			player.setAvailability((byte)0);
-			player.setPreferedSection("Any section");
-			player.setUsername(nams[i]);
-			pm.makePersistent(player);
-			}*/
+		}*/
 	}
 }
