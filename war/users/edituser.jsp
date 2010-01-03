@@ -16,10 +16,9 @@
 	session.removeAttribute("DeleteConfirmation");
  }
 
- Object[] members = DAO.getAllPlayers();
+ List<RWMember> members = DAO.getAllPlayers();
 
- for (Object o: members) {
-	 RWMember m = (RWMember) o;
+ for (RWMember m: members) {
 %>
    <form name="form1" id="form1" method="post" action="/actions/admin/submembrs">
    <tr>

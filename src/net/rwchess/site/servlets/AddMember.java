@@ -17,7 +17,8 @@ public class AddMember extends HttpServlet {
 	throws ServletException, IOException {		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		pm.makePersistent(new RWMember(req.getParameter("login"), UsefulMethods.getMD5(req
-				.getParameter("password")), 1, req.getParameter("country")));		
+				.getParameter("password")), 1, req.getParameter("country")));
+		DAO.flushMembersCache();
 		res.getWriter().println("User registered! Please inform him ASAP");
 	}
 }

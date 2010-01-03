@@ -5,6 +5,8 @@
 
 package net.rwchess.site.data;
 
+import java.text.Collator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,8 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
+import net.rwchess.site.utils.MembersComparator;
+import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
 
 import com.google.appengine.api.datastore.Blob;
@@ -43,7 +47,7 @@ public final class DAO {
 	private static Cache createCache() {
 		Cache cache = null;
 		Map props = new HashMap();
-        props.put(GCacheFactory.EXPIRATION_DELTA, 3600);
+        props.put(GCacheFactory.EXPIRATION_DELTA, 129600);
 
 		try {
 		    CacheFactory cacheFactory = CacheManager.getInstance().getCacheFactory();
@@ -67,12 +71,21 @@ public final class DAO {
 		return lst;		
 	}
 	
-	public static Object[] getAllPlayers() {
+	public static List<RWMember> getAllPlayers() {
 		PersistenceManager pm = pmfInstance.getPersistenceManager();
 		Query query = pm.newQuery(RWMember.class);
-		query.setOrdering("username asc");
-		Object[] lst = ((List<RWMember>) query.execute()).toArray();
-		return lst;
+		List<RWMember> members = (List<RWMember>) query.execute();
+		Collections.sort(members, MembersComparator.getInstance());
+		return members;
+	}
+	
+	public static String getAllMembersTable() {
+		String s;
+		if ((s = (String) cache.get("AllMembersTable")) == null) {
+			s = UsefulMethods.getMembersTableHtml(getAllPlayers());
+			cache.put("AllMembersTable", s);
+		}
+		return s;
 	}
 	
 	public static Object[] getUploadedFiles(String username) {
@@ -179,7 +192,7 @@ public final class DAO {
 		}
 	}
 	
-	public static LatestEvents<String> getEvents() {
+	public static LatestEvents getEvents() {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();			
 			return pm.getObjectById(LatestEvents.class, "LatestEvents");
@@ -187,5 +200,9 @@ public final class DAO {
 		catch (JDOObjectNotFoundException e) {
 			return null;
 		}
+	}
+	
+	public static void flushMembersCache() {
+		cache.remove("AllMembersTable");
 	}
 }

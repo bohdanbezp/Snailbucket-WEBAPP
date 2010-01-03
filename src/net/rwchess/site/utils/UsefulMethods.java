@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.ServletException;
@@ -192,6 +193,29 @@ public final class UsefulMethods {
 			dateFormat = new SimpleDateFormat("h:mm, d MMMMM yyyy", Locale.US);
 		
 		return dateFormat;
+	}
+	
+	public static String getMembersTableHtml(List<RWMember> members) {
+		StringBuffer buff = new StringBuffer();
+		//int maxRows = members.size()/4;
+		buff.append("<table border=\"0\" align=\"center\">");
+		int coloumn = 0;
+
+		for (RWMember m : members) {
+			if (coloumn == 0)
+				buff.append("<tr>");
+			else if (coloumn == 3) {
+				buff.append("</tr>");
+				coloumn = 0;
+			}
+			buff.append("<td width=\"25%\">");
+			buff.append("<img src=\"http://simile.mit.edu/exhibit/examples/flags/images/" +
+					""+m.getCountry()+".png\" border=\"0\"/>");
+			buff.append("<a href=\"/members/"+m.getUsername()+"\">"+m.getUsername()+"</a>");
+			coloumn++;
+		}
+		buff.append("</table>");
+		return buff.toString();
 	}
 	
 	/**
