@@ -53,7 +53,11 @@ public class Wiki extends HttpServlet {
 
 					WikiProvider.displayPageEdit(pg, req, res);
 					return;
-				} 
+				}
+				else if (action.startsWith("CreatePage")) {
+					WikiProvider.displayCreatePage(req, res);
+					return;
+				}
 				else if (action.startsWith("Create")) {
 					WikiPage pg = new WikiPage();
 					pg.setName(req.getParameter("page").replace('_', ' '));
@@ -124,7 +128,7 @@ public class Wiki extends HttpServlet {
 				page.setName(pageName);
 				WikiProvider.displayPagePreview(page, false, req, res);				
 			}
-		}
+		}		
 		else if (httpReq.getRequestURI().startsWith("/wiki/Special:Create")) {
 			String pageName = UsefulMethods.capitalize(
 					req.getParameter("pageName").replace('_', ' '));

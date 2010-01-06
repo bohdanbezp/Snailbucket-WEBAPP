@@ -26,6 +26,7 @@ import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
 
 import com.google.appengine.api.datastore.Blob;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.memcache.stdimpl.GCacheFactory;
 
 /**
@@ -47,7 +48,7 @@ public final class DAO {
 	private static Cache createCache() {
 		Cache cache = null;
 		Map props = new HashMap();
-        props.put(GCacheFactory.EXPIRATION_DELTA, 129600);
+        props.put(GCacheFactory.EXPIRATION_DELTA, 1296000);
 
 		try {
 		    CacheFactory cacheFactory = CacheManager.getInstance().getCacheFactory();
@@ -81,10 +82,24 @@ public final class DAO {
 	
 	public static String getAllMembersTable() {
 		String s;
-		if ((s = (String) cache.get("AllMembersTable")) == null) {
-			s = UsefulMethods.getMembersTableHtml(getAllPlayers());
-			cache.put("AllMembersTable", s);
-		}
+		//if ((s = (String) cache.get("AllMembersTable")) == null) {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();
+			CacheObject co;
+			try {
+				co = (CacheObject) pm.getObjectById(
+						CacheObject.class, "AllMembersTable");
+				s = co.getHtml().getValue();
+			} 
+			catch (JDOObjectNotFoundException e) {
+				s = UsefulMethods.getMembersTableHtml(getAllPlayers());
+				co = new CacheObject();
+				co.setKey("AllMembersTable");
+				co.setHtml(new Text(s));
+				pm.makePersistent(co);
+			}
+
+		//	cache.put("AllMembersTable", s);
+		//}
 		return s;
 	}
 	
@@ -192,6 +207,25 @@ public final class DAO {
 		}
 	}
 	
+	public static String getTlParticipantsTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "TlParticipantsTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = UsefulMethods.getTlParticipantsHtml(getTlParticipants(false));
+			co = new CacheObject();
+			co.setKey("TlParticipantsTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+	
 	public static LatestEvents getEvents() {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();			
@@ -202,7 +236,24 @@ public final class DAO {
 		}
 	}
 	
+	private static void deleteObj(String name) {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		try {
+			Object co = pm.getObjectById(CacheObject.class,
+					name);
+			pm.deletePersistent(co);
+		} 
+		catch (JDOObjectNotFoundException e) {
+		}
+	}
+	
 	public static void flushMembersCache() {
 		cache.remove("AllMembersTable");
+		deleteObj("AllMembersTable");		
+	}
+	
+	public static void flushTlParticipantsCache() {
+		cache.remove("TlParticipantsTable");
+		deleteObj("TlParticipantsTable");		
 	}
 }

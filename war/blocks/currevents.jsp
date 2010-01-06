@@ -14,10 +14,10 @@
 		<li><a style="font-size: 15px;"
 			href="/t41">T41</a></li>
 	</ul>
-	<ul>
+	<!-- <ul>
 		<li><a style="font-size: 15px;"
 			href="/ladder">RW Ladder</a></li>
-	</ul>
+	</ul> -->
 	</ul>
 <br/>
 <h2>Old events</h2>

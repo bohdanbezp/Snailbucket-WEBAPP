@@ -33,7 +33,7 @@ public class LatestEvents {
 		LatestEvents m;
 		try {
 			m = pm.getObjectById(LatestEvents.class, "LatestEvents");	
-			if (m.getStack().size() > 4) {
+			if (m.getStack().size() > 3) {
 				m.getStack().remove(m.getStack().size()-1);
 			}
 			m.getStack().add("<small>"+getLinkToUser(username)+" has created wiki article " +

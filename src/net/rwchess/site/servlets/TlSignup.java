@@ -31,8 +31,8 @@ public class TlSignup extends HttpServlet {
 		Session session = Session.getDefaultInstance(props, null);
 
 		String msgBody = player.getUsername() + " has registered for upcomming " +
-				"T41 and marked his availability as " + UsefulMethods.avlbByteToString(
-                 player.getAvailability()) + " with fixed rating of " + player.getFixedRating();
+				"T41 and marked his availability as \"" + UsefulMethods.avlbByteToString(
+                 player.getAvailability()) + "\" with fixed rating of " + player.getFixedRating();
 
 		try {
 			Message msg = new MimeMessage(session);
@@ -53,7 +53,8 @@ public class TlSignup extends HttpServlet {
 		catch (MessagingException e) {
 			e.printStackTrace();
 		}
-
+        
+		DAO.flushTlParticipantsCache();
 		res.sendRedirect("/t41");
 	}
 }

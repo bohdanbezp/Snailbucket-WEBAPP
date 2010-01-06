@@ -40,9 +40,11 @@ public class AuthorizationFilter implements Filter {
 		response.setCharacterEncoding("utf-8");
 		
 		if (uri.equals("/actions/login") || uri.equals("/")
-				|| uri.equals("/actions/import") || uri.equals("/index.jsp") ||
-				uri.startsWith("/static")) {
+				|| uri.equals("/actions/import") || uri.equals("/index.jsp")) {			
 			chain.doFilter(request, response); // go to the requested page			
+		}
+		else if (uri.startsWith("/static")) {
+			chain.doFilter(request, response);
 		}
 		else if (uri.startsWith("/actions")) {
 			if (fireIfNotRegistered(httpReq, response)) return; 

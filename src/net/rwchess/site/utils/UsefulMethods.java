@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.data.T41Player;
 
 /**
  * Some useful utility methods.
@@ -226,8 +227,15 @@ public final class UsefulMethods {
 	 */
 	public static String getRealQueryURI(String request) {
 		boolean start = false;
+		boolean sign = false;
 		StringBuffer buf = new StringBuffer();
 		for (char c: request.toCharArray()) {
+			if (c == '?' && sign)
+				break;
+				
+			if (c == '?')
+				sign = true;
+			
 			if (c == ' ' && start) 
 				break;
 			
@@ -257,6 +265,19 @@ public final class UsefulMethods {
 			return "Reserve player";	
 		}
 		return "";
+	}
+
+	public static String getTlParticipantsHtml(List<T41Player> allPlayers) {
+		StringBuffer buff = new StringBuffer();		
+		for (T41Player pl : allPlayers) {
+			buff.append("<tr>");
+			buff.append("<td>" + pl.getUsername() + "</td>");
+			buff.append("<td>" + pl.getFixedRating() + "</td>");
+			buff.append("<td>" + pl.getPreferedSection() + "</td>");
+			buff.append("<td>" + UsefulMethods.avlbByteToString(pl.getAvailability()) + "</td>");
+			buff.append("</tr>");
+		}
+		return buff.toString();
 	}
 
 }

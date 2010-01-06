@@ -12,8 +12,20 @@ public class WikiProvider {
 		// TODO Auto-generated method stub
 		
 	}
-
-	// TODO: clean it
+	
+	public static void displayCreatePage(HttpServletRequest req,
+			HttpServletResponse res) {		
+		try {
+			req.getRequestDispatcher("/WEB-INF/jsp/wiki/create-page.jsp")
+					.include(req, res);
+		} 
+		catch (ServletException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void displayPage(WikiPage page, HttpServletRequest req,
 			HttpServletResponse res) {		

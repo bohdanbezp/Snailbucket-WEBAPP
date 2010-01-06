@@ -14,15 +14,9 @@
 	       <td>Preffered section</td>
 	       <td>Availability</td>
 </tr> 
-<% 
-for (T41Player pl: DAO.getTlParticipants(false)) { %>
-	    <tr>
-	       <td><%=pl.getUsername() %></td>
-	       <td><%=pl.getFixedRating() %></td>
-	       <td><%=pl.getPreferedSection() %></td> 
-	       <td><%=UsefulMethods.avlbByteToString(pl.getAvailability()) %></td>
-	    </tr>
-<% } %>
+<%
+out.print(DAO.getTlParticipantsTable());
+%>
 </table>
 
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>
