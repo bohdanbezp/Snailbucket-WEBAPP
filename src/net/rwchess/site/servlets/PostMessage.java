@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.ForumMessage;
 import net.rwchess.site.data.DAO;
+import net.rwchess.site.utils.Mailer;
 import net.rwchess.site.utils.UsefulMethods;
 
 /**
@@ -31,6 +32,13 @@ public class PostMessage extends HttpServlet {
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
 			if (thereIsSuchForum(pm, forum)) {
+				if (forum.equals("news")) {
+					String body = username
+							+ " has posted the following on the main page: \n\n"
+							+ message;
+					Mailer.forumPost(body, "Main page post");
+				}
+				
 				pm.makePersistent(new ForumMessage(username, forum, timestamp,
 						title, new Text(message)));
 				pm.refreshAll();

@@ -39,7 +39,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	</servlet>
 	<servlet>
 		<servlet-name>t41</servlet-name>
-		<jsp-file>/WEB-INF/jsp/events/tpreview.jsp</jsp-file>
+		<jsp-file>/WEB-INF/jsp/events/t41.jsp</jsp-file>
 	</servlet>	
 	<servlet>
 		<servlet-name>swiss</servlet-name>

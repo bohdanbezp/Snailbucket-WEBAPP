@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Date;
 import java.util.Stack;
 
+import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -15,6 +16,7 @@ import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.LatestEvents;
+import net.rwchess.site.data.WikiEditObject;
 import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
 import net.rwchess.wiki.WikiProvider;
@@ -33,7 +35,8 @@ public class Wiki extends HttpServlet {
 			return;
 		}
 		String pageName = UsefulMethods.capitalize(
-				req.getRequestURI().substring(6).replace('_', ' '));		
+				req.getRequestURI().substring(6).replace('_', ' ')
+				.replaceAll("%20", " "));		
 		
 		if (pageName.startsWith("Special")) {
 			String action = pageName.substring(8);
@@ -112,8 +115,12 @@ public class Wiki extends HttpServlet {
 				try {
 					WikiPage page = pm.getObjectById(WikiPage.class, req.getParameter("pageName"));
 					page.setName(pageName);
-					page.setRawText(new Text(req.getParameter("contents")));
+					Text raw = new Text(req.getParameter("contents"));
+					Text beforeEdit = page.getRawText();
+					page.setRawText(raw);
 					dealWithHistoryStack(page.getHistory(), UsefulMethods
+							.getUsername(req.getSession()));
+					fixateEdit(pageName, raw, beforeEdit, UsefulMethods
 							.getUsername(req.getSession()));
 
 					res.sendRedirect("/wiki/"+page.getName().replace(' ', '_'));
@@ -170,9 +177,30 @@ public class Wiki extends HttpServlet {
 			res.sendError(404);
 	}
 
+	private void fixateEdit(String pageName, Text after,
+			Text before, String uname) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();	
+		try {					
+			WikiEditObject obj = pm.getObjectById(WikiEditObject.class, pageName);
+			obj.setChangedVersion(after);
+		} 
+		catch (JDOObjectNotFoundException e) {
+			WikiEditObject obj = new WikiEditObject();
+			obj.setDateStamp(System.currentTimeMillis());
+			obj.setChangedVersion(after);
+			obj.setOriginalVersion(before);
+			obj.setPageName(pageName);
+			obj.setUname(uname);
+			pm.makePersistent(obj);
+		}
+		finally {
+			pm.close();
+		}
+	}
+
 	private void dealWithHistoryStack(Stack<String> history, String username) {
 		if (history.size() == 30) {
-			history.remove(history.size()-1);
+			history.remove(0);
 		}
 		String date = UsefulMethods.getWikiDateFormatter().format(new Date());
 		history.push(date + " by <a href=\"/members/"+username+"\">"+username+"</a>" );	

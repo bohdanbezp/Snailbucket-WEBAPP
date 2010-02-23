@@ -154,7 +154,7 @@ public final class DAO {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
 			Query query = pm.newQuery(TeamDuel.class);
 			query.setOrdering("roundNumber desc");
-			query.setRange(0, 3);
+			query.setRange(0, 2);
 			return (List<TeamDuel>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {
@@ -164,6 +164,10 @@ public final class DAO {
 
 	public static void fixateResult(String player, double winningPoints) {
 		PersistenceManager pm = DAO.get().getPersistenceManager();
+		
+		if (player.equals("SachinRavi"))
+			player = "sachinravi";
+		
 		try {
 			T41Player mem = (T41Player) pm.getObjectById(
 					T41Player.class, player);
@@ -177,11 +181,55 @@ public final class DAO {
 		}
 	}
 	
+	public static TeamDuel getTlDuel(String key) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		try {
+			TeamDuel duel = (TeamDuel) pm.getObjectById(
+					TeamDuel.class, key);
+			return duel;
+		}
+		catch (JDOObjectNotFoundException e) {		
+			return null;
+		}
+		finally {
+			pm.close();
+		}
+	}
+	
+	public static void fixateResult(List<Boolean> fix, String key) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		try {
+			TeamDuel duel = (TeamDuel) pm.getObjectById(
+					TeamDuel.class, key);
+			duel.setFixated(fix);
+		}
+		catch (JDOObjectNotFoundException e) {			
+		}
+		finally {
+			pm.close();
+		}
+	}
+	
 	public static boolean playsInT41(String name) {
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
 			T41Player mem = (T41Player) pm.getObjectById(
 					T41Player.class, name);
+			return true;
+		}
+		catch (JDOObjectNotFoundException e) {
+			return false;
+		}
+		finally {
+			pm.close();
+		}
+	}
+	
+	public static boolean playsInSwiss(String name) {
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		try {
+			RWSwissPlayer mem = (RWSwissPlayer) pm.getObjectById(
+					RWSwissPlayer.class, name);
 			return true;
 		}
 		catch (JDOObjectNotFoundException e) {
@@ -236,10 +284,33 @@ public final class DAO {
 		}
 	}
 	
+	public static List<WikiEditObject> getAllWikiEditObjects() {
+		try {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();
+			Query query = pm.newQuery(WikiEditObject.class);
+			query.setOrdering("dateStamp desc");
+			return (List<WikiEditObject>) query.execute();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			return null;
+		}
+	}
+	
 	private static void deleteObj(String name) {
 		PersistenceManager pm = pmfInstance.getPersistenceManager();
 		try {
 			Object co = pm.getObjectById(CacheObject.class,
+					name);
+			pm.deletePersistent(co);
+		} 
+		catch (JDOObjectNotFoundException e) {
+		}
+	}
+	
+	public static void deleteWikiObj(String name) {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		try {
+			Object co = pm.getObjectById(WikiEditObject.class,
 					name);
 			pm.deletePersistent(co);
 		} 

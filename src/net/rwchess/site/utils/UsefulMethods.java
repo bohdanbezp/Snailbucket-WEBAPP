@@ -212,7 +212,7 @@ public final class UsefulMethods {
 			buff.append("<td width=\"25%\">");
 			buff.append("<img src=\"http://simile.mit.edu/exhibit/examples/flags/images/" +
 					""+m.getCountry()+".png\" border=\"0\"/>");
-			buff.append("<a href=\"/members/"+m.getUsername()+"\">"+m.getUsername()+"</a>");
+			buff.append("<a href=\"/wiki/User:"+m.getUsername()+"\">"+m.getUsername()+"</a>");
 			coloumn++;
 		}
 		buff.append("</table>");

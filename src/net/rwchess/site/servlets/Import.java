@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.jdo.JDOObjectNotFoundException;
+import javax.jdo.PersistenceManager;
 import javax.mail.*;
 import javax.mail.internet.*;
 
@@ -13,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.T41Player;
+import net.rwchess.site.data.TeamDuel;
 import net.rwchess.site.utils.UsefulMethods;
 
 
@@ -54,7 +58,38 @@ public class Import extends HttpServlet {
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {	
-                Properties props = new Properties();		
+		
+	/*	String[] names = { "PeterSanderson", "iwulu", "Maras", "Gregorioo",
+				"ivohristov", "AlesD", "Acho", "NoiroP", "bodzolca", "Bodia",
+				"WilkBardzoZly", "pchesso", "Gavrilo", "sachinravi", "piorgovici",
+				"wfletcher", "Nitreb"}; */
+		
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		try {
+			for (TeamDuel d : DAO.getCurrRoundTeamDuels()) {
+				System.out.println(d.getResults().size());
+					if (d.getResults().size() > 4) {
+						d.setResults(null);
+						d.setFixated(null);
+					}			
+			}
+		}
+		finally {
+			pm.close();
+		}
+		
+		
+		
+		/*String[] names = {"Harmonicus"};
+		
+		for (String name: names) {
+			T41Player pl = new T41Player();
+			pl.setUsername(name);
+			pl.setAvailability((byte)0);
+			pl.setFixedRating(0);
+			pl.setPreferedSection("1996");
+			pm.makePersistent(pl);
+		}*/	
 		/**PersistenceManager pm = DAO.get().getPersistenceManager();
 		String[] names = { "HerrGott", "Noiro", "piorgovici", "pchesso",
 				"Bodia", "Acho", "sachinravi", "jussu", "Natin", "Nitreb",

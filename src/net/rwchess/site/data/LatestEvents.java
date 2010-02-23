@@ -1,5 +1,6 @@
 package net.rwchess.site.data;
 
+import java.io.IOException;
 import java.util.Stack;
 
 import javax.jdo.JDOObjectNotFoundException;
@@ -8,6 +9,8 @@ import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
+
+import net.rwchess.site.utils.Mailer;
 
 @PersistenceCapable(identityType = IdentityType.DATASTORE)
 public class LatestEvents {	
@@ -34,7 +37,7 @@ public class LatestEvents {
 		try {
 			m = pm.getObjectById(LatestEvents.class, "LatestEvents");	
 			if (m.getStack().size() > 3) {
-				m.getStack().remove(m.getStack().size()-1);
+				m.getStack().remove(0);
 			}
 			m.getStack().add("<small>"+getLinkToUser(username)+" has created wiki article " +
 					"<a href=\"/wiki/"+title+"\">"+title+"</a></small>");
@@ -47,7 +50,19 @@ public class LatestEvents {
 		}
 		finally {
 			pm.close();
-		}		
+		}
+		
+		try {
+			String body = username
+					+ " has created wiki page \""
+					+ title
+					+ "\". You may access it using the following link: http://rwchess.appspot.com/wiki/"
+					+ title.replace(' ', '_');
+			Mailer.emailWikipageCreation(body);
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void addFileUpload(String filename, String username) {

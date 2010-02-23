@@ -87,8 +87,10 @@ public class TlPairingsParser {
 		if (Character.isDigit(s.charAt(0))) { // damn, round number is two digits long
 			s = s.substring(1); // we won't need any kind of that crap in xml
 		}
-		else
-			roundNumber = roundNumber.trim();		
+		else {
+			roundNumber = roundNumber.substring(0, roundNumber.length()-1);
+			roundNumber = roundNumber.trim();
+		}		
 	}
 
 	private void parseValidXml() {
@@ -121,22 +123,25 @@ public class TlPairingsParser {
 	            	
 	            	XMLElement firstTeam = (XMLElement) fir.getChildren().get(0);
 	            	XMLElement secondTeam = (XMLElement) fir.getChildren().get(2);
-	            	TeamDuel duel = new TeamDuel();	
-	            	duel.setSection(ratingSection);
-	            	duel.setRoundNumber(roundNumber);
-	            	duel.setRwTeamname(
-	            			mightyWarriorsPlaying(firstTeam) ? firstTeam.getContent() :
-	            				secondTeam.getContent());
-	            	duel.setOpponentTeamname(
-	            			!mightyWarriorsPlaying(firstTeam) ? firstTeam.getContent() :
-	            				secondTeam.getContent());
-	            	if (duel.getFixated() == null) {
-	            		List<Boolean> fix = new ArrayList<Boolean>();
-	            		for (int j = 0; j < 4; j++) {
-	            			fix.add(false);
-	            		}
-	            		duel.setFixated(fix);
-	            	}
+	            	
+	            	TeamDuel duel;
+	            	String key = UsefulMethods.getMD5(ratingSection+roundNumber);
+	            	
+	            	duel = DAO.getTlDuel(key);
+	            	
+					if (duel == null) {
+						duel = new TeamDuel();
+
+						duel.setSection(ratingSection);
+						duel.setRoundNumber(roundNumber);
+						duel.setRwTeamname(mightyWarriorsPlaying(firstTeam)
+								? firstTeam.getContent()
+										: secondTeam.getContent());
+						duel.setOpponentTeamname(!mightyWarriorsPlaying(firstTeam)
+								? firstTeam.getContent()
+										: secondTeam.getContent());
+					}
+					
 	            	List<Boolean> fix = duel.getFixated();
 	            	
 	            	for (int i = 1; i < 5; i++) {
@@ -148,7 +153,8 @@ public class TlPairingsParser {
 		            			firstPl.getContent() : secondPl.getContent());
 		            	duel.addOpponentPlayer(!mightyWarriorsPlaying(firstTeam) ? 
 		            			firstPl.getContent() : secondPl.getContent());
-		            	duel.addResult(result.getContent());		
+		            	duel.addResult(mightyWarriorsPlaying(firstTeam) ? 
+		            			result.getContent() : revertResult(result.getContent()));		
 		            	
 						if (matchesResultPattern(result.getContent())) {
 							if (!fix.get(i - 1)) {
@@ -159,14 +165,13 @@ public class TlPairingsParser {
 								DAO.fixateResult(mightyWarriorsPlaying(firstTeam) ? 
 												firstPl.getContent() :
 													secondPl.getContent(), points);								
+								//DAO.fixateResult(fix, key);
 								duel.setFixated(fix);
-							}
-		            	}
-		            	
+							}							
+		            	}						
 	            	}
-	            	duel.setWhiteFirst(((XMLElement) ((XMLElement) m.getChildren().get(1))
-	            			.getChildren().get(0)).getContent().equals("White"));
-	            	duel.setKey(UsefulMethods.getMD5(ratingSection+roundNumber));
+	            	duel.setWhiteFirst(mightyWarriorsPlaying(firstTeam));
+	            	duel.setKey(key);
 	            	duels.add(duel);
 	            }
 	        }			
@@ -175,6 +180,15 @@ public class TlPairingsParser {
 			// if we get here, then the input was totally f****d up
 			e.printStackTrace(); // I'll see it in logs anyway
 		}
+	}
+
+	private String revertResult(String content) {
+		if (content.equals("1-0")) 
+			return "0-1";
+		else if (content.equals("0-1"))
+		    return "1-0";
+		
+		return content;
 	}
 
 	private boolean matchesResultPattern(String content) {

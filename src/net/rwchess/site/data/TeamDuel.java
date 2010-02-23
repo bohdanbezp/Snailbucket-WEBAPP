@@ -44,7 +44,7 @@ public class TeamDuel implements Serializable {
 	@Persistent
 	private boolean isWhiteFirst;
 	
-	@Persistent
+	@Persistent(defaultFetchGroup="true") 
 	private List<Boolean> fixated;
 
 	public String getRwTeamname() {
@@ -86,6 +86,12 @@ public class TeamDuel implements Serializable {
 	}
 
 	public List<String> getResults() {
+		if (results.size() > 4) {
+			for (int i = 0; i < results.size()-4-1; i++) {
+				results.remove(i);
+			}
+		}
+		
 		return results;
 	}
 
@@ -137,6 +143,14 @@ public class TeamDuel implements Serializable {
 	}
 
 	public List<Boolean> getFixated() {
+		if (fixated == null || fixated.size() < 4) {
+			fixated = new ArrayList<Boolean>();
+
+			for (int j = 0; j < 4; j++) {
+				fixated.add(false);
+			}
+		}
+		
 		return fixated;
 	}
 

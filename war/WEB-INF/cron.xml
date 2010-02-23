@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+  <cron>
+    <url>/special/check</url>
+    <description>Check TL</description>
+    <schedule>every 6 hours</schedule>
+  </cron>
+</cronentries>

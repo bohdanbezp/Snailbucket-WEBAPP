@@ -21,7 +21,7 @@
 	   List<String> ropponents = duel.getOpponentPlayersList();
 	   List<String> results = duel.getResults();
 	   String first = duel.isWhiteFirst() ? "White" : "Black";
-	   String second = !duel.isWhiteFirst() ? "White" : "Black";
+	   String second = duel.isWhiteFirst() ? "Black" : "White";
 	   %>
 	
 	   <table width="80%"  border="1" cellpadding="0" cellspacing="2">
@@ -64,13 +64,20 @@
     
     <br/> 
 	<h2>Most successful players</h2></br> 
-    
+    <table width="80%"  border="0" cellpadding="0" cellspacing="2">
 <%  int i = 1;
-    for (T41Player pl: DAO.getTlParticipants(true)) {
-    	out.println(i++ + ". " + pl.getUsername() + " " + pl.getPoints()+"/"+pl.getGames()+"<br/>");
+    for (T41Player pl: DAO.getTlParticipants(true)) { %>
+    	<tr>
+    	<% 
+    	out.println("<td width=\"5%\">"+i++ + "</td>");
+    	out.println("<td>"+pl.getUsername()+"</td>");
+    	out.println("<td>"+pl.getPoints()+"/"+pl.getGames()+"</td>");
+    	%>
+    	</tr>
+    	<%
     }
 %> 
-
+    </table>
 
 
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>

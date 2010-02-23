@@ -78,7 +78,6 @@ public class AuthorizationFilter implements Filter {
 			chain.doFilter(request, response);
 		}
 		else if (uri.startsWith("/files")) {
-			if (fireIfNotRegistered(httpReq, response)) return; 
 			
 			chain.doFilter(request, response);
 		}
