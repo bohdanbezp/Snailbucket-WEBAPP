@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.data.RWSwissPlayer;
 import net.rwchess.site.data.T41Player;
 
 /**
@@ -275,6 +276,17 @@ public final class UsefulMethods {
 			buff.append("<td>" + pl.getFixedRating() + "</td>");
 			buff.append("<td>" + pl.getPreferedSection() + "</td>");
 			buff.append("<td>" + UsefulMethods.avlbByteToString(pl.getAvailability()) + "</td>");
+			buff.append("</tr>");
+		}
+		return buff.toString();
+	}
+	
+	public static String getSwissParticipantsHtml(List<RWSwissPlayer> allPlayers) {
+		StringBuffer buff = new StringBuffer();		
+		for (RWSwissPlayer pl : allPlayers) {
+			buff.append("<tr>");
+			buff.append("<td>" + pl.getUsername() + "</td>");
+			buff.append("<td>" + pl.getFixedRating() + "</td>");
 			buff.append("</tr>");
 		}
 		return buff.toString();

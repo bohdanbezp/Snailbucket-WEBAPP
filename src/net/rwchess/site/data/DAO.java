@@ -211,6 +211,9 @@ public final class DAO {
 	}
 	
 	public static boolean playsInT41(String name) {
+		if (name.equals("null"))
+			return false;
+		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
 			T41Player mem = (T41Player) pm.getObjectById(
@@ -226,6 +229,9 @@ public final class DAO {
 	}
 	
 	public static boolean playsInSwiss(String name) {
+		if (name.equals("null"))
+			return false;
+		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
 			RWSwissPlayer mem = (RWSwissPlayer) pm.getObjectById(
@@ -255,6 +261,18 @@ public final class DAO {
 		}
 	}
 	
+	public static List<RWSwissPlayer> getSwissParticipants() {
+		try {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();
+			Query query = pm.newQuery(RWSwissPlayer.class);
+			query.setOrdering("fixedRating desc");
+			return (List<RWSwissPlayer>) query.execute();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			return null;
+		}
+	}
+	
 	public static String getTlParticipantsTable() {
 		String s;
 		PersistenceManager pm = pmfInstance.getPersistenceManager();
@@ -268,6 +286,25 @@ public final class DAO {
 			s = UsefulMethods.getTlParticipantsHtml(getTlParticipants(false));
 			co = new CacheObject();
 			co.setKey("TlParticipantsTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+	
+	public static String getSwissParticipantsTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "SwissParticipantsTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = UsefulMethods.getSwissParticipantsHtml(getSwissParticipants());
+			co = new CacheObject();
+			co.setKey("SwissParticipantsTable");
 			co.setHtml(new Text(s));
 			pm.makePersistent(co);
 		}
@@ -319,12 +356,14 @@ public final class DAO {
 	}
 	
 	public static void flushMembersCache() {
-		cache.remove("AllMembersTable");
 		deleteObj("AllMembersTable");		
 	}
 	
 	public static void flushTlParticipantsCache() {
-		cache.remove("TlParticipantsTable");
 		deleteObj("TlParticipantsTable");		
+	}
+	
+	public static void flushSwissParticipantsCache() {
+		deleteObj("SwissParticipantsTable");		
 	}
 }

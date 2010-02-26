@@ -40,7 +40,11 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet>
 		<servlet-name>t41</servlet-name>
 		<jsp-file>/WEB-INF/jsp/events/t41.jsp</jsp-file>
-	</servlet>	
+	</servlet>
+	<servlet>
+		<servlet-name>swiss2010</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/rwswiss2010.jsp</jsp-file>
+	</servlet>		
 	<servlet>
 		<servlet-name>swiss</servlet-name>
 		<jsp-file>/WEB-INF/jsp/events/rwswiss.jsp</jsp-file>
@@ -93,6 +97,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet>
 		<servlet-name>signtl</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.TlSignup</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>signswiss</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.SwissSignup</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>changepasswd</servlet-name>
@@ -176,10 +184,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>t41</servlet-name>
 		<url-pattern>/t41</url-pattern>
-	</servlet-mapping>
+	</servlet-mapping>	
 	<servlet-mapping>
 		<servlet-name>signtl</servlet-name>
 		<url-pattern>/actions/signtl</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>signswiss</servlet-name>
+		<url-pattern>/actions/signswiss</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>swiss</servlet-name>
@@ -192,6 +204,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>viewer</servlet-name>
 		<url-pattern>/viewer</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>swiss2010</servlet-name>
+		<url-pattern>/swiss2010</url-pattern>
 	</servlet-mapping>
 	
 </web-app>
