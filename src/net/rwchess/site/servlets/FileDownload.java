@@ -18,6 +18,11 @@ public class FileDownload extends HttpServlet {
 		
 		try {
 			Blob file = DAO.getFile(fileName);
+			if (file == null) {
+				res.sendError(404);
+				return;			
+			}
+			
 			res.getOutputStream().write(file.getBytes());
 			res.getOutputStream().flush();
 		} 

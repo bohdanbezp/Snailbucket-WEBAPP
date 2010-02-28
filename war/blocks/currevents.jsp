@@ -10,6 +10,10 @@
 
 <ul>
 	<h2>Current Events</h2>
+        <ul>
+		<li><a style="font-size: 15px;"
+			href="/swiss2010">RW Swiss 2010</a> <b>New</b></li>
+	</ul> 
 	<ul>
 		<li><a style="font-size: 15px;"
 			href="/t41">T41</a></li>

@@ -122,6 +122,7 @@ public class Wiki extends HttpServlet {
 							.getUsername(req.getSession()));
 					fixateEdit(pageName, raw, beforeEdit, UsefulMethods
 							.getUsername(req.getSession()));
+					DAO.deleteObj("WikiBackupTable");
 
 					res.sendRedirect("/wiki/"+page.getName().replace(' ', '_'));
 				}

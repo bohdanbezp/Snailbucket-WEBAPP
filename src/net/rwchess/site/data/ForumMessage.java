@@ -14,6 +14,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import net.rwchess.site.utils.Base64Coder;
+
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
@@ -96,4 +98,12 @@ public class ForumMessage  implements Serializable {
 		this.message = message;
 	}
 
+	public String toString() {
+		return "Username: " + username + "\n" +
+				"ForumName: " + forumName + "\n" +
+						"Title: " + title + "\n" +
+								"Message: " + message.getValue() + "\n" +
+										"Timestamp: " + timestamp.toString() + "\n";
+		
+	}
 }

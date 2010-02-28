@@ -8,6 +8,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import net.rwchess.site.utils.Base64Coder;
 import net.rwchess.site.utils.UsefulMethods;
 
 import com.google.appengine.api.datastore.Text;
@@ -62,5 +63,13 @@ public class WikiPage implements Serializable {
 
 	public void setHistory(Stack<String> history) {
 		this.history = history;
+	}
+	
+	public String toString() {
+		return "Name: " + name + "\n\n" +
+				"RawText: \n" + Base64Coder.encodeLines(rawText.getValue().getBytes()) + "\n" +
+				"HtmlText: \n" + Base64Coder.encodeLines(htmlText.getValue().getBytes()) + "\n" +
+						"History: " + history.toString() + "\n";
+		
 	}
 }

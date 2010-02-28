@@ -7,6 +7,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import net.rwchess.site.utils.Base64Coder;
+
 import com.google.appengine.api.datastore.Blob;
 
 @PersistenceCapable(identityType = IdentityType.DATASTORE)
@@ -40,5 +42,9 @@ public class File implements Serializable {
 
 	public void setFile(Blob file) {
 		this.file = file;
+	}
+	
+	public String toString() {
+		return fileName + "\n\n" + Base64Coder.encodeLines(file.getBytes());
 	}
 }

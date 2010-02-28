@@ -21,6 +21,7 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
+import net.rwchess.site.servlets.BackupServlet;
 import net.rwchess.site.utils.MembersComparator;
 import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
@@ -131,12 +132,13 @@ public final class DAO {
 	}
 
 	public static Blob getFile(String fileName) {
-		PersistenceManager pm = pmfInstance.getPersistenceManager();
-		Query query = pm.newQuery(File.class);
-		query.setFilter("fileName == file");
-		query.declareParameters("String file");
-		
-		return ((List<File>) query.execute(fileName)).get(0).getFile();
+		try {
+			PersistenceManager pm = pmfInstance.getPersistenceManager();
+			return ((File) pm.getObjectById(File.class, fileName)).getFile();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			return null;
+		}
 	}
 
 	public static WikiPage getWikiPage(String pageName) {
@@ -333,7 +335,7 @@ public final class DAO {
 		}
 	}
 	
-	private static void deleteObj(String name) {
+	public static void deleteObj(String name) {
 		PersistenceManager pm = pmfInstance.getPersistenceManager();
 		try {
 			Object co = pm.getObjectById(CacheObject.class,
@@ -365,5 +367,102 @@ public final class DAO {
 	
 	public static void flushSwissParticipantsCache() {
 		deleteObj("SwissParticipantsTable");		
+	}
+
+	public static String getMembersBackupTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "MembersBackupTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = BackupServlet.generateBackupTable(getAllPlayers());
+			co = new CacheObject();
+			co.setKey("MembersBackupTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+
+	public static String getFilesBackupTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "FilesBackupTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = BackupServlet.generateBackupTable(getAllFiles());
+			co = new CacheObject();
+			co.setKey("FilesBackupTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+	
+	public static String getForumBackupTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "ForumBackupTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = BackupServlet.generateBackupTable(getAllForums());
+			co = new CacheObject();
+			co.setKey("ForumBackupTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+	
+	public static List getAllFiles() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(File.class);
+		
+		return (List) query.execute();
+	}
+	
+	public static List getAllForums() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(ForumMessage.class);
+		
+		return (List) query.execute();
+	}
+
+	public static String getWikiBackupTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "WikiBackupTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = BackupServlet.generateBackupTable(getAllWiki());
+			co = new CacheObject();
+			co.setKey("WikiBackupTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+
+	private static List getAllWiki() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(WikiPage.class);
+		
+		return (List) query.execute();
 	}
 }

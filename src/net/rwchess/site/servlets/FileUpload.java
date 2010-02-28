@@ -66,6 +66,7 @@ public class FileUpload extends HttpServlet {
 			else
 				throw new FileUploadException("Something went wrong");
 			
+			DAO.deleteObj("FilesBackupTable");
 			res.sendRedirect("/");
 		} 
 		catch (FileUploadException e) {

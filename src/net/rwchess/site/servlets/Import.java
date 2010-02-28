@@ -14,6 +14,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.repackaged.com.google.common.base.Log;
+
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.T41Player;
 import net.rwchess.site.data.TeamDuel;
@@ -64,32 +71,19 @@ public class Import extends HttpServlet {
 				"WilkBardzoZly", "pchesso", "Gavrilo", "sachinravi", "piorgovici",
 				"wfletcher", "Nitreb"}; */
 		
-		PersistenceManager pm = DAO.get().getPersistenceManager();
-		try {
-			for (TeamDuel d : DAO.getCurrRoundTeamDuels()) {
-				System.out.println(d.getResults().size());
-					if (d.getResults().size() > 4) {
-						d.setResults(null);
-						d.setFixated(null);
-					}			
-			}
-		}
-		finally {
-			pm.close();
-		}
+            DatastoreService datastore =
+DatastoreServiceFactory.getDatastoreService();
+            Query query = new Query("_ah_SESSION");
+            PreparedQuery results = datastore.prepare(query);
+
+            res.getOutputStream().println("Deleting " + results.countEntities() + " sessions from data store");
+
+            for (Entity session : results.asIterable()) {
+                    datastore.delete(session.getKey());
+            }
+    
 		
 		
-		
-		/*String[] names = {"Harmonicus"};
-		
-		for (String name: names) {
-			T41Player pl = new T41Player();
-			pl.setUsername(name);
-			pl.setAvailability((byte)0);
-			pl.setFixedRating(0);
-			pl.setPreferedSection("1996");
-			pm.makePersistent(pl);
-		}*/	
 		/**PersistenceManager pm = DAO.get().getPersistenceManager();
 		String[] names = { "HerrGott", "Noiro", "piorgovici", "pchesso",
 				"Bodia", "Acho", "sachinravi", "jussu", "Natin", "Nitreb",

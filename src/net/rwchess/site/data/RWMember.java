@@ -79,4 +79,12 @@ public class RWMember implements Serializable {
 		this.group = group;
 		this.country = country;
 	}
+	
+	public String toString() {
+		return "Username: " + username + "\n" +
+				"PasswordHash: " + passwordHash + "\n" +
+						"Group: " + group + "\n" +
+								"Country: " + country + "\n";
+		
+	}
 }

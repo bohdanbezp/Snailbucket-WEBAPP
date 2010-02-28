@@ -42,6 +42,7 @@ public class PostMessage extends HttpServlet {
 				pm.makePersistent(new ForumMessage(username, forum, timestamp,
 						title, new Text(message)));
 				pm.refreshAll();
+				DAO.deleteObj("ForumBackupTable");
 			}
 		} 
 		finally {

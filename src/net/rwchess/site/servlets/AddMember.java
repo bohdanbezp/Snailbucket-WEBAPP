@@ -19,6 +19,7 @@ public class AddMember extends HttpServlet {
 		pm.makePersistent(new RWMember(req.getParameter("login"), UsefulMethods.getMD5(req
 				.getParameter("password")), 1, req.getParameter("country")));
 		DAO.flushMembersCache();
+		DAO.deleteObj("MembersBackupTable");
 		res.getWriter().println("User registered! Please inform him ASAP");
 	}
 }

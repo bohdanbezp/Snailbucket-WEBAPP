@@ -59,6 +59,7 @@ public class LatestEvents {
 					+ "\". You may access it using the following link: http://rwchess.appspot.com/wiki/"
 					+ title.replace(' ', '_');
 			Mailer.emailWikipageCreation(body);
+			DAO.deleteObj("WikiBackupTable");
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
@@ -80,7 +81,7 @@ public class LatestEvents {
 			m = new LatestEvents();
 			m.getStack().add("<small>"+getLinkToUser(username)+" has uploaded file " +
 					"<a href=\"/files//"+filename+"\">"+filename+"</a></small>");
-			DAO.get().getPersistenceManager().makePersistent(m);
+			DAO.get().getPersistenceManager().makePersistent(m);			
 		}
 		finally {
 			pm.close();

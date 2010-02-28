@@ -110,6 +110,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>addmember</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.AddMember</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>backup</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.BackupServlet</servlet-class>
+	</servlet>
 
 
 	<filter>
@@ -208,6 +212,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>swiss2010</servlet-name>
 		<url-pattern>/swiss2010</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>backup</servlet-name>
+		<url-pattern>/backup/*</url-pattern>
 	</servlet-mapping>
 	
 </web-app>
