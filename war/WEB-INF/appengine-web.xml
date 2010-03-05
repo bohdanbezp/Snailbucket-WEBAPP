@@ -3,16 +3,16 @@
 	<application>rwchess</application>
 	<version>1</version>
 	
-	<!-- Configure java.util.logging -->
-	<system-properties>
-		<property name="java.util.logging.config.file" value="WEB-INF/logging.properties"/>
-	</system-properties>
 	<sessions-enabled>true</sessions-enabled>
 	
 	<static-files>
         <include path="/favicon.ico" />
         <include path="/static/**" expiration="10d 5h" />
     </static-files>
+    
+    <precompilation-enabled>true</precompilation-enabled>
+    
+    <ssl-enabled>false</ssl-enabled>
     
 </appengine-web-app>
 

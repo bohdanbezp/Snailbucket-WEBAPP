@@ -4,6 +4,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 	<title>Rainbow Warriors Bunch</title>
 	<link rel="stylesheet" type="text/css" href="/static/style.css"/>
+	<link rel="alternate" type="application/rss+xml" title="Rainbow Warriors Feed" href="/rss.xml"/>
 </head>
 <body>
 <div id="wrapper">

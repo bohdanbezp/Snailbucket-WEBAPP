@@ -5,7 +5,7 @@
 
 package net.rwchess.site.data;
 
-import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +22,7 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
 import net.rwchess.site.servlets.BackupServlet;
+import net.rwchess.site.servlets.RssFeader;
 import net.rwchess.site.utils.MembersComparator;
 import net.rwchess.site.utils.UsefulMethods;
 import net.rwchess.wiki.WikiPage;
@@ -92,7 +93,7 @@ public final class DAO {
 				s = co.getHtml().getValue();
 			} 
 			catch (JDOObjectNotFoundException e) {
-				s = UsefulMethods.getMembersTableHtml(getAllPlayers());
+				s = UsefulMethods.getMembersTableHtml(getAllPlayers(), getAliveUsers());
 				co = new CacheObject();
 				co.setKey("AllMembersTable");
 				co.setHtml(new Text(s));
@@ -464,5 +465,69 @@ public final class DAO {
 		Query query = pm.newQuery(WikiPage.class);
 		
 		return (List) query.execute();
+	}
+	
+	private static List<RssItem> getRssItems() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(RssItem.class);
+		
+		return (List<RssItem>) query.execute();
+	}
+	
+	public static String getAliveUsersTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "AliveUsersTable");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			StringBuffer b = new StringBuffer();
+			for (String p : getAliveUsers()) {
+				b.append("<a href=\"http://rwchess.appspot.com/wiki/User:" + p
+						+ "\">" + p + "</a> ");
+			}
+			s = b.toString();
+			co = new CacheObject();
+			co.setKey("AliveUsersTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
+	}
+	
+	public static List<String> getAliveUsers() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(WikiPage.class);		
+		List<WikiPage> pages = (List<WikiPage>) query.execute();
+		List<String> result = new ArrayList<String>();
+		for (WikiPage page: pages) {
+			if (page.getName().startsWith("User:")) {
+				result.add(page.getName().substring(5));
+			}
+		}
+		
+		return result;
+	}
+
+	public static String getRssFead() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(
+					CacheObject.class, "RssFead");
+			s = co.getHtml().getValue();
+		} 
+		catch (JDOObjectNotFoundException e) {
+			s = RssFeader.generateFeed(getRssItems());
+			co = new CacheObject();
+			co.setKey("RssFead");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
+		return s;
 	}
 }

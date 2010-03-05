@@ -16,7 +16,7 @@
 	</ul> 
 	<ul>
 		<li><a style="font-size: 15px;"
-			href="/t41">T41</a></li>
+			href="/wiki/T41">T41</a></li>
 	</ul>
 	<!-- <ul>
 		<li><a style="font-size: 15px;"
@@ -24,11 +24,11 @@
 	</ul> -->
 	</ul>
 <br/>
-<h2>Old events</h2>
+<h2>Active wiki users</h2>
 <ul>
-		<li><a style="font-size: 15px;"
-			href="/swiss">RW Swiss</a></li>
-	</ul><br/>
+		<%=DAO.getAliveUsersTable()%>
+</ul>
+	<br/>
 <h2>Latest activities</h2>
 <ul>
 <% LatestEvents ev = DAO.getEvents();   

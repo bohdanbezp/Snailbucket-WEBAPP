@@ -91,4 +91,18 @@ public class WikiProvider {
 			HttpServletRequest req, HttpServletResponse res) {
 		diplay("/WEB-INF/jsp/wiki/userpage-nonexist.jsp", pg, req, res);	
 	}
+
+	public static void displaySwiss2wiki(HttpServletRequest req,
+			HttpServletResponse res) {
+		try {
+			req.getRequestDispatcher("/WEB-INF/jsp/wiki/swiss2wiki.jsp")
+					.include(req, res);
+		} 
+		catch (ServletException e) {
+			e.printStackTrace();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

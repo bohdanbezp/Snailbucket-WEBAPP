@@ -197,7 +197,7 @@ public final class UsefulMethods {
 		return dateFormat;
 	}
 	
-	public static String getMembersTableHtml(List<RWMember> members) {
+	public static String getMembersTableHtml(List<RWMember> members, List<String> aliveUsers) {
 		StringBuffer buff = new StringBuffer();
 		//int maxRows = members.size()/4;
 		buff.append("<table border=\"0\" align=\"center\">");
@@ -210,16 +210,33 @@ public final class UsefulMethods {
 				buff.append("</tr>");
 				coloumn = 0;
 			}
+			
 			buff.append("<td width=\"25%\">");
 			buff.append("<img src=\"http://simile.mit.edu/exhibit/examples/flags/images/" +
 					""+m.getCountry()+".png\" border=\"0\"/>");
-			buff.append("<a href=\"/wiki/User:"+m.getUsername()+"\">"+m.getUsername()+"</a>");
+			
+			if (containAlive(aliveUsers, m.getUsername())) {
+				buff.append("<a href=\"/wiki/User:"
+						+ m.getUsername() + "\" style=\"color: #DC143C\">" + m.getUsername()
+						+ "</a>");
+			} else
+				buff.append("<a href=\"/wiki/User:" + m.getUsername() + "\">"
+						+ m.getUsername() + "</a>");
+
 			coloumn++;
 		}
 		buff.append("</table>");
 		return buff.toString();
 	}
 	
+	private static boolean containAlive(List<String> aliveUsers, String username) {
+		for (String u: aliveUsers) {
+			if (u.equals(username))
+				return true;
+		}
+		return false;
+	}
+
 	/**
 	 * A dirty hack that retrieves the actually requested URI from 
 	 * an HTTP request

@@ -66,7 +66,11 @@ public class Wiki extends HttpServlet {
 					pg.setName(req.getParameter("page").replace('_', ' '));
 					WikiProvider.displayPageCreate(pg, req, res);
 					return;
-				}				
+				}	
+				else if (action.startsWith("Swiss2wiki")) {
+					WikiProvider.displaySwiss2wiki(req, res);
+					return;
+				}
 			}
 			if (action.startsWith("Login")) {
 				WikiProvider.displayLoginPage(req, res);
@@ -173,7 +177,10 @@ public class Wiki extends HttpServlet {
 		}
 		else if (httpReq.getRequestURI().startsWith("/wiki/Special:Login")) {
 			new Login().doPost(req, res); // go to the main login procedure
-		}		
+		}
+		else if (httpReq.getRequestURI().startsWith("/wiki/Special:Swiss2wiki")) {
+			new SwissConverter().doGet(req, res);
+		}
 		else
 			res.sendError(404);
 	}

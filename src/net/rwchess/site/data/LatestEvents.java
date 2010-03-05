@@ -1,6 +1,7 @@
 package net.rwchess.site.data;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Stack;
 
 import javax.jdo.JDOObjectNotFoundException;
@@ -9,6 +10,8 @@ import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
+
+import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.utils.Mailer;
 
@@ -58,8 +61,18 @@ public class LatestEvents {
 					+ title
 					+ "\". You may access it using the following link: http://rwchess.appspot.com/wiki/"
 					+ title.replace(' ', '_');
+			RssItem rss = new RssItem();
+			rss.setTitle("New wiki page: "+title);
+			rss.setContent(new Text(body));
+			rss.setDate(new Date());
+			rss.setType("general");
+			DAO.deleteObj("RssFead");
+			DAO.get().getPersistenceManager().makePersistent(rss);
+			
 			Mailer.emailWikipageCreation(body);
 			DAO.deleteObj("WikiBackupTable");
+			if (title.startsWith("User:")) 
+				DAO.deleteObj("AliveUsersTable");
 		} 
 		catch (IOException e) {
 			e.printStackTrace();

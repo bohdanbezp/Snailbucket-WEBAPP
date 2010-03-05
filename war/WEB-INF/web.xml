@@ -37,10 +37,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>userdesc</servlet-name>
 		<jsp-file>/users/memberprofile.jsp</jsp-file>
 	</servlet>
-	<servlet>
+	<!-- <servlet>
 		<servlet-name>t41</servlet-name>
 		<jsp-file>/WEB-INF/jsp/events/t41.jsp</jsp-file>
-	</servlet>
+	</servlet> -->
 	<servlet>
 		<servlet-name>swiss2010</servlet-name>
 		<jsp-file>/WEB-INF/jsp/events/rwswiss2010.jsp</jsp-file>
@@ -94,10 +94,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>check</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.CheckOutTl</servlet-class>
 	</servlet>
-	<servlet>
+	<!-- <servlet>
 		<servlet-name>signtl</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.TlSignup</servlet-class>
-	</servlet>
+	</servlet> -->
 	<servlet>
 		<servlet-name>signswiss</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.SwissSignup</servlet-class>
@@ -113,6 +113,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet>
 		<servlet-name>backup</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.BackupServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>rss</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.RssFeader</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>pairings</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.CreatePairings</servlet-class>
 	</servlet>
 
 
@@ -185,14 +193,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>check</servlet-name>
 		<url-pattern>/special/check</url-pattern>
 	</servlet-mapping>
-	<servlet-mapping>
+	<!-- <servlet-mapping>
 		<servlet-name>t41</servlet-name>
 		<url-pattern>/t41</url-pattern>
-	</servlet-mapping>	
+	</servlet-mapping> -->
 	<servlet-mapping>
+		<servlet-name>rss</servlet-name>
+		<url-pattern>/rss.xml</url-pattern>
+	</servlet-mapping>		
+	<!-- <servlet-mapping>
 		<servlet-name>signtl</servlet-name>
 		<url-pattern>/actions/signtl</url-pattern>
-	</servlet-mapping>
+	</servlet-mapping>  -->
 	<servlet-mapping>
 		<servlet-name>signswiss</servlet-name>
 		<url-pattern>/actions/signswiss</url-pattern>
@@ -212,6 +224,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>swiss2010</servlet-name>
 		<url-pattern>/swiss2010</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>pairings</servlet-name>
+		<url-pattern>/actions/crpairings</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>backup</servlet-name>

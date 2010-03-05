@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.ForumMessage;
 import net.rwchess.site.data.DAO;
+import net.rwchess.site.data.RssItem;
 import net.rwchess.site.utils.Mailer;
 import net.rwchess.site.utils.UsefulMethods;
 
@@ -37,6 +38,13 @@ public class PostMessage extends HttpServlet {
 							+ " has posted the following on the main page: \n\n"
 							+ message;
 					Mailer.forumPost(body, "Main page post");
+					RssItem rss = new RssItem();
+					rss.setTitle(title);
+					rss.setContent(new Text(message));
+					rss.setDate(new Date());
+					DAO.deleteObj("RssFead");
+					rss.setType("general");
+					DAO.get().getPersistenceManager().makePersistent(rss);
 				}
 				
 				pm.makePersistent(new ForumMessage(username, forum, timestamp,

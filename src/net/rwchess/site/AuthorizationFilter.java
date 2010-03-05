@@ -43,9 +43,6 @@ public class AuthorizationFilter implements Filter {
 				|| uri.equals("/actions/import") || uri.equals("/index.jsp")) {			
 			chain.doFilter(request, response); // go to the requested page			
 		}
-		else if (uri.startsWith("/static")) {
-			chain.doFilter(request, response);
-		}
 		else if (uri.startsWith("/actions")) {
 			if (fireIfNotRegistered(httpReq, response)) return; 
 			String action = uri.substring(9);
@@ -77,10 +74,6 @@ public class AuthorizationFilter implements Filter {
 			
 			chain.doFilter(request, response);
 		}
-		else if (uri.startsWith("/files")) {
-			
-			chain.doFilter(request, response);
-		}
 		else if (uri.startsWith("/members")) {
 			if (uri.length() <= 8) {
 				UsefulMethods.doDesignHeader(request, response);
@@ -95,7 +88,9 @@ public class AuthorizationFilter implements Filter {
 				sendRedirect("/wiki/User:"+username);
 			   }
 			return;
-		}			
+		}	
+		else if (uri.startsWith("/t41"))
+			((HttpServletResponse) response).sendRedirect("/wiki/T41");
 		else if (uri.startsWith("/ladder"))
 			((HttpServletResponse) response).sendError(404);
 		else
