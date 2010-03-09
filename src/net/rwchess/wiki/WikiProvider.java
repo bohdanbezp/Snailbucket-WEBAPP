@@ -95,7 +95,7 @@ public class WikiProvider {
 	public static void displaySwiss2wiki(HttpServletRequest req,
 			HttpServletResponse res) {
 		try {
-			req.getRequestDispatcher("/WEB-INF/jsp/wiki/swiss2wiki.jsp")
+			req.getRequestDispatcher("/WEB-INF/jsp/wiki/swiss/swiss2wiki.jsp")
 					.include(req, res);
 		} 
 		catch (ServletException e) {

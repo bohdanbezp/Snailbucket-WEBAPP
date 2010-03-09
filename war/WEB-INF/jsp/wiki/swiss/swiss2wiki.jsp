@@ -1,4 +1,3 @@
-<%@ page import="net.rwchess.site.servlets.CreatePairings"%>
 <!DOCTYPE html 
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -48,31 +47,29 @@
 <div class="clear"></div>
 
 	<div id="contents" >
+	<h1 id="contents-header">Convert</h1>
 	
 
 
 <div id="content-article">
 
-<form name="form" method="post" name="editform"
-	action="/actions/crpairings">
+Swiss Perfect to wiki syntax converter. Paste the text below.
 
-<table>
-	<tr>
-		<td class="tdLabel"><label for="round" class="label">Round:</label></td>
-		<td><input type="round" name="round" id="round" /></td>
-	</tr>
+<form name="form" method="post" name="editform" action="/wiki/Special:Swiss2wiki">
 
-	<tr>
-		<td colspan="2"><input type="submit" name="button"
-			value="Create pairings" accesskey="s" /></td>
-	</tr>
-</table>
-</form>
 
 <p>
-<%=CreatePairings.getPairingsFromSource() %>
+<textarea id="topicContents" name="contents" rows="25" cols="80" accesskey=","></textarea>
+</p>
+<p>
+
+<input type="submit" name="convert" value="Convert"  accesskey="s" />
 
 </p>
+
+
+
+</form>
 
 <div class="clear"></div>
 	

@@ -1,4 +1,7 @@
-<%@ page import="net.rwchess.site.servlets.CreatePairings"%>
+<%@ page import="net.rwchess.wiki.*"%>
+
+<% WikiPage wikiPage = (WikiPage) request.getAttribute("pageRequested"); %>
+
 <!DOCTYPE html 
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -6,7 +9,7 @@
 <html>
 
 <head>
-  <title>RWarriors Wiki - Login</title>
+  <title>RWarriors Wiki - <%=wikiPage.getName() %></title>
   <meta name="robots" content="noindex,nofollow" />
   <link href="/static/jspwiki.css" type="text/css" rel="stylesheet" />
 
@@ -36,53 +39,58 @@
 	</div>
 </div>
 <div id="wiki-content">
-<jsp:include page="/WEB-INF/jsp/wiki/reg.jsp"></jsp:include>	
+	
+
+<jsp:include page="/WEB-INF/jsp/wiki/reg.jsp"></jsp:include>
+
+
 <div class="clear"></div>
 
 	
 <div id="tab-menu">
-
 	
-
+	
 </div>
 <div class="clear"></div>
 
 	<div id="contents" >
+	<h1 id="contents-header"><%=wikiPage.getName() %></h1>
 	
 
+<%=wikiPage.getHtmlText().getValue() %>
 
-<div id="content-article">
 
-<form name="form" method="post" name="editform"
-	action="/actions/crpairings">
+<fieldset>
 
-<table>
-	<tr>
-		<td class="tdLabel"><label for="round" class="label">Round:</label></td>
-		<td><input type="round" name="round" id="round" /></td>
-	</tr>
+<form name="form" method="post" name="editform" action="/wiki/<%=wikiPage.getName() %>">
+<input type="hidden" name="pageName" value="<%=wikiPage.getName() %>" />
 
-	<tr>
-		<td colspan="2"><input type="submit" name="button"
-			value="Create pairings" accesskey="s" /></td>
-	</tr>
-</table>
-</form>
+
 
 <p>
-<%=CreatePairings.getPairingsFromSource() %>
+<textarea id="topicContents" name="contents" rows="25" cols="10" accesskey=",">Enter the comment here</textarea>
+</p>
+<p>
+
+<input type="submit" name="save" value="Post"  accesskey="s" />
+
 
 </p>
 
-<div class="clear"></div>
-	
+
+
+</form>
+
+</fieldset>
+
 
 
 	<br />
 	</div>
 </div>
+
 <jsp:include page="/WEB-INF/jsp/wiki/footer.jsp"></jsp:include>
-</div>
+
 </div>
 
 

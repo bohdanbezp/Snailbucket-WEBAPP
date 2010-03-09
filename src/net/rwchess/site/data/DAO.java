@@ -470,6 +470,7 @@ public final class DAO {
 	private static List<RssItem> getRssItems() {
 		PersistenceManager pm = pmfInstance.getPersistenceManager();
 		Query query = pm.newQuery(RssItem.class);
+		query.setRange(0, 15);
 		
 		return (List<RssItem>) query.execute();
 	}

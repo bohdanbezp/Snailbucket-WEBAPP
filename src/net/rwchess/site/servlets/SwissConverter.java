@@ -20,14 +20,18 @@ public class SwissConverter extends HttpServlet {
 			buff.append("<tr>");
 			while (wordTokenizer.hasMoreTokens()) {
 				String token = wordTokenizer.nextToken();
-				if (!token.equals("Feder"))
+				
+				if (token.equals("Result"))
+					token = "Date/Result";
+				
+				if (!token.equals("Feder") && !token.startsWith("("))
 					buff.append("<td>"+token+"</td>");
 			}
 			buff.append("</tr>\n");
 		}
 		buff.append("</table>");
 		res.setContentType("text/plain");
-		res.getOutputStream().write(buff.toString().getBytes());
+		res.getOutputStream().write(buff.toString().replaceAll(",", "").getBytes());
 		res.getOutputStream().flush();
 	}
 	

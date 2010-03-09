@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.servlets.SwissForumService;
 import net.rwchess.site.utils.UsefulMethods;
 
 /**
@@ -38,6 +39,12 @@ public class AuthorizationFilter implements Filter {
 		HttpServletRequest httpReq = ((HttpServletRequest) request);
 		String uri = httpReq.getRequestURI();
 		response.setCharacterEncoding("utf-8");
+		
+		if (uri.startsWith("/wiki/Swiss10:")) {
+			new SwissForumService().service(request, response);
+			return;
+		}
+				
 		
 		if (uri.equals("/actions/login") || uri.equals("/")
 				|| uri.equals("/actions/import") || uri.equals("/index.jsp")) {			
@@ -91,14 +98,17 @@ public class AuthorizationFilter implements Filter {
 		}	
 		else if (uri.startsWith("/t41"))
 			((HttpServletResponse) response).sendRedirect("/wiki/T41");
-		else if (uri.startsWith("/ladder"))
-			((HttpServletResponse) response).sendError(404);
+		else if (uri.equals("/swiss2010/pairings")) {
+			if (fireIfNotRegistered(httpReq, response)) return; 
+			
+			chain.doFilter(request, response);
+		}			
 		else
 			//((HttpServletResponse) response).sendError(404);
 			chain.doFilter(request, response);
 	}
 
-	private boolean fireIfNotRegistered(HttpServletRequest httpReq,
+	public static boolean fireIfNotRegistered(HttpServletRequest httpReq,
 			ServletResponse response) {
 		if (httpReq.getSession().getAttribute("user") == null) {
 			try {

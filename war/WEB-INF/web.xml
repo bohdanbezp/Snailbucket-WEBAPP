@@ -57,6 +57,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>viewer</servlet-name>
 		<jsp-file>/WEB-INF/jsp/viewer.jsp</jsp-file>
 	</servlet>
+	<servlet>
+		<servlet-name>cpairings</servlet-name>
+		<jsp-file>/WEB-INF/jsp/wiki/create-pairings.jsp</jsp-file>
+	</servlet>
 
 	<servlet>
 		<servlet-name>login</servlet-name>
@@ -228,6 +232,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>pairings</servlet-name>
 		<url-pattern>/actions/crpairings</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>cpairings</servlet-name>
+		<url-pattern>/swiss2010/pairings</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>backup</servlet-name>
