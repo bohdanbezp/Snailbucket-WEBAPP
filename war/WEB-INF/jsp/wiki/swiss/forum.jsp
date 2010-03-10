@@ -1,4 +1,5 @@
 <%@ page import="net.rwchess.wiki.*"%>
+<%@ page import="net.rwchess.site.data.RWMember"%>
 
 <% WikiPage wikiPage = (WikiPage) request.getAttribute("pageRequested"); %>
 
@@ -59,7 +60,9 @@
 
 <%=wikiPage.getHtmlText().getValue() %>
 
-
+<% RWMember user = (RWMember) pageContext.getSession().getAttribute("user"); 
+   if (user != null) {  
+%>	
 <fieldset>
 
 <form name="form" method="post" name="editform" action="/wiki/<%=wikiPage.getName() %>">
@@ -82,6 +85,7 @@
 </form>
 
 </fieldset>
+<% } %>
 
 
 

@@ -197,6 +197,15 @@ public final class UsefulMethods {
 		return dateFormat;
 	}
 	
+	public static byte[] concat(byte[] A, byte[] B) {
+		   byte[] C= new byte[A.length+B.length];
+		   System.arraycopy(A, 0, C, 0, A.length);
+		   System.arraycopy(B, 0, C, A.length, B.length);
+
+		   return C;
+		}
+
+	
 	public static String getMembersTableHtml(List<RWMember> members, List<String> aliveUsers) {
 		StringBuffer buff = new StringBuffer();
 		//int maxRows = members.size()/4;

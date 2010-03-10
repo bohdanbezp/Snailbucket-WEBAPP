@@ -64,7 +64,7 @@
 
 	<tr>
 		<td colspan="2"><input type="submit" name="button"
-			value="Create pairings" accesskey="s" /></td>
+			value="Create game forums" accesskey="s" /></td>
 	</tr>
 </table>
 </form>

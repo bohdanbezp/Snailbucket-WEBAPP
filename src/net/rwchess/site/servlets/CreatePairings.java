@@ -43,25 +43,35 @@ public class CreatePairings extends HttpServlet {
 	
 	public void doPost(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException {
-		if (req.getParameter("button") != null) {			
-			parseTable(getPairingsFromSource(), req.getParameter("round"));
+		if (req.getParameter("button") != null) {	
+			res.setContentType("text/plain");
+			res.getWriter().println("Created wiki pages:\n");
+			for (String i: parseTable(getPairingsFromSource(), req.getParameter("round"))) {
+				res.getWriter().println(i);
+			}
 		}
+		else
+			res.sendError(404);
 	}
 
-	private void parseTable(String pairingsFromSource, String round) {
+	private List<String> parseTable(String pairingsFromSource, String round) {
 		List<String> toCreate = new ArrayList<String>();
 		XMLElement table = new XMLElement();
 		table.parseString(pairingsFromSource);
 	    for (Object ob: table.getChildren()) {    	
 	    	XMLElement tr = (XMLElement) ob;
-	    	if (tr.toString().contains("BYE") || tr.getChildren().size() < 4)
-	    		continue;
+			if (tr.toString().contains("BYE")
+					|| tr.getChildren().size() < 4
+					|| ((XMLElement) tr.getChildren().get(1)).getContent()
+							.equals("Name"))
+				continue;
 	    	
 			toCreate.add("Swiss10:R" + round + "_"
 					+ ((XMLElement) tr.getChildren().get(1)).getContent() + "-"
 					+ ((XMLElement) tr.getChildren().get(3)).getContent());
 		}
 	    createPages(toCreate);
+	    return toCreate;
 	}
 
 	private void createPages(List<String> toCreate) {
