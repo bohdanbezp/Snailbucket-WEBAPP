@@ -19,12 +19,14 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.repackaged.com.google.common.base.Log;
 
 import net.rwchess.site.data.DAO;
-import net.rwchess.site.data.T41Player;
+import net.rwchess.site.data.T42Player;
 import net.rwchess.site.data.TeamDuel;
 import net.rwchess.site.utils.UsefulMethods;
+import net.rwchess.wiki.WikiPage;
 
 
 /**
@@ -70,7 +72,7 @@ public class Import extends HttpServlet {
 				"ivohristov", "AlesD", "Acho", "NoiroP", "bodzolca", "Bodia",
 				"WilkBardzoZly", "pchesso", "Gavrilo", "sachinravi", "piorgovici",
 				"wfletcher", "Nitreb"}; */
-		
+		/*
             DatastoreService datastore =
 DatastoreServiceFactory.getDatastoreService();
             Query query = new Query("_ah_SESSION");
@@ -81,7 +83,13 @@ DatastoreServiceFactory.getDatastoreService();
             for (Entity session : results.asIterable()) {
                     datastore.delete(session.getKey());
             }
-    
+    */
+		
+		PersistenceManager pm = DAO.get().getPersistenceManager();
+		WikiPage page = new WikiPage();
+		page.setName("Swiss10:R1_sangalla-Nitreb");
+		page.setHtmlText(new Text(""));
+		pm.makePersistent(page);
 		
 		
 		/**PersistenceManager pm = DAO.get().getPersistenceManager();

@@ -66,9 +66,12 @@ public class WikiPage implements Serializable {
 	}
 	
 	public String toString() {
+		String rw = rawText == null ? "null" : Base64Coder.encodeLines(rawText.getValue().getBytes());
+		String html = htmlText == null ? "null" : Base64Coder.encodeLines(htmlText.getValue().getBytes());
+		
 		return "Name: " + name + "\n\n" +
-				"RawText: \n" + Base64Coder.encodeLines(rawText.getValue().getBytes()) + "\n" +
-				"HtmlText: \n" + Base64Coder.encodeLines(htmlText.getValue().getBytes()) + "\n" +
+				"RawText: \n" + rw + "\n" +
+				"HtmlText: \n" + html + "\n" +
 						"History: " + history.toString() + "\n";
 		
 	}

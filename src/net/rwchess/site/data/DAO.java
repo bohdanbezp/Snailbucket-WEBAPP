@@ -172,8 +172,8 @@ public final class DAO {
 			player = "sachinravi";
 		
 		try {
-			T41Player mem = (T41Player) pm.getObjectById(
-					T41Player.class, player);
+			T42Player mem = (T42Player) pm.getObjectById(
+					T42Player.class, player);
 			mem.setGames(mem.getGames()+1);
 			mem.setPoints(mem.getPoints()+winningPoints);
 		}
@@ -213,14 +213,14 @@ public final class DAO {
 		}
 	}
 	
-	public static boolean playsInT41(String name) {
+	public static boolean playsInTl(String name) {
 		if (name.equals("null"))
 			return false;
 		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
-			T41Player mem = (T41Player) pm.getObjectById(
-					T41Player.class, name);
+			T42Player mem = (T42Player) pm.getObjectById(
+					T42Player.class, name);
 			return true;
 		}
 		catch (JDOObjectNotFoundException e) {
@@ -249,15 +249,15 @@ public final class DAO {
 		}
 	}
 	
-	public static List<T41Player> getTlParticipants(boolean sortByPoints) {
+	public static List<T42Player> getTlParticipants(boolean sortByPoints) {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
-			Query query = pm.newQuery(T41Player.class);
+			Query query = pm.newQuery(T42Player.class);
 			if (sortByPoints)
 				query.setOrdering("points desc");
 			else
 				query.setOrdering("fixedRating desc");
-			return (List<T41Player>) query.execute();
+			return (List<T42Player>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {
 			return null;

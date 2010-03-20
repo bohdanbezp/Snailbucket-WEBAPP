@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.rwchess.site.data.DAO;
-import net.rwchess.site.data.T41Player;
+import net.rwchess.site.data.T42Player;
 import net.rwchess.site.utils.Mailer;
 import net.rwchess.site.utils.UsefulMethods;
 
@@ -20,7 +20,7 @@ import net.rwchess.site.utils.UsefulMethods;
 public class TlSignup extends HttpServlet {	
 	public void doPost(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException {
-		T41Player player = new T41Player();
+		T42Player player = new T42Player();
 		player.setAvailability(Byte.valueOf(req.getParameter("investtime")));
 		player.setPreferedSection(req.getParameter("section"));
 		player.setUsername(UsefulMethods.getUsername(req.getSession()));
@@ -34,6 +34,6 @@ public class TlSignup extends HttpServlet {
 		Mailer.emailSignup(msgBody);		
         
 		DAO.flushTlParticipantsCache();
-		res.sendRedirect("/t41");
+		res.sendRedirect("/t42");
 	}
 }

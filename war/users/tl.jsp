@@ -4,9 +4,10 @@
 <jsp:include page="/blocks/top.jsp"></jsp:include>
 <jsp:include page="/blocks/currevents.jsp"></jsp:include>
 
-<% if (!DAO.playsInT41(UsefulMethods.getUsername(session))) { %>
+<% if (pageContext.getSession().getAttribute("user") != null &&
+		!DAO.playsInTl(UsefulMethods.getUsername(session))) { %>
 
-<p>T41 will start in early January 2010. Our club is known for not
+<p>T42 will start in early April 2010. Our club is known for not
 missing a single season already a few years. Here you can register
 for the this season to let any member see your status.</p>
 <br/>
@@ -31,6 +32,25 @@ You want to play in:<br/>
 <br/>
 <input type="submit" value="Submit" />
 </form>
-<% } %>
+<br/><br/>
+<% }
+else if (pageContext.getSession().getAttribute("user") == null) { %>
+	<p><a href="/wiki/Special:Login" title="Special:Login">Log in</a> to register</p>
+<% }
+%>
+
+
+<h2>Players who registered for T42</h2><br/>
+<table width="80%"  border="1" cellpadding="0" cellspacing="2">
+<tr bgcolor="#5e410f">
+	       <td>Username</td>
+	       <td>Fixed rating</td>
+	       <td>Preffered section</td>
+	       <td>Availability</td>
+</tr> 
+<%
+out.print(DAO.getTlParticipantsTable());
+%>
+</table>
 
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>

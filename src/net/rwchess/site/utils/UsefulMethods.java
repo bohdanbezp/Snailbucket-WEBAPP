@@ -23,7 +23,7 @@ import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.RWMember;
 import net.rwchess.site.data.RWSwissPlayer;
-import net.rwchess.site.data.T41Player;
+import net.rwchess.site.data.T42Player;
 
 /**
  * Some useful utility methods.
@@ -294,9 +294,9 @@ public final class UsefulMethods {
 		return "";
 	}
 
-	public static String getTlParticipantsHtml(List<T41Player> allPlayers) {
+	public static String getTlParticipantsHtml(List<T42Player> allPlayers) {
 		StringBuffer buff = new StringBuffer();		
-		for (T41Player pl : allPlayers) {
+		for (T42Player pl : allPlayers) {
 			buff.append("<tr>");
 			buff.append("<td>" + pl.getUsername() + "</td>");
 			buff.append("<td>" + pl.getFixedRating() + "</td>");
@@ -316,6 +316,14 @@ public final class UsefulMethods {
 			buff.append("</tr>");
 		}
 		return buff.toString();
+	}
+	
+	public static String convertSwissName(String input) {
+		if (input == null)
+			return "";
+		
+		return "Swiss Round " + input.charAt(9) + ": "
+				+ input.substring(11);
 	}
 
 }
