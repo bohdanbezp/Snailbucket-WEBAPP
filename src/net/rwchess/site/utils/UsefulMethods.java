@@ -19,6 +19,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpSession;
 
+import chesspresso.Chess;
+import chesspresso.game.*;
+import chesspresso.move.Move;
+import chesspresso.pgn.*;
+import chesspresso.position.*;
+
 import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.RWMember;
@@ -324,6 +330,97 @@ public final class UsefulMethods {
 		
 		return "Swiss Round " + input.charAt(9) + ": "
 				+ input.substring(11);
+	}
+	
+	public static String getPgnRepresentation(Game game) {
+		final StringBuffer pgnBuffer = new StringBuffer();
+
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_EVENT + " "
+				+ PGN.TOK_QUOTE + game.getEvent() + PGN.TOK_QUOTE
+				+ PGN.TOK_TAG_END + "\n");
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_SITE + " " + PGN.TOK_QUOTE
+				+ game.getSite() + PGN.TOK_QUOTE + PGN.TOK_TAG_END + "\n");
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_DATE + " " + PGN.TOK_QUOTE
+				+ game.getDate() + PGN.TOK_QUOTE + PGN.TOK_TAG_END + "\n");
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_ROUND + " "
+				+ PGN.TOK_QUOTE + game.getRound() + PGN.TOK_QUOTE
+				+ PGN.TOK_TAG_END + "\n");
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_WHITE + " "
+				+ PGN.TOK_QUOTE + game.getWhite() + PGN.TOK_QUOTE
+				+ PGN.TOK_TAG_END + "\n");
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_BLACK + " "
+				+ PGN.TOK_QUOTE + game.getBlack() + PGN.TOK_QUOTE
+				+ PGN.TOK_TAG_END + "\n");
+		pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_RESULT + " "
+				+ PGN.TOK_QUOTE + game.getResultStr() + PGN.TOK_QUOTE
+				+ PGN.TOK_TAG_END + "\n");
+
+		if (game.getWhiteEloStr() != null)
+			pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_WHITE_ELO + " "
+					+ PGN.TOK_QUOTE + game.getWhiteElo() + PGN.TOK_QUOTE
+					+ PGN.TOK_TAG_END + "\n");
+		if (game.getBlackEloStr() != null)
+			pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_BLACK_ELO + " "
+					+ PGN.TOK_QUOTE + game.getBlackElo() + PGN.TOK_QUOTE
+					+ PGN.TOK_TAG_END + "\n");
+		if (game.getEventDate() != null)
+			pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_EVENT_DATE + " "
+					+ PGN.TOK_QUOTE + game.getEventDate() + PGN.TOK_QUOTE
+					+ PGN.TOK_TAG_END + "\n");
+		if (game.getECO() != null)
+			pgnBuffer.append(PGN.TOK_TAG_BEGIN + PGN.TAG_ECO + " "
+					+ PGN.TOK_QUOTE + game.getECO() + PGN.TOK_QUOTE
+					+ PGN.TOK_TAG_END + "\n");
+		game.gotoStart();
+		// print leading comments before move 1
+		String comment = game.getComment();
+		if (comment != null) {
+			pgnBuffer.append(PGN.TOK_COMMENT_BEGIN + comment
+					+ PGN.TOK_COMMENT_END + " ");
+		}
+
+		game.traverse(new GameListener() {
+			private boolean needsMoveNumber = true;
+
+			public void notifyMove(Move move, short[] nags, String comment,
+					int plyNumber, int level) {
+				if (needsMoveNumber) {
+					if (move.isWhiteMove()) {
+						pgnBuffer.append(Chess.plyToMoveNumber(plyNumber) + "."
+								+ " ");
+					} else {
+						pgnBuffer.append(Chess.plyToMoveNumber(plyNumber)
+								+ "..." + " ");
+					}
+				}
+				pgnBuffer.append(move.toString() + " ");
+
+				if (nags != null) {
+					for (int i = 0; i < nags.length; i++) {
+						pgnBuffer.append(String.valueOf(PGN.TOK_NAG_BEGIN)
+								+ String.valueOf(nags[i]) + " ");
+					}
+				}
+				if (comment != null)
+					pgnBuffer.append(PGN.TOK_COMMENT_BEGIN + comment
+							+ PGN.TOK_COMMENT_END + " ");
+				needsMoveNumber = !move.isWhiteMove() || (comment != null);
+			}
+
+			public void notifyLineStart(int level) {
+				pgnBuffer.append(String.valueOf(PGN.TOK_LINE_BEGIN));
+				needsMoveNumber = true;
+			}
+
+			public void notifyLineEnd(int level) {
+				pgnBuffer.append(String.valueOf(PGN.TOK_LINE_END) + " ");
+				needsMoveNumber = true;
+			}
+		}, true);
+
+		pgnBuffer.append(game.getResultStr());
+
+		return pgnBuffer.toString();
 	}
 
 }

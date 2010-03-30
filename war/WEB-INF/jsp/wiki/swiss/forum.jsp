@@ -75,7 +75,7 @@
 
 
 <p>
-<textarea id="topicContents" name="contents" rows="25" cols="10" accesskey=",">Enter the post here</textarea>
+<textarea id="topicContents" name="contents" rows="25" cols="10" accesskey=","></textarea>
 </p>
 <p>
 

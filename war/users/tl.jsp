@@ -45,7 +45,7 @@ else if (pageContext.getSession().getAttribute("user") == null) { %>
 <tr bgcolor="#5e410f">
 	       <td>Username</td>
 	       <td>Fixed rating</td>
-	       <td>Preffered section</td>
+	       <td>Preferred section</td>
 	       <td>Availability</td>
 </tr> 
 <%

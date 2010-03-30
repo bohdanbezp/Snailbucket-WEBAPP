@@ -14,13 +14,13 @@
 		<li><a style="font-size: 15px;"
 			href="/wiki/RW_Swiss">RW Swiss 2010</a></li>
 	</ul>
-	<!-- <ul>
+	<ul>
 		<li><a style="font-size: 15px;"
-			href="/ladder">RW Ladder</a></li>
-	</ul> -->
+			href="/t42">T42</a></li>
+	</ul>
 	</ul>
 <br/>
-<h2>Active wiki users</h2>
+<h2>Blogs</h2>
 <ul>
 		<%=DAO.getAliveUsersTable()%>
 </ul>

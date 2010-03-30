@@ -18,6 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 
+import chesspresso.game.Game;
+import chesspresso.pgn.PGNReader;
+import chesspresso.pgn.PGNSyntaxError;
+
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
 
@@ -66,10 +70,45 @@ public class SwissForumService extends HttpServlet {
 				URL url = new URL(content);
 				String pgn = IOUtils.toString(new InputStreamReader(
 						url.openStream()));
-				pgn = "\n\n" + pgn;
+				
+				boolean in = false;
+				char last = ' ';
+				StringBuffer buff = new StringBuffer();
+				for (char c: pgn.toCharArray()) {
+					if (c == ']' && in)
+						in = false;
+					
+					if (in)
+						continue;
+					
+					if (c == '[' && last == '{')
+						in = true;
+						
+					last = c;	
+					buff.append(c);
+				}
+				pgn = buff.toString().replace("{[]}", "");
+				
+				String result = null, playerName = null;
+				
+				PGNReader red = new PGNReader(IOUtils.toInputStream(pgn), "swiss2010.pgn");
+				try {
+					Game ga = red.parseGame();
+					ga.setTag("Round", Character.toString(pageName.charAt(9)));
+					ga.setTag("Event", "RW Swiss 2010");
+					result = ga.getResultStr();
+					playerName = ga.getWhite().equals("SachinRavi") ? "sachinravi"
+							: ga.getWhite();
+					pgn = UsefulMethods.getPgnRepresentation(ga);
+				} catch (PGNSyntaxError e) {
+					e.printStackTrace(res.getWriter());
+					return;
+				}				
+				
 				try {
 					File fl = (File) pm.getObjectById(File.class,
 							"swiss2010.pgn");
+					pgn = "\n\n" + pgn;
 					fl.setFile(new Blob(UsefulMethods.concat(fl.getFile()
 							.getBytes(), pgn.getBytes())));
 				} 
@@ -79,9 +118,9 @@ public class SwissForumService extends HttpServlet {
 					pm.makePersistent(fl);
 				}
 				
-				System.out.println("retrieveResult(pgn) " + retrieveResult(pgn));
-				System.out.println("retrievePlayername(pgn) " + retrievePlayername(pgn));
-				setResult(retrieveResult(pgn), retrievePlayername(pgn));
+				System.out.println("retrieveResult(pgn) " + result);
+				System.out.println("retrievePlayername(pgn) " + playerName);
+				setResult(result, playerName);
 				res.sendRedirect("/wiki/RW_Swiss");
 				
 				page.setHtmlText(new Text(page.getHtmlText().getValue() + "<p><b>"
@@ -155,7 +194,11 @@ public class SwissForumService extends HttpServlet {
 	    	if (tr.toString().contains(username)) {
 	    		XMLElement el = ((XMLElement) tr.getChildren().get(2));
 	    		String old = tr.toString().replaceAll("HREF", "href");
-	    		el.setContent(result);
+	    		el.setContent("");
+	    		XMLElement center = new XMLElement();
+	    		center.setName("center");
+	    		center.setContent(result);
+	    		el.addChild(center);
 	    		
 	    		PersistenceManager pm = DAO.get().getPersistenceManager();
 	    		try {
