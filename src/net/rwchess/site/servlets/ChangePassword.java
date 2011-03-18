@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.data.RWSwissPlayer;
+import net.rwchess.site.data.SwissGuest;
 import net.rwchess.site.utils.UsefulMethods;
 
 public class ChangePassword extends HttpServlet {
@@ -17,9 +19,31 @@ public class ChangePassword extends HttpServlet {
 	throws ServletException, IOException {
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
-			RWMember m = pm.getObjectById(RWMember.class, UsefulMethods.getUsername(
-					req.getSession()));
-			m.setPasswordHash(UsefulMethods.getMD5(req.getParameter("password")));
+			if (req.getSession().getAttribute("guest") != null) {
+				SwissGuest m = pm.getObjectById(SwissGuest.class, 
+						req.getSession().getAttribute("login"));
+				m.setPasswordHash(UsefulMethods.getMD5(req.getParameter("password")));
+				
+				if (!m.isConfirmed()) {
+					m.setConfirmed(true);
+					m.setGeneratedPlainPassword("Approved");
+					req.getSession().setAttribute("user", m);
+					
+					RWSwissPlayer pl = new RWSwissPlayer();
+					String uname = m.getUsername();
+					pl.setUsername(uname);
+					pl.setFixedRating(Import.getRatingFor(uname));
+					DAO.get().getPersistenceManager().makePersistent(pl);
+					DAO.flushSwissParticipantsCache();	
+					DAO.flushSwissGuestCache();
+				}
+			}
+			else {
+				RWMember m = pm.getObjectById(RWMember.class, UsefulMethods.getUsername(
+						req.getSession()));
+				m.setPasswordHash(UsefulMethods.getMD5(req.getParameter("password")));
+			}
+			res.sendRedirect("/swissreg2011");
 		} 
 		finally {
 			pm.close();

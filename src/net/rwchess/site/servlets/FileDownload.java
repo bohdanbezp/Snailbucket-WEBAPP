@@ -23,6 +23,13 @@ public class FileDownload extends HttpServlet {
 				return;			
 			}
 			
+			if (fileName.endsWith(".zip"))
+				res.setContentType("application/zip");
+            else if (fileName.endsWith(".pgn"))
+				res.setContentType("application/x-chess-pgn");
+            else if (fileName.endsWith(".ipg"))
+				res.setContentType("image/jpeg");
+			
 			res.getOutputStream().write(file.getBytes());
 			res.getOutputStream().flush();
 		} 

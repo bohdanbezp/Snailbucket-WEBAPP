@@ -82,26 +82,65 @@ public final class DAO {
 		return members;
 	}
 	
+	public static List<SwissGuest> getSwissGuests() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(SwissGuest.class);
+		List<SwissGuest> guests = (List<SwissGuest>) query.execute();
+		Collections.sort(guests, MembersComparator.getInstance());
+		return guests;		
+	}
+	
+	public static List<SwissGuest> getApprovedSwissGuests() {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		Query query = pm.newQuery(SwissGuest.class);
+		List<SwissGuest> guests = (List<SwissGuest>) query.execute();
+		List<SwissGuest> approvedGuests = new ArrayList<SwissGuest>();
+		for (SwissGuest g: guests) {
+			if (g.isConfirmed())
+				approvedGuests.add(g);
+		}
+		Collections.sort(approvedGuests, MembersComparator.getInstance());
+		return approvedGuests;
+	}
+	
 	public static String getAllMembersTable() {
 		String s;
-		//if ((s = (String) cache.get("AllMembersTable")) == null) {
-			PersistenceManager pm = pmfInstance.getPersistenceManager();
-			CacheObject co;
-			try {
-				co = (CacheObject) pm.getObjectById(
-						CacheObject.class, "AllMembersTable");
-				s = co.getHtml().getValue();
-			} 
-			catch (JDOObjectNotFoundException e) {
-				s = UsefulMethods.getMembersTableHtml(getAllPlayers(), getAliveUsers());
-				co = new CacheObject();
-				co.setKey("AllMembersTable");
-				co.setHtml(new Text(s));
-				pm.makePersistent(co);
-			}
+		// if ((s = (String) cache.get("AllMembersTable")) == null) {
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(CacheObject.class,
+					"AllMembersTable");
+			s = co.getHtml().getValue();
+		} catch (JDOObjectNotFoundException e) {
+			s = UsefulMethods.getMembersTableHtml(getAllPlayers(),
+					getAliveUsers());
+			co = new CacheObject();
+			co.setKey("AllMembersTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
 
-		//	cache.put("AllMembersTable", s);
-		//}
+		// cache.put("AllMembersTable", s);
+		// }
+		return s;
+	}
+
+	public static String getAllSwissGuestsTable() {
+		String s;
+		PersistenceManager pm = pmfInstance.getPersistenceManager();
+		CacheObject co;
+		try {
+			co = (CacheObject) pm.getObjectById(CacheObject.class,
+					"AllSwissGuestsTable");
+			s = co.getHtml().getValue();
+		} catch (JDOObjectNotFoundException e) {
+			s = UsefulMethods.getGuestsTableHtml(getApprovedSwissGuests());
+			co = new CacheObject();
+			co.setKey("AllSwissGuestsTable");
+			co.setHtml(new Text(s));
+			pm.makePersistent(co);
+		}
 		return s;
 	}
 	
@@ -156,8 +195,8 @@ public final class DAO {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
 			Query query = pm.newQuery(TeamDuel.class);
-			query.setOrdering("roundNumber desc");
-			query.setRange(0, 2);
+			query.setOrdering("roundNumber desc, section asc");
+			query.setRange(0, 3);
 			return (List<TeamDuel>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {
@@ -172,8 +211,8 @@ public final class DAO {
 			player = "sachinravi";
 		
 		try {
-			T42Player mem = (T42Player) pm.getObjectById(
-					T42Player.class, player);
+			T45Player mem = (T45Player) pm.getObjectById(
+					T45Player.class, player);
 			mem.setGames(mem.getGames()+1);
 			mem.setPoints(mem.getPoints()+winningPoints);
 		}
@@ -219,8 +258,8 @@ public final class DAO {
 		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
-			T42Player mem = (T42Player) pm.getObjectById(
-					T42Player.class, name);
+			T45Player mem = (T45Player) pm.getObjectById(
+					T45Player.class, name);
 			return true;
 		}
 		catch (JDOObjectNotFoundException e) {
@@ -249,15 +288,15 @@ public final class DAO {
 		}
 	}
 	
-	public static List<T42Player> getTlParticipants(boolean sortByPoints) {
+	public static List<T45Player> getTlParticipants(boolean sortByPoints) {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
-			Query query = pm.newQuery(T42Player.class);
+			Query query = pm.newQuery(T45Player.class);
 			if (sortByPoints)
 				query.setOrdering("points desc");
 			else
 				query.setOrdering("fixedRating desc");
-			return (List<T42Player>) query.execute();
+			return (List<T45Player>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {
 			return null;
@@ -305,7 +344,8 @@ public final class DAO {
 			s = co.getHtml().getValue();
 		} 
 		catch (JDOObjectNotFoundException e) {
-			s = UsefulMethods.getSwissParticipantsHtml(getSwissParticipants());
+			s = UsefulMethods.getSwissParticipantsHtml(getSwissParticipants(),
+					getAllPlayers(), getSwissGuests());
 			co = new CacheObject();
 			co.setKey("SwissParticipantsTable");
 			co.setHtml(new Text(s));
@@ -368,6 +408,10 @@ public final class DAO {
 	
 	public static void flushSwissParticipantsCache() {
 		deleteObj("SwissParticipantsTable");		
+	}
+	
+	public static void flushSwissGuestCache() {
+		deleteObj("AllSwissGuestsTable");		
 	}
 
 	public static String getMembersBackupTable() {
@@ -530,5 +574,16 @@ public final class DAO {
 			pm.makePersistent(co);
 		}
 		return s;
+	}
+
+	public static boolean swissGuestWithIpExist(String ip) {
+		List<SwissGuest> guests = getSwissGuests();
+		
+		for (SwissGuest g: guests) {
+			if (g.getIpAddress().equals(ip))
+				return true;
+		}
+		
+		return false;
 	}
 }

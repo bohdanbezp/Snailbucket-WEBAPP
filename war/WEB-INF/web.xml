@@ -38,13 +38,13 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<jsp-file>/users/memberprofile.jsp</jsp-file>
 	</servlet>
 	<servlet>
-		<servlet-name>t42</servlet-name>
+		<servlet-name>t45</servlet-name>
 		<jsp-file>/users/tl.jsp</jsp-file>
 		<!--  <jsp-file>/WEB-INF/jsp/events/t42.jsp</jsp-file>-->
 	</servlet>
 	<servlet>
-		<servlet-name>swiss2010</servlet-name>
-		<jsp-file>/WEB-INF/jsp/events/rwswiss2010.jsp</jsp-file>
+		<servlet-name>swissreg</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/rwswiss2011.jsp</jsp-file>
 	</servlet>		
 	<servlet>
 		<servlet-name>swiss</servlet-name>
@@ -61,6 +61,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet>
 		<servlet-name>cpairings</servlet-name>
 		<jsp-file>/WEB-INF/jsp/wiki/create-pairings.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>swissguest</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/swiss2011_g.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>swissapprove</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/swissapprove.jsp</jsp-file>
+	</servlet>
+	<servlet>
+		<servlet-name>swisspass</servlet-name>
+		<jsp-file>/WEB-INF/jsp/events/swisspass.jsp</jsp-file>
 	</servlet>
 
 	<servlet>
@@ -108,6 +120,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-class>net.rwchess.site.servlets.SwissSignup</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>signswissguest</servlet-name>
+		<servlet-class>net.rwchess.site.servlets.SwissGuestSignup</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>changepasswd</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.ChangePassword</servlet-class>
 	</servlet>
@@ -127,6 +143,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>pairings</servlet-name>
 		<servlet-class>net.rwchess.site.servlets.CreatePairings</servlet-class>
 	</servlet>
+	<servlet>
+	<servlet-name>_ah_sessioncleanup</servlet-name>
+	    <servlet-class>com.google.apphosting.utils.servlet.SessionCleanupServlet</servlet-class>
+    </servlet> 
 
 
 	<filter>
@@ -138,6 +158,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
+	<servlet-mapping>
+    	<servlet-name>_ah_sessioncleanup</servlet-name>
+    	<url-pattern>/_ah/sessioncleanup</url-pattern>
+    </servlet-mapping> 
 	<servlet-mapping>
 		<servlet-name>userdesc</servlet-name>
 		<url-pattern>/members/*</url-pattern>
@@ -199,8 +223,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<url-pattern>/special/check</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>t42</servlet-name>
-		<url-pattern>/t42</url-pattern>
+		<servlet-name>t45</servlet-name>
+		<url-pattern>/t45</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>rss</servlet-name>
@@ -215,6 +239,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<url-pattern>/actions/signswiss</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
+		<servlet-name>signswissguest</servlet-name>
+		<url-pattern>/signswissguest</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>swiss</servlet-name>
 		<url-pattern>/swiss</url-pattern>
 	</servlet-mapping>
@@ -227,8 +255,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<url-pattern>/viewer</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>swiss2010</servlet-name>
-		<url-pattern>/swiss2010</url-pattern>
+		<servlet-name>swissreg</servlet-name>
+		<url-pattern>/swissreg2011</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>pairings</servlet-name>
@@ -241,6 +269,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>backup</servlet-name>
 		<url-pattern>/backup/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>swissguest</servlet-name>
+		<url-pattern>/swiss2011/guest</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>swissapprove</servlet-name>
+		<url-pattern>/swiss2011/approve</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>swisspass</servlet-name>
+		<url-pattern>/swiss2011/guestpasschange</url-pattern>
 	</servlet-mapping>
 	
 </web-app>

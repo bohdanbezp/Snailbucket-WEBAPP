@@ -23,13 +23,13 @@ import chesspresso.Chess;
 import chesspresso.game.*;
 import chesspresso.move.Move;
 import chesspresso.pgn.*;
-import chesspresso.position.*;
 
 import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.RWMember;
 import net.rwchess.site.data.RWSwissPlayer;
-import net.rwchess.site.data.T42Player;
+import net.rwchess.site.data.SwissGuest;
+import net.rwchess.site.data.T45Player;
 
 /**
  * Some useful utility methods.
@@ -92,7 +92,7 @@ public final class UsefulMethods {
 	 */
 	public static String getUsername(HttpSession s) {
 		if (s.getAttribute("user") != null)
-		     return ((RWMember) s.getAttribute("user")).getUsername();
+		     return ((UsernameComparable) s.getAttribute("user")).getUsername();
 		else return "null";
 	}
 	
@@ -238,6 +238,7 @@ public final class UsefulMethods {
 				buff.append("<a href=\"/wiki/User:" + m.getUsername() + "\">"
 						+ m.getUsername() + "</a>");
 
+			buff.append("</td>");
 			coloumn++;
 		}
 		buff.append("</table>");
@@ -293,16 +294,16 @@ public final class UsefulMethods {
 		case 1:
 			return "Most time";
 		case 2:
-			return "Unavailable most time";
+			return "Reserve";
 		case 3:
-			return "Reserve player";	
+			return "Unavailable";	
 		}
 		return "";
 	}
 
-	public static String getTlParticipantsHtml(List<T42Player> allPlayers) {
+	public static String getTlParticipantsHtml(List<T45Player> allPlayers) {
 		StringBuffer buff = new StringBuffer();		
-		for (T42Player pl : allPlayers) {
+		for (T45Player pl : allPlayers) {
 			buff.append("<tr>");
 			buff.append("<td>" + pl.getUsername() + "</td>");
 			buff.append("<td>" + pl.getFixedRating() + "</td>");
@@ -313,13 +314,100 @@ public final class UsefulMethods {
 		return buff.toString();
 	}
 	
-	public static String getSwissParticipantsHtml(List<RWSwissPlayer> allPlayers) {
-		StringBuffer buff = new StringBuffer();		
-		for (RWSwissPlayer pl : allPlayers) {
+	public static UsernameComparable findForUname(String uname, 
+			List<UsernameComparable> list) {
+		for (UsernameComparable uc: list) {
+			if (uc.equals(uname))
+				return uc;
+		}
+		return null;
+	}
+	
+	public static String getSwissParticipantsHtml(List<RWSwissPlayer> allPlayers, 
+			List<RWMember> allMembers, List<SwissGuest> allGuests) {
+		StringBuffer buff = new StringBuffer();
+		int i = 0;
+		int size = allPlayers.size();
+		if (size%2 == 0)
+			size = size/2;
+		else
+			size = (size-1)/2 + 1;
+		
+		while (size > i) {
+			RWSwissPlayer pl1 = allPlayers.get(i);
+			RWSwissPlayer pl2;
+			
+			if (allPlayers.size() == (i+size)) {
+				pl2 = new RWSwissPlayer();
+				pl2.setFixedRating(0);
+				pl2.setUsername("");
+			}
+			else
+				pl2 = allPlayers.get(i+size);
+			
+			String country1 = null;
+			boolean guest1 = false;
+			for (RWMember uc: allMembers) {
+				if (uc.getUsername().equalsIgnoreCase(pl1.getUsername()))
+					country1 = uc.getCountry();
+			}
+			if (country1 == null) {
+				for (SwissGuest uc: allGuests) {
+					if (uc.getUsername().equalsIgnoreCase(pl1.getUsername())) {
+						country1 = uc.getCountry();
+						guest1 = true;
+					}
+				}
+			}
+			
+			
+			String country2 = "";
+			boolean guest2 = false;
+			if (!pl2.getUsername().isEmpty()) {
+				for (RWMember uc : allMembers) {
+					if (uc.getUsername().equalsIgnoreCase(pl2.getUsername()))
+						country2 = uc.getCountry();
+				}
+				if (country2.isEmpty()) {
+					for (SwissGuest uc : allGuests) {
+						if (uc.getUsername().equalsIgnoreCase(pl2.getUsername())) {
+							country2 = uc.getCountry();
+							guest2 = true;
+						}
+					}
+				}
+			}
+			
+			
 			buff.append("<tr>");
-			buff.append("<td>" + pl.getUsername() + "</td>");
-			buff.append("<td>" + pl.getFixedRating() + "</td>");
+			buff.append("<td align=\"right\">"+(i+1)+"</td>");
+			buff.append("<td align=\"left\">");
+			if (country1 != null)
+				buff.append("<img src=\"http://simile.mit.edu/exhibit/examples/flags/images/" +
+						""+country1.toLowerCase()+".png\" border=\"0\"/>");
+			buff.append(pl1.getUsername() + (guest1 ? "(G)" : ""));
+			buff.append("</td>");
+			buff.append("<td align=\"center\">" + pl1.getFixedRating() + "</td>");
+			
+			if (!pl2.getUsername().isEmpty()) {
+				buff.append("<td align=\"right\">" + (i + size + 1) + "</td>");
+				buff.append("<td align=\"left\">");
+				if (!country2.isEmpty()) {
+					buff
+							.append("<img src=\"http://simile.mit.edu/exhibit/examples/flags/images/"
+									+ ""
+									+ country2.toLowerCase()
+									+ ".png\" border=\"0\"/>");
+				}
+				buff.append(pl2.getUsername() + (guest2 ? "(G)" : ""));
+				buff.append("</td>");
+				buff.append("<td align=\"center\">"
+						+ (pl2.getFixedRating() == 0 ? "" : pl2
+								.getFixedRating()) + "</td>");
+			}
 			buff.append("</tr>");
+			
+			i++;
 		}
 		return buff.toString();
 	}
@@ -421,6 +509,35 @@ public final class UsefulMethods {
 		pgnBuffer.append(game.getResultStr());
 
 		return pgnBuffer.toString();
+	}
+
+	public static String getGuestsTableHtml(List<SwissGuest> swissGuests) {
+		StringBuffer buff = new StringBuffer();
+		//int maxRows = members.size()/4;
+		buff.append("<table border=\"0\" align=\"center\">");
+		int coloumn = 0;
+
+		for (SwissGuest m : swissGuests) {
+			if (coloumn == 0)
+				buff.append("<tr>");
+			else if (coloumn == 3) {
+				buff.append("</tr>");
+				coloumn = 0;
+			}
+			
+			buff.append("<td width=\"25%\">");
+			buff.append("<img src=\"http://simile.mit.edu/exhibit/examples/flags/images/" +
+					""+m.getCountry().toLowerCase()+".png\" border=\"0\"/>");
+			
+			buff.append("<a href=\"/wiki/User:" + m.getUsername() + "\">"
+						+ m.getUsername() + "</a>");
+			
+			buff.append("</td>");
+
+			coloumn++;
+		}
+		buff.append("</table>");
+		return buff.toString();
 	}
 
 }

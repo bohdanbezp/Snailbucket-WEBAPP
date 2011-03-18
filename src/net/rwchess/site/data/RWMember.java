@@ -12,13 +12,15 @@ import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import net.rwchess.site.utils.UsernameComparable;
+
 /**
  * The class is used to envelope user's persistent data 
  * @author bodia
  * 
  */
 @PersistenceCapable(identityType = IdentityType.DATASTORE)
-public class RWMember implements Serializable {	
+public class RWMember implements Serializable, UsernameComparable {	
 	
 	private static final long serialVersionUID = -8157598273836465828L;
 

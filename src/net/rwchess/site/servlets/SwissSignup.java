@@ -31,7 +31,7 @@ public class SwissSignup extends HttpServlet {
 		
 		// mail admins	
 		String msgBody = pl.getUsername()
-				+ " has registered for upcomming RW Swiss 2010 with fixed rating "
+				+ " has registered for upcomming RW Swiss 2011 with fixed rating "
 				+ pl.getFixedRating();
 		
 		RssItem rss = new RssItem();
@@ -44,6 +44,6 @@ public class SwissSignup extends HttpServlet {
 		
 		Mailer.emailSignup(msgBody);
 		
-		res.sendRedirect("/swiss2010");
+		res.sendRedirect("/swissreg2011");
 	}
 }

@@ -14,7 +14,7 @@ public class SwissConverter extends HttpServlet {
 		StringBuffer buff = new StringBuffer();
 		StringTokenizer st = new StringTokenizer(req.getParameter("contents"),
 				"\n");
-		buff.append("<table>");
+		buff.append("<table border=\"1\">");
 		while (st.hasMoreTokens()) {
 			StringTokenizer wordTokenizer = new StringTokenizer(st.nextToken());
 			buff.append("<tr>");

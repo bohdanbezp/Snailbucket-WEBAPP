@@ -7,8 +7,10 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import net.rwchess.site.utils.UsernameComparable;
+
 @PersistenceCapable(identityType = IdentityType.DATASTORE)
-public class RWSwissPlayer implements Serializable  {	
+public class RWSwissPlayer implements Serializable, UsernameComparable {	
 	private static final long serialVersionUID = 1L;
 
 	@PrimaryKey

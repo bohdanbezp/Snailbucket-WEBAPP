@@ -20,6 +20,41 @@
   <meta name="robots" content="noindex,nofollow" />
   <link href="/static/jspwiki.css" type="text/css" rel="stylesheet" />
 
+  <script type= "text/javascript">
+		var skin = "monobook";
+		var stylepath = "/mediawiki/skins";
+		var wgArticlePath = "/w/$1";
+		var wgScriptPath = "/mediawiki";
+		var wgScript = "/mediawiki/index.php";
+		var wgVariantArticlePath = false;
+		var wgActionPaths = {};
+		var wgServer = "http://wiki.vuze.com";
+		var wgCanonicalNamespace = "";
+		var wgCanonicalSpecialPageName = false;
+		var wgNamespaceNumber = 0;
+		var wgPageName = "<%=wikiPage.getName().replace(' ', '_')%>";
+		var wgTitle = "<%=wikiPage.getName()%>";
+		var wgAction = "edit";
+		var wgArticleId = "3691";
+		var wgIsArticle = false;
+		var wgUserName = null;
+		var wgUserGroups = null;
+		var wgUserLanguage = "en";
+		var wgContentLanguage = "en";
+		var wgBreakFrames = false;
+		var wgCurRevisionId = 8969;
+		var wgVersion = "1.15.1";
+		var wgEnableAPI = true;
+		var wgEnableWriteAPI = true;
+		var wgSeparatorTransformTable = ["", ""];
+		var wgDigitTransformTable = ["", ""];
+		var wgRestrictionEdit = [];
+		var wgRestrictionMove = [];</script>
+
+  <script type="text/javascript" src="/static/wikibits.js"></script>
+ 
+  <script type="text/javascript" src="/static/edit.js"></script>
+
 </head>
 <body>
 
@@ -86,6 +121,21 @@
 	
 	<fieldset>
 <legend>Editing Controls</legend>
+
+<div id='toolbar'>
+<script type='text/javascript'>
+
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_bold.png","Bold text","\'\'\'","\'\'\'","Bold text","mw-editbutton-bold");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_italic.png","Italic text","\'\'","\'\'","Italic text","mw-editbutton-italic");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_link.png","Internal link","[[","]]","Link title","mw-editbutton-link");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_extlink.png","External link (remember http:// prefix)","[","]","http://www.example.com link title","mw-editbutton-extlink");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_headline.png","Level 2 headline","\n== "," ==\n","Headline text","mw-editbutton-headline");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_image.png","Embedded file","[[File:","]]","Example.jpg","mw-editbutton-image");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_nowiki.png","Ignore wiki formatting","\x3cnowiki\x3e","\x3c/nowiki\x3e","Insert non-formatted text here","mw-editbutton-nowiki");
+addButton("http://www.torak.info/mediawiki/skins/common/images/button_hr.png","Horizontal line (use sparingly)","\n----\n","","","mw-editbutton-hr");
+
+</script>
+</div>
 
 <form name="form" method="post" name="editform" action="<%=postPage %>">
 <input type="hidden" name="pageName" value="<%=wikiPage.getName() %>" />

@@ -10,14 +10,18 @@
 
 <ul>
 	<h2>Current Events</h2>
-        <ul>
+       <ul>
 		<li><a style="font-size: 15px;"
-			href="/wiki/RW_Swiss">RW Swiss 2010</a></li>
-	</ul>
+			href="/wiki/RW_Swiss_2011">RW Swiss 2011</a> <i>Registration</i></li>
+	</ul>       
 	<ul>
 		<li><a style="font-size: 15px;"
-			href="/t42">T42</a></li>
+			href="/wiki/PatzerGroup">Patzer Group</a></li>
 	</ul>
+        <ul>
+		<li><a style="font-size: 15px;"
+			href="/wiki/RW_Swiss">RW Swiss 2010</a> <i>Results</i></li>
+	</ul>	
 	</ul>
 <br/>
 <h2>Blogs</h2>

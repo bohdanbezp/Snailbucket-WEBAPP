@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.data.SwissGuest;
 import net.rwchess.site.servlets.SwissForumService;
 import net.rwchess.site.utils.UsefulMethods;
 
@@ -110,7 +111,8 @@ public class AuthorizationFilter implements Filter {
 
 	public static boolean fireIfNotRegistered(HttpServletRequest httpReq,
 			ServletResponse response) {
-		if (httpReq.getSession().getAttribute("user") == null) {
+		if (httpReq.getSession().getAttribute("user") == null && 
+				httpReq.getSession().getAttribute("guest") == null) {
 			try {
 				((HttpServletResponse) response).sendError(403);
 			} 
@@ -126,6 +128,9 @@ public class AuthorizationFilter implements Filter {
 	 * A shortcut method that get the info about user rights
 	 */
 	private int getUserGroup(HttpSession s) {
+		if (s.getAttribute("user") instanceof SwissGuest)
+			return RWMember.MEMBER;
+		
 		RWMember memb = (RWMember) s.getAttribute("user");
 		if (memb == null)
 			return 0;

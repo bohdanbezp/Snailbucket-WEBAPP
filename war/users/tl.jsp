@@ -7,18 +7,16 @@
 <% if (pageContext.getSession().getAttribute("user") != null &&
 		!DAO.playsInTl(UsefulMethods.getUsername(session))) { %>
 
-<p>T42 will start in early April 2010. Our club is known for not
-missing a single season already a few years. Here you can register
-for the this season to let any member see your status.</p>
+<p>T45 will start on January 25th, 2010.</p>
 <br/>
 
 <form name="form1" id="form1" method="post" action="/actions/signtl">
 How much time would you like to invest:
 <select id="investtime" name="investtime">
-<option value="0">You most likely will be available for all rounds</option>
-<option value="1">You can play most time, but will miss a round or two</option>
-<option value="2">You won't be available most time</option>
-<option value="3">Reserve: we'll try not to bother you as much as possible</option>
+<option value="0">I have so much time, I could even be regular player on one team and reserve player on a 2nd team.</option>
+<option value="1">Lots of time, I might only miss two games or so.</option>
+<option value="2">Not much time, but I can jump in as reserve player here and then.</option>
+<option value="3">Sorry, there is no chance you will see me this tourney.</option>
 </select><br/><br/>
 
 You want to play in:<br/>
@@ -40,7 +38,7 @@ else if (pageContext.getSession().getAttribute("user") == null) { %>
 %>
 
 
-<h2>Players who registered for T42</h2><br/>
+<h2>Players who registered for T45</h2><br/>
 <table width="80%"  border="1" cellpadding="0" cellspacing="2">
 <tr bgcolor="#5e410f">
 	       <td>Username</td>

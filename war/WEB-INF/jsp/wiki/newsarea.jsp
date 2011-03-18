@@ -1,5 +1,6 @@
 <%@ page import="net.rwchess.site.data.DAO"%>
 <%@ page import="net.rwchess.site.utils.UsefulMethods"%>
+<%@ page import="net.rwchess.site.utils.UsernameComparable"%>
 <%@ page import="net.rwchess.site.data.ForumMessage"%>
 <%@ page import="net.rwchess.site.data.RWMember"%>
 <%@ page import="java.util.List"%>
@@ -21,7 +22,7 @@ for (Object o : results) {
 <% 	}
 %>
 
-<% RWMember user = (RWMember) pageContext.getSession().getAttribute("user"); 
+<% UsernameComparable user = (UsernameComparable) pageContext.getSession().getAttribute("user"); 
        if (user != null) {  
 %>	
 <center><a href="/users/postmessage.jsp">[Post message]</a></center>

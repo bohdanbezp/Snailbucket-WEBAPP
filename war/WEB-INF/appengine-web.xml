@@ -7,6 +7,7 @@
 	
 	<static-files>
         <include path="/favicon.ico" />
+        <include path="/robots.txt" />
         <include path="/static/**" expiration="10d 5h" />
     </static-files>
     

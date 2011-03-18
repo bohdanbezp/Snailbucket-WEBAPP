@@ -29,9 +29,9 @@ public class FileUpload extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException {
 		DiskFileItemFactory factory = new DiskFileItemFactory();
-		factory.setSizeThreshold(500000);
+		factory.setSizeThreshold(2000000);
 		ServletFileUpload upload = new ServletFileUpload(factory);
-		upload.setSizeMax(500000);
+		upload.setSizeMax(2000000);
 		try {
 			String description = null;
 			File fileBlob = null;
@@ -47,7 +47,7 @@ public class FileUpload extends HttpServlet {
 						description = IOUtils.toString(in);
 					} 
 					else if (!item.isFormField()) {
-						fileBlob = new File(item.getName(),
+						fileBlob = new File(item.getName().replace(' ', '_'),
 								new Blob(IOUtils.toByteArray(in)));
 					}
 				} 

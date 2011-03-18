@@ -25,7 +25,7 @@ public class Mailer {
 			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(
 					"psotar@web.de", "pchesso"));
 		}
-		if (!uname.equals("Bodia")) {
+		if (!uname.equals("Bodia") && !uname.equals("reg")) {
 			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(
 					"bvk256@gmail.com", "Bodia"));
 		}
@@ -34,16 +34,21 @@ public class Mailer {
 	}
 	
 	public static void emailSignup(String msgBody) throws IOException {		
+		Properties props = new Properties();
+		Session session = Session.getDefaultInstance(props, null);
+
+		Message msg = new MimeMessage(session);
 		try {
-			Message msg = prepareMessage("");
-			msg.setSubject("T41 registration notification");
+			msg.setFrom(new InternetAddress("rwnotify@yandex.ru", "RW Notify"));
+			msg.addRecipient(Message.RecipientType.BCC, new InternetAddress(
+					"rwnotify@yandex.ru"));
+			msg.setSubject("Swiss 2011 registration");
+			Address ad[] = {new InternetAddress("rwchesstds@googlegroups.com")};
+			msg.setReplyTo(ad);
 			msg.setText(msgBody + "\n\n Your RWebsite notificator");
 			Transport.send(msg);
-		} 
-		catch (AddressException e) {
-			e.printStackTrace();
-		} 
-		catch (MessagingException e) {
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -74,6 +79,28 @@ public class Mailer {
 		} catch (MessagingException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void swissGuestReg(String username, String email) throws IOException {
+		Properties props = new Properties();
+		Session session = Session.getDefaultInstance(props, null);
+
+		Message msg = new MimeMessage(session);
+		try {
+			msg.setFrom(new InternetAddress("rwnotify@yandex.ru", "RW Notify"));
+			msg.addRecipient(Message.RecipientType.BCC, new InternetAddress(
+					"rwnotify@yandex.ru"));
+			msg.setSubject("Swiss 2011 registration");
+			Address ad[] = {new InternetAddress("rwchesstds@googlegroups.com")};
+			msg.setReplyTo(ad);
+			msg.setText(username + " ("+email+") has signed up for RW Swiss 2011. Information on his/her approval can be" +
+					" seen by TD on http://rwchess.appspot.com/swiss2011/approve" + "\n\n Your RWebsite notificator");
+			Transport.send(msg);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			
 	}
 	
 	public static void editedWiki(String msgBody, Text original, Text after,

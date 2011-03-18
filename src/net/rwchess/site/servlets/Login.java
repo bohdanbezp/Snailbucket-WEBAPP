@@ -13,6 +13,7 @@ import javax.servlet.http.*;
 
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.RWMember;
+import net.rwchess.site.data.SwissGuest;
 import net.rwchess.site.utils.UsefulMethods;
 
 /**
@@ -35,6 +36,8 @@ public class Login extends HttpServlet {
 			
 			if (!rst.getPasswordHash().equals(passwordHash)) {
 				addLoginError("Invalid password!", req.getSession());
+				res.sendRedirect("/wiki/Special:Login");
+				return;
 			}
 			else {
 				req.getSession().setAttribute("user", rst);
@@ -42,15 +45,57 @@ public class Login extends HttpServlet {
 				return;
 			}
 		}
-		catch (JDOObjectNotFoundException e) {			
-			addLoginError("There is no such user. Please try again.",
-					req.getSession());   
+		catch (JDOObjectNotFoundException e) {
+			handleSwissGuest(username,req.getParameter("password"),pm, 
+					req.getSession(),res,req);	
 		}
 		finally {
 			pm.close();
 		}
 		
-		res.sendRedirect("/users/login.jsp?ref="+req.getParameter("ref"));
+		if (req.getSession().getAttribute("guest") == null) {			
+				res.sendRedirect("/");
+		}
+	}
+
+	private void handleSwissGuest(String username, String password, 
+			PersistenceManager pm, HttpSession session, HttpServletResponse res,
+			HttpServletRequest req) throws ServletException, IOException {
+		try {	
+			SwissGuest rst = pm.getObjectById(SwissGuest.class, username);
+			
+			if (!rst.isConfirmed()) {
+				if (!rst.getGeneratedPlainPassword().equals(password)) {
+					addLoginError("Invalid password!", session);
+					res.sendRedirect("/wiki/Special:Login");
+				}
+				else {
+					session.setAttribute("guest", "yes");
+					session.setAttribute("login", rst.getUsername());
+					res.sendRedirect("/swiss2011/guestpasschange");
+				}
+			}
+			else {
+				String passwordHash = UsefulMethods.getMD5(password);
+				if (!rst.getPasswordHash().equals(passwordHash)) {
+					addLoginError("Invalid password!", req.getSession());
+					res.sendRedirect("/wiki/Special:Login");
+				}
+				else {					
+					session.setAttribute("user", rst);
+					session.setAttribute("guest", "yes");
+					if (req.getParameter("ref").endsWith("/wiki/Special:Login"))
+						res.sendRedirect("/");
+					else
+						res.sendRedirect(req.getParameter("ref"));
+				}
+			}
+		}
+		catch (JDOObjectNotFoundException e) {
+			addLoginError("There is no such user. Please try again.",
+					req.getSession());
+				res.sendRedirect("/wiki/Special:Login");
+		}		
 	}
 
 	private void addLoginError(String text, HttpSession session) {

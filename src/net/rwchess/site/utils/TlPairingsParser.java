@@ -66,7 +66,7 @@ public class TlPairingsParser {
 				if (line.startsWith("          <div class=\"content-full\">")) {
 					s = line;
 					duels = new ArrayList<TeamDuel>();
-					preParseHTMLMess();
+					preParseHTMLMess();					
 					parseRoundNumber();		
 					/* From this moment s apparently can be called a well-formed XML document */
 					parseValidXml();
@@ -125,7 +125,7 @@ public class TlPairingsParser {
 	            	XMLElement secondTeam = (XMLElement) fir.getChildren().get(2);
 	            	
 	            	TeamDuel duel;
-	            	String key = UsefulMethods.getMD5(ratingSection+roundNumber);
+	            	String key = UsefulMethods.getMD5(ratingSection+roundNumber);	            	
 	            	
 	            	duel = DAO.getTlDuel(key);
 	            	
@@ -143,18 +143,18 @@ public class TlPairingsParser {
 					}
 					
 	            	List<Boolean> fix = duel.getFixated();
-	            	
+	            	duel.setResults(null);
 	            	for (int i = 1; i < 5; i++) {
 	            		XMLElement el = (XMLElement) m.getChildren().get(i);
 	            		XMLElement firstPl = (XMLElement) el.getChildren().get(1);	            		
-	            		XMLElement result = (XMLElement) el.getChildren().get(2);
+	            		XMLElement result = (XMLElement) el.getChildren().get(2);	            		
 		            	XMLElement secondPl = (XMLElement) el.getChildren().get(3);
 		            	duel.addRwPlayer(mightyWarriorsPlaying(firstTeam) ? 
 		            			firstPl.getContent() : secondPl.getContent());
 		            	duel.addOpponentPlayer(!mightyWarriorsPlaying(firstTeam) ? 
 		            			firstPl.getContent() : secondPl.getContent());
 		            	duel.addResult(mightyWarriorsPlaying(firstTeam) ? 
-		            			result.getContent() : revertResult(result.getContent()));		
+		            			result.getContent() : revertResult(result.getContent()));
 		            	
 						if (matchesResultPattern(result.getContent())) {
 							if (!fix.get(i - 1)) {
@@ -187,6 +187,10 @@ public class TlPairingsParser {
 			return "0-1";
 		else if (content.equals("0-1"))
 		    return "1-0";
+		else if (content.equals("i-o"))
+		    return "o-i";
+		else if (content.equals("o-i"))
+		    return "i-o";
 		
 		return content;
 	}

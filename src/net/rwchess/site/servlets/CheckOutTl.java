@@ -1,9 +1,12 @@
 package net.rwchess.site.servlets;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.util.Date;
 import java.util.List;
 
+import javax.jdo.JDOObjectNotFoundException;
+import javax.jdo.PersistenceManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,14 +16,15 @@ import com.google.appengine.api.datastore.Text;
 
 import net.rwchess.site.data.DAO;
 import net.rwchess.site.data.RssItem;
+import net.rwchess.site.data.TeamDuel;
 import net.rwchess.site.data.WikiEditObject;
 import net.rwchess.site.utils.Mailer;
+import net.rwchess.site.utils.TlPairingsParser;
 
 public class CheckOutTl extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException {
-		/*try {						
-			//URL url = new URL("http://teamleague.org/pairings.php");
+		/**try {
 			URL url = new URL("http://teamleague.org/pairings.php");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					url.openStream()));

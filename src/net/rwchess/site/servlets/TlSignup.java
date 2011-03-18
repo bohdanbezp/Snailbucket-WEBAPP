@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.rwchess.site.data.DAO;
-import net.rwchess.site.data.T42Player;
+import net.rwchess.site.data.T45Player;
 import net.rwchess.site.utils.Mailer;
 import net.rwchess.site.utils.UsefulMethods;
 
@@ -20,7 +20,7 @@ import net.rwchess.site.utils.UsefulMethods;
 public class TlSignup extends HttpServlet {	
 	public void doPost(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException {
-		T42Player player = new T42Player();
+		T45Player player = new T45Player();
 		player.setAvailability(Byte.valueOf(req.getParameter("investtime")));
 		player.setPreferedSection(req.getParameter("section"));
 		player.setUsername(UsefulMethods.getUsername(req.getSession()));
@@ -29,11 +29,11 @@ public class TlSignup extends HttpServlet {
 		
 		// mail admins	
 		String msgBody = player.getUsername() + " has registered for upcomming " +
-				"T41 and marked his availability as \"" + UsefulMethods.avlbByteToString(
+				"T45 and marked his availability as \"" + UsefulMethods.avlbByteToString(
                  player.getAvailability()) + "\" with fixed rating of " + player.getFixedRating();
 		Mailer.emailSignup(msgBody);		
         
 		DAO.flushTlParticipantsCache();
-		res.sendRedirect("/t42");
+		res.sendRedirect("/t45");
 	}
 }

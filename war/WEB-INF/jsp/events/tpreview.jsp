@@ -1,4 +1,4 @@
-<%@ page import="net.rwchess.site.data.T42Player"%>
+<%@ page import="net.rwchess.site.data.T44Player"%>
 <%@ page import="java.util.List"%>
 <%@ page import="net.rwchess.site.data.DAO"%>
 <%@ page import="net.rwchess.site.utils.UsefulMethods"%>

@@ -1,17 +1,16 @@
 <%@ page import="net.rwchess.site.data.DAO"%>
 <%@ page import="net.rwchess.site.utils.UsefulMethods"%>
 <%@ page import="net.rwchess.site.data.TeamDuel"%>
-<%@ page import="net.rwchess.site.data.T42Player"%>
+<%@ page import="net.rwchess.site.data.T44Player"%>
 <%@ page import="java.util.List"%>
 
 <jsp:include page="/blocks/top.jsp"></jsp:include>
 <jsp:include page="/blocks/currevents.jsp"></jsp:include>
 
-<small>More information on <b></b><a href="/wiki/T41">wiki</a></b></small><br/><br/>
+<small>More information on <b></b><a href="/wiki/T42">wiki</a></b></small><br/><br/>
 
     
     <br/> 
-	<h2>Most successful players</h2></br> 
 	
    <% 
     String curr = "";   
