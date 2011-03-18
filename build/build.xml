@@ -58,7 +58,7 @@
 
   <target name="runserver" depends="datanucleusenhance"
       description="Starts the development server.">
-    <dev_appserver war="../war" port="8888" />
+    <dev_appserver war="../war" port="8080" />
   </target>
 
   <target name="clean">
