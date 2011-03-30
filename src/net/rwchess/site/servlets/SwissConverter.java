@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import nanoxml.XMLElement;
+
 public class SwissConverter extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse res)
 	throws ServletException, IOException {
@@ -16,8 +18,9 @@ public class SwissConverter extends HttpServlet {
 				"\n");
 		buff.append("<table border=\"1\">");
 		while (st.hasMoreTokens()) {
+			StringBuffer locBuff = new StringBuffer();
 			StringTokenizer wordTokenizer = new StringTokenizer(st.nextToken());
-			buff.append("<tr>");
+			locBuff.append("<tr>");
 			while (wordTokenizer.hasMoreTokens()) {
 				String token = wordTokenizer.nextToken();
 				
@@ -25,13 +28,30 @@ public class SwissConverter extends HttpServlet {
 					token = "Date/Result";
 				
 				if (!token.equals("Feder") && !token.startsWith("("))
-					buff.append("<td>"+token+"</td>");
+					locBuff.append("<td>"+token+"</td>");
 			}
-			buff.append("</tr>\n");
+			if (locBuff.toString().equals("<tr>"))
+				continue;
+			
+			XMLElement tr = new XMLElement();			
+			tr.parseString(locBuff+"</tr>");
+			if (((XMLElement) tr.getChildren().get(1)).getContent().equals("Name"))
+				locBuff.append("<td>Discussion address</td>");
+			else {
+				String forumPageName = "Swiss11:R" + "$ROUND" + "_"
+						+ ((XMLElement) tr.getChildren().get(1)).getContent()
+						+ "-"
+						+ ((XMLElement) tr.getChildren().get(3)).getContent();
+				locBuff.append("<td><a href=\"/wiki/" + forumPageName
+						+ "\">game forum</a></td>");
+			}
+			locBuff.append("</tr>\n");
+			buff.append(locBuff);
 		}
 		buff.append("</table>");
 		res.setContentType("text/plain");
-		res.getOutputStream().write(buff.toString().replaceAll(",", "").getBytes());
+		res.getOutputStream().write(buff.toString().replaceAll(",", "")
+				.replaceAll(":", "").replaceAll("Swiss11", "Swiss11:").getBytes());
 		res.getOutputStream().flush();
 	}
 	

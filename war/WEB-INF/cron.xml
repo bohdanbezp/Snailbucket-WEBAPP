@@ -4,5 +4,10 @@
     <url>/_ah/sessioncleanup?clear</url>
     <description>Clean up sessions</description>
     <schedule>every 24 hours</schedule>
-  </cron> 
+  </cron>
+  <cron>
+    <url>/special/check</url>
+    <description>Check wiki edits</description>
+    <schedule>every 8 hours</schedule>
+  </cron>
 </cronentries>

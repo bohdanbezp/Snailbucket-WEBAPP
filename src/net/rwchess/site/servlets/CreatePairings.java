@@ -20,7 +20,7 @@ import net.rwchess.wiki.WikiPage;
 
 public class CreatePairings extends HttpServlet {
 	public static String getPairingsFromSource() {
-		WikiPage p = DAO.getWikiPage("RW Swiss");
+		WikiPage p = DAO.getWikiPage("RW Swiss 2011");
 		String source = p.getRawText().getValue();
 		boolean isPairings = false;
 		StringBuffer result = new StringBuffer();
@@ -34,7 +34,7 @@ public class CreatePairings extends HttpServlet {
 			if (isPairings && t.startsWith("=="))
 				isPairings = false;
 			
-			if (t.contains("Pairings"))
+			if (t.contains("Pairings") && t.startsWith("="))
 				isPairings = true;
 		}
 		
@@ -48,6 +48,17 @@ public class CreatePairings extends HttpServlet {
 			res.getWriter().println("Created wiki pages:\n");
 			for (String i: parseTable(getPairingsFromSource(), req.getParameter("round"))) {
 				res.getWriter().println(i);
+			}
+			PersistenceManager pm = DAO.get().getPersistenceManager();
+			try {
+				WikiPage page = pm.getObjectById(WikiPage.class, "RW Swiss 2011");
+				String raw = page.getRawText().getValue();
+				String result = raw.replace("$ROUND", req.getParameter("round"));
+				page.setRawText(new Text(result));
+				DAO.deleteObj("WikiBackupTable");
+			}
+			finally {
+				pm.close();
 			}
 		}
 		else
@@ -66,7 +77,7 @@ public class CreatePairings extends HttpServlet {
 							.equals("Name"))
 				continue;
 	    	
-			toCreate.add("Swiss10:R" + round + "_"
+			toCreate.add("Swiss11:R" + round + "_"
 					+ ((XMLElement) tr.getChildren().get(1)).getContent() + "-"
 					+ ((XMLElement) tr.getChildren().get(3)).getContent());
 		}

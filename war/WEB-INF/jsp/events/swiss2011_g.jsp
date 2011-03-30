@@ -4,7 +4,7 @@
 <jsp:include page="/blocks/top.jsp"></jsp:include>
 <jsp:include page="/blocks/currevents.jsp"></jsp:include>
 
-<p>Please read the <a href="/wiki/RWSwiss2011%20TourneyGuide">tourney guide</a> before registering.</p>
+<!-- <p>Please read the <a href="/wiki/RWSwiss2011%20TourneyGuide">tourney guide</a> before registering.</p>
 <form name="form1" id="form1" method="post" action="/signswissguest">
       <table border="0" align="center">
       <tr>           
@@ -22,6 +22,8 @@
       </table>
       <br/><input type="submit" value="Sign up" />
       </form>
-      <br/>
+      <br/> -->
+      
+      <p><b>Registration closed</b></p>
 
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>

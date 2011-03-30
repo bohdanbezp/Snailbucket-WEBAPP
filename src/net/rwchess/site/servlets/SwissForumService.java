@@ -50,7 +50,7 @@ public class SwissForumService extends HttpServlet {
 			
 			if (!req.getParameter("month").equals("0")) {
 				Calendar cld = Calendar.getInstance();
-				cld.set(Calendar.YEAR, 2010);
+				cld.set(Calendar.YEAR, 2011);
 				cld.set(Calendar.MONTH, Integer.parseInt(req.getParameter("month"))-1);
 				cld.set(Calendar.DAY_OF_MONTH, Integer.parseInt(req.getParameter("day")));
 				cld.set(Calendar.HOUR_OF_DAY, Integer.parseInt(req.getParameter("hour")));
@@ -91,11 +91,11 @@ public class SwissForumService extends HttpServlet {
 				
 				String result = null, playerName = null;
 				
-				PGNReader red = new PGNReader(IOUtils.toInputStream(pgn), "swiss2010.pgn");
+				PGNReader red = new PGNReader(IOUtils.toInputStream(pgn), "swiss2011.pgn");
 				try {
 					Game ga = red.parseGame();
 					ga.setTag("Round", Character.toString(pageName.charAt(9)));
-					ga.setTag("Event", "RW Swiss 2010");
+					ga.setTag("Event", "RW Swiss 2011");
 					result = ga.getResultStr();
 					playerName = ga.getWhite().equals("SachinRavi") ? "sachinravi"
 							: ga.getWhite();
@@ -107,41 +107,60 @@ public class SwissForumService extends HttpServlet {
 				
 				try {
 					File fl = (File) pm.getObjectById(File.class,
-							"swiss2010.pgn");
+							"swiss2011.pgn");
 					pgn = "\n\n" + pgn;
 					fl.setFile(new Blob(UsefulMethods.concat(fl.getFile()
 							.getBytes(), pgn.getBytes())));
 				} 
 				catch (JDOObjectNotFoundException e) {
 					Blob blob = new Blob(pgn.getBytes());
-					File fl = new File("swiss2010.pgn", blob);
+					File fl = new File("swiss2011.pgn", blob);
 					pm.makePersistent(fl);
 				}
 				
-				System.out.println("retrieveResult(pgn) " + result);
-				System.out.println("retrievePlayername(pgn) " + playerName);
 				setResult(result, playerName);
-				res.sendRedirect("/wiki/RW_Swiss");
+				res.sendRedirect("/wiki/RW_Swiss_2011");
 				
-				page.setHtmlText(new Text(page.getHtmlText().getValue() + "<p><b>"
+				page.setHtmlText(new Text("<p><b>"
 						+ UsefulMethods.getUsername(req.getSession()) + "</b> ("
 						+ formatter.format(new Date()) + "):<br/>"
 						+ req.getParameter("contents").replaceAll("\n", "<br/>")
-						+ "</p>\n"));
+						+ "</p>\n" + page.getHtmlText().getValue()));
 				
 				return;
 			}
+			else if (content.startsWith("Game adjudicated ")) {
+				String result = content.substring("Game adjudicated ".length());
+				String playerName = retrNameFromPage(page.getName());
+				setResult(result, playerName);
+			}
 			
-			page.setHtmlText(new Text(page.getHtmlText().getValue() + "<p><b>"
+			page.setHtmlText(new Text("<p><b>"
 					+ UsefulMethods.getUsername(req.getSession()) + "</b> ("
 					+ formatter.format(new Date()) + "):<br/>"
 					+ content.replaceAll("\n", "<br/>")
-					+ "</p>\n"));
+					+ "</p>\n" + page.getHtmlText().getValue()));
 			res.sendRedirect("/wiki/" + page.getName());
 		}
 		finally {
 			pm.close();
 		}
+	}
+	
+	private String retrNameFromPage(String name) {
+		StringBuffer res = new StringBuffer();
+		boolean in = false;
+		for (char c: name.toCharArray()) {
+			if (c == '-')
+				in = false;
+			
+			if (in)
+				res.append(c);
+			
+			if (c == '_')
+				in = true;			
+		}
+		return res.toString();
 	}
 	
 	private void setDate(String date, String username) {
@@ -156,20 +175,20 @@ public class SwissForumService extends HttpServlet {
 							.equals("Name"))
 				continue;
 	    	
-	    	if (tr.toString().contains(username)) {
+	    	if (tr.toString().contains(username)) {	    		
 	    		XMLElement el = ((XMLElement) tr.getChildren().get(2));
-	    		String old = tr.toString().replaceAll("HREF", "href");
+	    		String old = tr.toString().replaceAll("HREF", "href")
+	    			.replaceAll("<td/>", "<td></td>");
 	    		el.setContent(date);
 	    		
 	    		PersistenceManager pm = DAO.get().getPersistenceManager();
 	    		try {
 					WikiPage page = pm
-							.getObjectById(WikiPage.class, "RW Swiss");
+							.getObjectById(WikiPage.class, "RW Swiss 2011");
 					page.setRawText(new Text(page.getRawText().getValue()
 							.replaceAll(">\n", ">").replaceAll("HREF", "href")
 							.replaceAll(old,
 									tr.toString().replaceAll("HREF", "href"))));
-					page.setHtmlText(UsefulMethods.getHtml(page.getRawText()));
 	    		}
 	    		finally {
 	    			pm.close();
@@ -203,7 +222,7 @@ public class SwissForumService extends HttpServlet {
 	    		PersistenceManager pm = DAO.get().getPersistenceManager();
 	    		try {
 					WikiPage page = pm
-							.getObjectById(WikiPage.class, "RW Swiss");
+							.getObjectById(WikiPage.class, "RW Swiss 2011");
 					page.setRawText(new Text(page.getRawText().getValue()
 							.replaceAll(">\n", ">").replaceAll("HREF", "href")
 							.replaceAll(old,

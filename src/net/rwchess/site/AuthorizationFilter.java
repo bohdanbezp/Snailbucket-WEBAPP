@@ -41,7 +41,7 @@ public class AuthorizationFilter implements Filter {
 		String uri = httpReq.getRequestURI();
 		response.setCharacterEncoding("utf-8");
 		
-		if (uri.startsWith("/wiki/Swiss10:")) {
+		if (uri.startsWith("/wiki/Swiss11:")) {
 			new SwissForumService().service(request, response);
 			return;
 		}

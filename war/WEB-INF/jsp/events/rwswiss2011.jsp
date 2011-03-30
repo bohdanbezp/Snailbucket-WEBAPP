@@ -8,19 +8,12 @@
 	if (!UsefulMethods.getUsername(session).equals("null")
 			&& !DAO.playsInSwiss(UsefulMethods.getUsername(session))) {
 %>
-<p>Please read the <a href="/wiki/RWSwiss2011%20TourneyGuide">tourney guide</a> before registering.</p>
-<form name="form1" id="form1" method="post" action="/actions/signswiss">
-      <br/>
-      <input type="submit" value="Sign up" />
-      </form>
-      <br/>
+<p><b>Registration closed</b></p>
 <%
 	}
 	else if (UsefulMethods.getUsername(session).equals("null")) {
 %>
-      <p><b>If you're a member</b> <a href="/wiki/Special:Login">log in</a> in order to sign up for RW Swiss 2011</p>
-      <p>Guest swiss players can use <a href="/swiss2011/guest">this page</a> to sign in</p>
-      <br/> 
+      
 <%  } %>
 <h2>Players registered for RW Swiss</h2><br/>
 <table width="80%"  border="1" cellpadding="0" cellspacing="2">
