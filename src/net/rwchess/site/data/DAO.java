@@ -211,8 +211,8 @@ public final class DAO {
 			player = "sachinravi";
 		
 		try {
-			T45Player mem = (T45Player) pm.getObjectById(
-					T45Player.class, player);
+			TlPlayer mem = (TlPlayer) pm.getObjectById(
+					TlPlayer.class, player);
 			mem.setGames(mem.getGames()+1);
 			mem.setPoints(mem.getPoints()+winningPoints);
 		}
@@ -258,8 +258,8 @@ public final class DAO {
 		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		try {
-			T45Player mem = (T45Player) pm.getObjectById(
-					T45Player.class, name);
+			TlPlayer mem = (TlPlayer) pm.getObjectById(
+					TlPlayer.class, name);
 			return true;
 		}
 		catch (JDOObjectNotFoundException e) {
@@ -288,15 +288,15 @@ public final class DAO {
 		}
 	}
 	
-	public static List<T45Player> getTlParticipants(boolean sortByPoints) {
+	public static List<TlPlayer> getTlParticipants(boolean sortByPoints) {
 		try {
 			PersistenceManager pm = pmfInstance.getPersistenceManager();
-			Query query = pm.newQuery(T45Player.class);
+			Query query = pm.newQuery(TlPlayer.class);
 			if (sortByPoints)
 				query.setOrdering("points desc");
 			else
 				query.setOrdering("fixedRating desc");
-			return (List<T45Player>) query.execute();
+			return (List<TlPlayer>) query.execute();
 		} 
 		catch (JDOObjectNotFoundException e) {
 			return null;

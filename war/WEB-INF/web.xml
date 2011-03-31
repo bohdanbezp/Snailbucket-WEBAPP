@@ -38,7 +38,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<jsp-file>/users/memberprofile.jsp</jsp-file>
 	</servlet>
 	<servlet>
-		<servlet-name>t45</servlet-name>
+		<servlet-name>t46</servlet-name>
 		<jsp-file>/users/tl.jsp</jsp-file>
 		<!--  <jsp-file>/WEB-INF/jsp/events/t42.jsp</jsp-file>-->
 	</servlet>
@@ -223,8 +223,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<url-pattern>/special/check</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>t45</servlet-name>
-		<url-pattern>/t45</url-pattern>
+		<servlet-name>t46</servlet-name>
+		<url-pattern>/t46</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>rss</servlet-name>

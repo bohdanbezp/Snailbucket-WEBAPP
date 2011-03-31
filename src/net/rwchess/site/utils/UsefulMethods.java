@@ -29,7 +29,7 @@ import com.google.appengine.api.datastore.Text;
 import net.rwchess.site.data.RWMember;
 import net.rwchess.site.data.RWSwissPlayer;
 import net.rwchess.site.data.SwissGuest;
-import net.rwchess.site.data.T45Player;
+import net.rwchess.site.data.TlPlayer;
 
 /**
  * Some useful utility methods.
@@ -301,9 +301,9 @@ public final class UsefulMethods {
 		return "";
 	}
 
-	public static String getTlParticipantsHtml(List<T45Player> allPlayers) {
+	public static String getTlParticipantsHtml(List<TlPlayer> allPlayers) {
 		StringBuffer buff = new StringBuffer();		
-		for (T45Player pl : allPlayers) {
+		for (TlPlayer pl : allPlayers) {
 			buff.append("<tr>");
 			buff.append("<td>" + pl.getUsername() + "</td>");
 			buff.append("<td>" + pl.getFixedRating() + "</td>");
