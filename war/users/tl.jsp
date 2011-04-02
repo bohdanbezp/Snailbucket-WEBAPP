@@ -7,27 +7,30 @@
 <% if (pageContext.getSession().getAttribute("user") != null &&
 		!DAO.playsInTl(UsefulMethods.getUsername(session))) { %>
 
-<p>T45 will start on January 25th, 2010.</p>
+<p><b>T46</b><br>
+preliminary: 7 weeks, April 26 - June 13<br>
+playoffs: 1 week, June 14 - 20.</p>
 <br/>
 
 <form name="form1" id="form1" method="post" action="/actions/signtl">
-How much time would you like to invest:
+How many games would you like to play?<br>
 <select id="investtime" name="investtime">
-<option value="0">I have so much time, I could even be regular player on one team and reserve player on a 2nd team.</option>
-<option value="1">Lots of time, I might only miss two games or so.</option>
-<option value="2">Not much time, but I can jump in as reserve player here and then.</option>
-<option value="3">Sorry, there is no chance you will see me this tourney.</option>
+<option value="0">1-3 games</option>
+<option value="1">3-5 games</option>
+<option value="2">5-8 games</option>
+<option value="3">0 games :(</option>
 </select><br/><br/>
 
-You want to play in:<br/>
-<select id="section" name="section">
-<option value="Any section">Any section</option>
-<option value="Open">Open</option>
-<option value="u2000">u2000</option>
-<option value="u1800">u1800</option>
-<option value="u1600">u1600</option>
+Could you help as captain or deputy?<br/>
+<select id="capt" name="capt">
+<option value=" ">No, please not.</option>
+<option value="Cap">Captain</option>
+<option value="Dep">Deputy</option>
+<option value="C/D">Captain or Deputy</option>
 </select><br/>
 <br/>
+
+Optional: You can leave a <b>short</b> comment, stuff like "Not after May 24. Maybe available early in June, but it looks difficult."<br><input select id="comments" name="comments"><br><br>
 <input type="submit" value="Submit" />
 </form>
 <br/><br/>
@@ -38,17 +41,20 @@ else if (pageContext.getSession().getAttribute("user") == null) { %>
 %>
 
 
-<h2>Players who registered for T45</h2><br/>
+<h2>Players who registered for T46</h2><br/>
 <table width="80%"  border="1" cellpadding="0" cellspacing="2">
-<tr bgcolor="#5e410f">
+<tr bgcolor="#6495ED">
+	       <td>#</td>
 	       <td>Username</td>
-	       <td>Fixed rating</td>
-	       <td>Preferred section</td>
-	       <td>Availability</td>
-</tr> 
+	       <td>Fixed<br>rating</td>
+	       <td>Games</td>
+	       <td>Cap/<br>Dep</td>
+	       <td>Comments</td></tr> 
 <%
 out.print(DAO.getTlParticipantsTable());
 %>
 </table>
+<br>
+<p><a href="/wiki/User:bodzolca">bodzolca</a> will submit all teams on April 18. --> Please sign up before April 16! Any questions? Please contact bodzolca via email or fics message.</p>
 
 <jsp:include page="/blocks/bottom.jsp"></jsp:include>

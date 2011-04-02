@@ -404,7 +404,7 @@ public class Import extends HttpServlet {
     
 	
 		
-		
+		/*
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		String[] names = { "HerrGott", "Noiro", "piorgovici", "pchesso",
 				"Bodia", "Acho", "sachinravi", "jussu", "Natin", "Nitreb",
@@ -454,7 +454,7 @@ public class Import extends HttpServlet {
 		}
 		DAO.flushMembersCache();
 		DAO.flushSwissGuestCache();
-
+*/
 	}
 
 	private void getSwissParticipantsHtml(

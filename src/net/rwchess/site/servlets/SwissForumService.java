@@ -210,7 +210,7 @@ public class SwissForumService extends HttpServlet {
 							.equals("Name"))
 				continue;
 	    	
-	    	if (tr.toString().contains(username)) {
+	    	if (tr.toString().toLowerCase().contains(username.toLowerCase())) {
 	    		XMLElement el = ((XMLElement) tr.getChildren().get(2));
 	    		String old = tr.toString().replaceAll("HREF", "href");
 	    		el.setContent("");
@@ -225,7 +225,7 @@ public class SwissForumService extends HttpServlet {
 							.getObjectById(WikiPage.class, "RW Swiss 2011");
 					page.setRawText(new Text(page.getRawText().getValue()
 							.replaceAll(">\n", ">").replaceAll("HREF", "href")
-							.replaceAll(old,
+							.replaceAll(old.replaceAll("<td/>", "<td></td>"),
 									tr.toString().replaceAll("HREF", "href"))));
 					page.setHtmlText(UsefulMethods.getHtml(page.getRawText()));
 	    		}

@@ -7,6 +7,7 @@ package net.rwchess.site.utils;
 
 import info.bliki.wiki.model.WikiModel;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -300,19 +301,73 @@ public final class UsefulMethods {
 		}
 		return "";
 	}
+	
+	private static String getRGBRainbow(int n, int all) {
+		float hueVal = (0.83f/all)*n;	
+		float s = 0.80f;
+		float b = 0.75f;
+		return Integer.toHexString( HSBtoRGB(hueVal, s, b) & 0x00ffffff );
+	}
 
 	public static String getTlParticipantsHtml(List<TlPlayer> allPlayers) {
-		StringBuffer buff = new StringBuffer();		
+		StringBuffer buff = new StringBuffer();	
+		int i = 0;
 		for (TlPlayer pl : allPlayers) {
 			buff.append("<tr>");
+			buff.append("<td bgcolor=\"#"+getRGBRainbow(i++, allPlayers.size())+"\"></td>");
 			buff.append("<td>" + pl.getUsername() + "</td>");
 			buff.append("<td>" + pl.getFixedRating() + "</td>");
-			buff.append("<td>" + pl.getPreferedSection() + "</td>");
-			buff.append("<td>" + UsefulMethods.avlbByteToString(pl.getAvailability()) + "</td>");
+			buff.append("<td>" + pl.getGames() + "</td>");
+			buff.append("<td>" + pl.getCaptain() + "</td>");
+			buff.append("<td>" + pl.getComments() + "</td>");
 			buff.append("</tr>");
 		}
 		return buff.toString();
 	}
+	
+	public static int HSBtoRGB(float hue, float saturation, float brightness)
+	  {
+	    if (saturation == 0)
+	      return convert(brightness, brightness, brightness, 0);
+	    if (saturation < 0 || saturation > 1 || brightness < 0 || brightness > 1)
+	      throw new IllegalArgumentException();
+	    hue = hue - (float) Math.floor(hue);
+	    int i = (int) (6 * hue);
+	    float f = 6 * hue - i;
+	    float p = brightness * (1 - saturation);
+	    float q = brightness * (1 - saturation * f);
+	    float t = brightness * (1 - saturation * (1 - f));
+	    switch (i)
+	      {
+	      case 0:
+	        return convert(brightness, t, p, 0);
+	      case 1:
+	        return convert(q, brightness, p, 0);
+	      case 2:
+	        return convert(p, brightness, t, 0);
+	      case 3:
+	        return convert(p, q, brightness, 0);
+	      case 4:
+	        return convert(t, p, brightness, 0);
+	      case 5:
+	        return convert(brightness, p, q, 0);
+	      default:
+	        throw new InternalError("impossible");
+	      }
+	  }
+	
+	 private static int convert(float red, float green, float blue, float alpha)
+	  {
+	    if (red < 0 || red > 1 || green < 0 || green > 1 || blue < 0 || blue > 1
+	        || alpha < 0 || alpha > 1)
+	      throw new IllegalArgumentException("Bad RGB values");
+	    int redval = Math.round(255 * red);
+	    int greenval = Math.round(255 * green);
+	    int blueval = Math.round(255 * blue);
+	    int alphaval = Math.round(255 * alpha);
+	    return (alphaval << 24) | (redval << 16) | (greenval << 8) | blueval;
+	  }
+			
 	
 	public static UsernameComparable findForUname(String uname, 
 			List<UsernameComparable> list) {
