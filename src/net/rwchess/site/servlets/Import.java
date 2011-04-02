@@ -404,7 +404,7 @@ public class Import extends HttpServlet {
     
 	
 		
-		/*
+		
 		PersistenceManager pm = DAO.get().getPersistenceManager();
 		String[] names = { "HerrGott", "Noiro", "piorgovici", "pchesso",
 				"Bodia", "Acho", "sachinravi", "jussu", "Natin", "Nitreb",
@@ -440,7 +440,7 @@ public class Import extends HttpServlet {
 		for (int i = 0; i < names.length; i++) {
 			int rank = 1;
 			if (names[i].equals("Bodia")) rank = 3;
-			else if (names[i].equals("pchesso")) rank = 2;
+			else if (names[i].equals("pchesso")) rank = 3;
 			
 			pm.makePersistent(new RWMember(names[i], passwords[i], rank,
 					countries[i]));
@@ -454,7 +454,7 @@ public class Import extends HttpServlet {
 		}
 		DAO.flushMembersCache();
 		DAO.flushSwissGuestCache();
-*/
+
 	}
 
 	private void getSwissParticipantsHtml(
