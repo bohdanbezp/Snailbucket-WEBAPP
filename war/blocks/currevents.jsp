@@ -12,16 +12,17 @@
 	<h2>Current Events</h2>
        <ul>
 		<li><a style="font-size: 15px;"
-			href="/wiki/RW_Swiss_2011">RW Swiss 2011</a> <i>Registration</i></li>
+			href="/t46">T46</a> <i>Sign up</i></li>
+	</ul>
+	<ul>
+		<li><a style="font-size: 15px;"
+			href="/wiki/RW_Swiss_2011">RW Swiss 2011</a></li>
 	</ul>       
 	<ul>
 		<li><a style="font-size: 15px;"
 			href="/wiki/PatzerGroup">Patzer Group</a></li>
 	</ul>
-        <ul>
-		<li><a style="font-size: 15px;"
-			href="/wiki/RW_Swiss">RW Swiss 2010</a> <i>Results</i></li>
-	</ul>	
+        	
 	</ul>
 <br/>
 <h2>Blogs</h2>
