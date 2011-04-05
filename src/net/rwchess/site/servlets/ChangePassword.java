@@ -21,7 +21,7 @@ public class ChangePassword extends HttpServlet {
 		try {
 			if (req.getSession().getAttribute("guest") != null) {
 				SwissGuest m = pm.getObjectById(SwissGuest.class, 
-						req.getSession().getAttribute("login"));
+						UsefulMethods.getUsername(req.getSession()));
 				m.setPasswordHash(UsefulMethods.getMD5(req.getParameter("password")));
 				
 				if (!m.isConfirmed()) {

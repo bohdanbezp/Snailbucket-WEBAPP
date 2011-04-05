@@ -122,10 +122,11 @@ public class SwissForumService extends HttpServlet {
 				res.sendRedirect("/wiki/RW_Swiss_2011");
 				
 				page.setHtmlText(new Text("<p><b>"
-						+ UsefulMethods.getUsername(req.getSession()) + "</b> ("
+						+ addTdTag(UsefulMethods.getUsername(req.getSession()), 
+								page.getName()) + "</b> ("
 						+ formatter.format(new Date()) + "):<br/>"
 						+ req.getParameter("contents").replaceAll("\n", "<br/>")
-						+ "</p>\n" + page.getHtmlText().getValue()));
+						+ "</p><hr/>\n" + page.getHtmlText().getValue()));
 				
 				return;
 			}
@@ -136,10 +137,11 @@ public class SwissForumService extends HttpServlet {
 			}
 			
 			page.setHtmlText(new Text("<p><b>"
-					+ UsefulMethods.getUsername(req.getSession()) + "</b> ("
+					+ addTdTag(UsefulMethods.getUsername(req.getSession()), 
+							page.getName()) + "</b> ("
 					+ formatter.format(new Date()) + "):<br/>"
 					+ content.replaceAll("\n", "<br/>")
-					+ "</p>\n" + page.getHtmlText().getValue()));
+					+ "</p><hr/>\n" + page.getHtmlText().getValue()));
 			res.sendRedirect("/wiki/" + page.getName());
 		}
 		finally {
@@ -147,7 +149,17 @@ public class SwissForumService extends HttpServlet {
 		}
 	}
 	
-	private String retrNameFromPage(String name) {
+	private static String addTdTag(String username, String pageName) {
+		if (!pageName.contains(username) &&
+				(username.equalsIgnoreCase("Nitreb") 
+				|| username.equalsIgnoreCase("pchesso") 
+				|| username.equalsIgnoreCase("Madmansreturn")))
+			return username+"(TD)";
+		else
+			return username;
+	}
+
+	private static String retrNameFromPage(String name) {
 		StringBuffer res = new StringBuffer();
 		boolean in = false;
 		for (char c: name.toCharArray()) {

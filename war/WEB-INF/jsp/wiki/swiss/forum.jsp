@@ -91,6 +91,11 @@
 </form>
 
 </fieldset>
+<% }
+else {
+ %>
+ <br/>
+ <p>Please <a href="/wiki/Special:Login">log in</a> in order to post in the game forum.</p>
 <% } %>
 
 
