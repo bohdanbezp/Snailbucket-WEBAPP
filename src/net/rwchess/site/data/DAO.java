@@ -214,7 +214,7 @@ public final class DAO {
 			TlPlayer mem = (TlPlayer) pm.getObjectById(
 					TlPlayer.class, player);
 			mem.setGames(mem.getGames()+1);
-			mem.setPoints(mem.getPoints()+winningPoints);
+			//mem.setPoints(mem.getPoints()+winningPoints);
 		}
 		catch (JDOObjectNotFoundException e) {			
 		}
