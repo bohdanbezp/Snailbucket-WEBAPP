@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /wiki/*
+Disallow: /wiki/Special:Edit
+Disallow: /wiki/Special:History
+Disallow: /actions/*
+Disallow: /files/*
+Disallow: /users/*
+Disallow: /special/*

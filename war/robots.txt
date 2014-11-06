@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /wiki/
-Disallow: /actions/
-Disallow: /files/
-Disallow: /users/
-Disallow: /special/
