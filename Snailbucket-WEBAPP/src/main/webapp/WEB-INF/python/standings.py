@@ -25,6 +25,13 @@ def adjust_hth(player_records):
       if opponent in players:
         record.hth += record.opponents[opponent]
 
+def normalize_score(score):
+  if score == '-':
+    return 0
+  if score == '+':
+    return 1
+  return score
+
 
 # players is a list of (player, rating) tuples
 # matches is a list of (player1, player2, score1, score2) tuples
@@ -37,6 +44,9 @@ def calculate_standings(players, matches):
   for (player, rating) in players:
     records[player] = PlayerRecord(player, rating)
   for (player1, player2, score1, score2) in matches:
+    score1 = normalize_score(score1)
+    score2 = normalize_score(score2)
+
     records[player1].games += 1
     records[player2].games += 1
     records[player1].points += score1
