@@ -1,0 +1,188 @@
+/* The Knife - An open source xhtml/css website template by Fernbap - http://fernbap.com.
+Free to use in any way and for any purpose as long as the proper credits are given to the original designer.
+
+Version: 1.0, May 12, 2008 */
+
+html{
+	height: 100%;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	color: #ebe3a2;
+	text-decoration: none;
+	outline: none;
+}
+
+a:hover {
+	color: #FFFACD;
+	text-decoration: none;
+}
+
+p {
+	margin-bottom: .4em;
+}
+
+blockquote {
+	color: #CDC9A5;
+	margin: 10px 0px 20px 0px;
+	padding: 10px 20px 0px 20px;
+	font-style: italic;
+	font-weight: 600;
+}
+
+body {
+	background-color: #000;
+	font: 14px Georgia,Verdana,Tahoma,Arial,sans-serif;
+	font-weight: 400;
+	color: #CDC9b5;
+	padding: 0;
+	margin: 0;
+}
+
+#wrapper {
+	width: 840px;
+	margin: 0 auto;
+}
+
+#header {
+	height: 310px;
+	margin: 0 auto;
+}
+
+#toplinks {
+	background: transparent;
+	float: right;
+	margin: 20px 40px;
+	font-weight: 400;
+	font-size: .8em;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
+#title {
+	padding: 166px 80px 50px 130px;
+}
+
+#title h1, #title h1 a {
+	color: #FFFACD;
+	text-decoration: none;
+	letter-spacing: .16em;
+	font-size: 1.7em;
+}
+
+#title h2 {
+	color: #CDC9A5;
+}
+
+#menu {
+	background: url(images/menubg.jpg)  repeat-x ;
+	height: 40px;
+	width: auto;
+}
+
+#menu ul {
+	background: url(images/m1.jpg) right no-repeat ;
+	margin: 0 auto;
+	padding: 9px 34px;
+	list-style: none;
+	text-align: right;
+}
+
+#menu li {
+	font-size: 1.2em;
+	font-weight: 600;
+	display: inline;
+}
+
+#menu a {
+	background: url(images/m1.jpg) left no-repeat ;
+	padding-left: 40px;
+	padding-right: 6px;
+	color: #CDC9A5;
+}
+
+#menu a:hover, #menu a.selected {
+	color: #FFFACD;
+	text-decoration: none;
+}
+
+#left {
+	background: url(images/leftborder.jpg) right repeat-y ;
+	width: 25%;
+	height: 100%;
+	float: left;
+	padding: 20px 10px 0 0;
+}
+
+.leftitem {
+	margin-bottom: 10px;
+}
+
+.leftbottom {
+	height: 10px;
+	background: url(images/bottomborder.jpg) bottom repeat-x ;
+}
+
+#content h2 {
+	background: url(images/bottomborder.jpg) bottom repeat-x ;
+	height: 1.5em;
+	padding-top: 4px;
+	margin-bottom: 6px;
+}
+
+#content ol, #content ul {
+	list-style: none;
+	margin: 4px 0 8px;
+}
+
+#content li {
+	background: url(images/m2.jpg) left no-repeat;
+	padding-left: 14px;
+	display: block;
+}
+
+#right {
+	width: 72%;
+	float: right;
+	padding-top: 20px;
+}
+
+.left {
+	float: left;
+	margin: 2px 8px 0px 0px;
+	border: 1px solid #515153;
+}
+
+.right {
+	float: right; 
+	margin: 2px 0px 0px 8px;
+	border: 1px solid #515153;
+}
+
+.center {
+	display: block;
+	text-align: center;
+	margin: 2px auto 2px;
+	border: 1px solid #515153;
+}
+
+#footer {
+	width: 840px;
+	height: 130px;
+	margin: 10px auto;
+}
+
+#footer p {
+	background: url(images/footerbg.jpg)  repeat-x ;
+	height: 40px;
+	padding-top: 12px;
+	text-align: center;
+} 
+#footer p, #footer p a {
+	font-size: .9em;
+}
