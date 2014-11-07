@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @Controller
-public class MainController
-{
+public class MainController {
 
     private MemberDAO memberDAO;
 
@@ -103,6 +102,6 @@ public class MainController
 
     @RequestMapping("/members/{memName}")
     public String redirectMembers(@PathVariable String memName) {
-       return "redirect:/wiki/Special:"+memName;
+        return "redirect:/wiki/Special:" + memName;
     }
 }

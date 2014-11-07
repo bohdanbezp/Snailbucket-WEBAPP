@@ -51,7 +51,7 @@ display:none;
           	padding: 0 0.8em;
           	font-size: 90%;
           }
-        </style>
+        </style>    <jsp:include page="tracking.jsp"></jsp:include>
 </head>
 <body>
 

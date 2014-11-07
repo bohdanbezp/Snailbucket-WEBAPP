@@ -15,20 +15,18 @@ public class WikiPageDAOHib implements WikiPageDAO {
     @Override
     public WikiPage getWikiPageByName(String name) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM WikiPage M WHERE M.name = :name";
         Query query = session.createQuery(hql);
-        query.setParameter("name",name);
+        query.setParameter("name", name);
 
         WikiPage res = null;
         try {
             res = (WikiPage) query.list().get(0);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
         return res;
@@ -37,15 +35,13 @@ public class WikiPageDAOHib implements WikiPageDAO {
     @Override
     public void store(WikiPage wikiPage) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         try {
             session.saveOrUpdate(wikiPage);
             transaction.commit();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -53,21 +49,19 @@ public class WikiPageDAOHib implements WikiPageDAO {
     @Override
     public void toggleProtectTd(String pageName) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM WikiPage M WHERE M.name = :name";
         Query query = session.createQuery(hql);
-        query.setParameter("name",pageName);
+        query.setParameter("name", pageName);
 
         WikiPage res = null;
         try {
             res = (WikiPage) query.list().get(0);
             res.setTdProtected(!res.isTdProtected());
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -75,10 +69,10 @@ public class WikiPageDAOHib implements WikiPageDAO {
     @Override
     public void updatePageWithText(String pageName, String rawText, Stack<String> newHistory) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM WikiPage M WHERE M.name = :name";
         Query query = session.createQuery(hql);
-        query.setParameter("name",pageName);
+        query.setParameter("name", pageName);
 
         WikiPage res = null;
         try {
@@ -86,11 +80,9 @@ public class WikiPageDAOHib implements WikiPageDAO {
             res.setRawText(rawText);
             res.setHistory(newHistory);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
 

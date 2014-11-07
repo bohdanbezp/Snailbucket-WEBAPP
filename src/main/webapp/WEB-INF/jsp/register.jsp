@@ -167,7 +167,7 @@
                                                   	font-size: 90%;
                                                   }
                                                 </style>
-</head>
+</head>                                         <jsp:include page="tracking.jsp"></jsp:include>
 <body>
 
 <div id="wiki-page">

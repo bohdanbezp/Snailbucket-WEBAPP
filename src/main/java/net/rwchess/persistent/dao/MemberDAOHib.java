@@ -16,20 +16,18 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public Member getMemberByUsername(String username) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.username = :username and M.group <> 0";
         Query query = session.createQuery(hql);
-        query.setParameter("username",username);
+        query.setParameter("username", username);
 
         Member res = null;
         try {
             res = (Member) query.list().get(0);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
         return res;
@@ -38,20 +36,18 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public Member getMemberById(Long key) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
         Query query = session.createQuery(hql);
-        query.setParameter("key",key);
+        query.setParameter("key", key);
 
         Member res = null;
         try {
             res = (Member) query.list().get(0);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
         return res;
@@ -60,21 +56,19 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void toggleConfirmed(String username) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.username = :username and M.group <> 0";
         Query query = session.createQuery(hql);
-        query.setParameter("username",username);
+        query.setParameter("username", username);
 
         Member res = null;
         try {
             res = (Member) query.list().get(0);
             res.setConfirmed(true);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -83,15 +77,13 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void store(Member member) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         try {
             session.saveOrUpdate(member);
             transaction.commit();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -99,7 +91,7 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public List<Member> getAllConfirmedMembers() {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.confirmed = 1 and M.group <> 0 order by M.username";
         Query query = session.createQuery(hql);
 
@@ -107,11 +99,9 @@ public class MemberDAOHib implements MemberDAO {
         try {
             res = query.list();
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
         return res;
@@ -120,7 +110,7 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public List<Member> getAllMembers() {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M order by M.username";
         Query query = session.createQuery(hql);
 
@@ -128,11 +118,9 @@ public class MemberDAOHib implements MemberDAO {
         try {
             res = query.list();
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
         return res;
@@ -142,10 +130,10 @@ public class MemberDAOHib implements MemberDAO {
     public void updateWithData(String username, String passwordHash, String country, String insist,
                                String timeControlPreferrence, String email) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.username = :username";
         Query query = session.createQuery(hql);
-        query.setParameter("username",username);
+        query.setParameter("username", username);
 
         Member m = null;
         try {
@@ -159,11 +147,9 @@ public class MemberDAOHib implements MemberDAO {
             m.setPreference(timeControlPreferrence);
             m.setEmail(email);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -171,21 +157,19 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void updateRole(Long key, int newGroup) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
         Query query = session.createQuery(hql);
-        query.setParameter("key",key);
+        query.setParameter("key", key);
 
         Member m = null;
         try {
             m = (Member) query.list().get(0);
             m.setGroup(newGroup);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -193,21 +177,19 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void updateRR(Long key, int rr) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
         Query query = session.createQuery(hql);
-        query.setParameter("key",key);
+        query.setParameter("key", key);
 
         Member m = null;
         try {
             m = (Member) query.list().get(0);
             m.setRr(rr);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -215,21 +197,19 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void updatePassword(Long key, String password) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
         Query query = session.createQuery(hql);
-        query.setParameter("key",key);
+        query.setParameter("key", key);
 
         Member m = null;
         try {
             m = (Member) query.list().get(0);
             m.setPasswordHash(UsefulMethods.getMD5(password));
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -237,21 +217,19 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void updateTimeorder(Long key, String timeOrder) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
         Query query = session.createQuery(hql);
-        query.setParameter("key",key);
+        query.setParameter("key", key);
 
         Member m = null;
         try {
             m = (Member) query.list().get(0);
             m.setPreference(timeOrder);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -259,21 +237,19 @@ public class MemberDAOHib implements MemberDAO {
     @Override
     public void updateInsist(Long key, String insist) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
         Query query = session.createQuery(hql);
-        query.setParameter("key",key);
+        query.setParameter("key", key);
 
         Member m = null;
         try {
             m = (Member) query.list().get(0);
             m.setInsist(insist);
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }

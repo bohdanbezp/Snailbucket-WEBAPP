@@ -32,7 +32,7 @@ public class PythonBucketsGenerationService {
 
         StringBuilder inputArr = new StringBuilder("[");
 
-        for (TournamentPlayer player: players) {
+        for (TournamentPlayer player : players) {
             inputArr.append("(").append(player.getFixedRating()).append(", '").append(player.getAssocMember().getUsername()).append("'),");
         }
         inputArr.append(']');
@@ -40,8 +40,8 @@ public class PythonBucketsGenerationService {
         PythonInterpreter interp =
                 new PythonInterpreter();
 
-        interp.execfile(pythonDir +"bucket_generator.py");
-        interp.exec("generator = BucketGenerator("+inputArr+ ')');
+        interp.execfile(pythonDir + "bucket_generator.py");
+        interp.exec("generator = BucketGenerator(" + inputArr + ')');
         interp.exec("generator.split_players_to_buckets()");
 
         int bucketsCount = interp.eval("len(generator.buckets)").asInt();
@@ -50,10 +50,10 @@ public class PythonBucketsGenerationService {
         for (int i = 0; i < bucketsCount; i++) {
             List<TournamentPlayer> bucketArr = new ArrayList<TournamentPlayer>();
 
-            PyList pyBucket = new PyList(interp.eval("generator.buckets[generator.bucket_names["+i+"]]"));
+            PyList pyBucket = new PyList(interp.eval("generator.buckets[generator.bucket_names[" + i + "]]"));
             PyObject[] tupleArray = pyBucket.getArray();
-            for (PyObject tuple: tupleArray) {
-                PyTuple pyTuple = (PyTuple)tuple;
+            for (PyObject tuple : tupleArray) {
+                PyTuple pyTuple = (PyTuple) tuple;
 
                 try {
                     bucketArr.add(UsefulMethods.findByName(players, pyTuple.getArray()[1].toString()));
@@ -63,7 +63,7 @@ public class PythonBucketsGenerationService {
             }
 
             Bucket bucket = new Bucket();
-            bucket.setName(interp.eval("generator.bucket_names["+i+ ']').asString());
+            bucket.setName(interp.eval("generator.bucket_names[" + i + ']').asString());
             bucket.setPlayerList(bucketArr);
             bucket.setTd(td[i]);
             buckets.add(bucket);

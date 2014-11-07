@@ -7,8 +7,8 @@ public class ImageMagickImageScaler implements ImageScaler {
     public void scale(String srcPath, String destPath, int scaleSize) {
         Process p = null;
         try {
-            p = Runtime.getRuntime().exec("convert "+srcPath
-                    +" -resize "+scaleSize+"x "+destPath);
+            p = Runtime.getRuntime().exec("convert " + srcPath
+                    + " -resize " + scaleSize + "x " + destPath);
             p.waitFor();
         } catch (IOException e) {
             e.printStackTrace();

@@ -14,7 +14,7 @@ public class DownloadFile {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name="CREATOR_ID")
+    @JoinColumn(name = "CREATOR_ID")
     private Member creator;
 
     @Column(name = "DESCRIPTION")

@@ -12,14 +12,14 @@ public class TournamentPlayer {
     private Long key;
 
     @ManyToOne
-    @JoinColumn(name="MEMBER_ID")
+    @JoinColumn(name = "MEMBER_ID")
     private Member assocMember;
 
     @Column(name = "FIXED_RATING")
     private int fixedRating;
 
     @ManyToOne
-    @JoinColumn(name="TOURNEY_ID")
+    @JoinColumn(name = "TOURNEY_ID")
     private Tournament tournament;
 
     @Column(name = "EMAIL_FORUM")

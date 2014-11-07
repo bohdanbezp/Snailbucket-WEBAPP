@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface TourneyDAO {
     public void store(Tournament tournament);
+
     public void storePlayer(TournamentPlayer player);
 
     public Tournament getByShortName(String shortName);
@@ -26,9 +27,13 @@ public interface TourneyDAO {
     public boolean isSignedUp(Member member);
 
     public List<TournamentGame> getGamesForRound(String shortTourneyName, int round);
+
     public List<TournamentGame> getGamesByDate(String shortTourneyName);
+
     public List<TournamentGame> getGamesByResult(String shortTourneyName);
+
     public List<TournamentGame> getGamesByPgn(String shortTourneyName);
+
     public List<TournamentGame> getGamesForTourney(String shortTourneyName);
 
     public void updateRating(String username, int rating);
@@ -40,15 +45,20 @@ public interface TourneyDAO {
     public void storeGame(TournamentGame game);
 
     public void updateScheduledDate(TournamentGame game, Date scheduled);
+
     public void updateHtml(TournamentGame game, String html);
+
     public void updatePgn(TournamentGame game, String png);
 
     public void updateResult(TournamentGame game, String result);
 
     public void updateWhiteLastPost(TournamentGame game, Date date);
+
     public void updateBlackLastPost(TournamentGame game, Date date);
 
     public void updateInitContReminderSent(TournamentGame game, boolean val);
+
     public void updateFirstReminderSent(TournamentGame game, boolean val);
+
     public void updatePreGameReminderSent(TournamentGame game, boolean val);
 }

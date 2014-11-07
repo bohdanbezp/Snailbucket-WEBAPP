@@ -109,6 +109,7 @@
 
                                          		});
                                          		</script>
+                                         		<jsp:include page="tracking.jsp"></jsp:include>
 </head>
 <body>
 

@@ -13,15 +13,13 @@ public class DownloadFileDAOHib implements DownloadFileDAO {
     @Override
     public void store(DownloadFile downloadFile) {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         try {
             session.saveOrUpdate(downloadFile);
             transaction.commit();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -29,7 +27,7 @@ public class DownloadFileDAOHib implements DownloadFileDAO {
     @Override
     public List<DownloadFile> getAllFiles() {
         Session session = HibernateUtils.getInstance().openSession();
-        Transaction transaction=session.beginTransaction();
+        Transaction transaction = session.beginTransaction();
         String hql = "FROM DownloadFile M";
         Query query = session.createQuery(hql);
 
@@ -37,11 +35,9 @@ public class DownloadFileDAOHib implements DownloadFileDAO {
         try {
             res = query.list();
             transaction.commit();
-        }
-        catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
-        }
-        finally {
+        } finally {
             session.close();
         }
         return res;

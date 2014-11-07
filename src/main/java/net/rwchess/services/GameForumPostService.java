@@ -30,13 +30,13 @@ public class GameForumPostService {
 
 
     public void gameForumPost(TournamentGame game, String content,
-                               String username) {
+                              String username) {
         log.info("Posted message to " + game.toString());
 
         DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
         String date = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z").print(zoned);
 
-        String text ="<p><b>" + username
+        String text = "<p><b>" + username
                 + "</b> (" + date + "):<br/>"
                 + content.replaceAll("\n", "<br/>") + "</p><hr/>\n"
                 + game.getGameforumHtml();
@@ -52,8 +52,7 @@ public class GameForumPostService {
                 mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getBlackPlayer().getAssocMember().getEmail());
             }
-        }
-        else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
+        } else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateBlackLastPost(game, new Date());
 
             String uname = game.getWhitePlayer().getAssocMember().getUsername();
@@ -69,7 +68,7 @@ public class GameForumPostService {
         Calendar cld = Calendar.getInstance();
         cld.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         cld.set(Calendar.YEAR, cld.get(Calendar.YEAR));
-        cld.set(Calendar.MONTH, Integer.parseInt(month)-1);
+        cld.set(Calendar.MONTH, Integer.parseInt(month) - 1);
         cld.set(Calendar.DAY_OF_MONTH, Integer.parseInt(day));
         cld.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hour));
         cld.set(Calendar.MINUTE, Integer.parseInt(minute));
