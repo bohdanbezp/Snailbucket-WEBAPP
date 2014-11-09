@@ -321,6 +321,8 @@ public class TourneySignupController {
         return "error";
     }
 
+    Pattern ficsGamesLink = Pattern.compile("http:\\/\\/www\\.ficsgames\\.org\\/cgi-bin\\/show\\.cgi\\?ID=[0-9]+;action=save");
+
     @RequestMapping(value = "/forum/{forumString}", method = RequestMethod.POST)
     public String tourneyForumPost(@PathVariable String forumString, ModelMap modelMap, HttpServletRequest req) throws Exception {
         TournamentGame game = tourneyDAO.getGameByForumString(forumString);
@@ -337,8 +339,8 @@ public class TourneySignupController {
 
         String content = req.getParameter("contents");
 
-        if (content.startsWith("http://www.ficsgames.org") ||
-                content.startsWith("http://ficsgames.org")) {
+        Matcher matcher = ficsGamesLink.matcher(content);
+        if (matcher.matches()) {
             if (game.getResult() != null) {
                 modelMap.addAttribute("title", "Error");
                 modelMap.addAttribute("error", "The result of the game has already been set.");
@@ -346,7 +348,7 @@ public class TourneySignupController {
             }
 
 
-            URL url = new URL(content);
+            URL url = new URL(matcher.group());
             String pgn = IOUtils.toString(new InputStreamReader(
                     url.openStream()));
 
@@ -590,8 +592,13 @@ public class TourneySignupController {
                     String result = "";
                     if (game.getSecheduled() != null)
                         result = forumFormatter.format(game.getSecheduled());
-                    if (game.getResult() != null)
+                    if (game.getResult() != null) {
                         result = game.getResult();
+
+                        if (game.getPng() != null) {
+                            result = "<a href=\"/tourney/pgn/" + game.toString() + "\">"+result+"</a>";
+                        }
+                    }
 
                     wikiTable.append("<tr>\n" + "         <td>").append(id++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(result).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><a href=\"/tourney/forum/").append(tourneyShortName).append(":R").append(round).append('_').append(game.getWhitePlayer().getAssocMember().getUsername()).append('-').append(game.getBlackPlayer().getAssocMember().getUsername()).append("\">Game forum</a></td>\n").append("      </tr>");
                 }
