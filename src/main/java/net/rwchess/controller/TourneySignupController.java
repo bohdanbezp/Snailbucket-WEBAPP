@@ -551,6 +551,60 @@ public class TourneySignupController {
         return "error";
     }
 
+    @RequestMapping(value = "/pairings/all/{shortName}", method = RequestMethod.GET)
+    public String tourneyPairingsAll(@PathVariable String shortName, ModelMap modelMap) {
+
+        List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(shortName);
+        if (sorted == null || sorted.isEmpty())
+            return "not-found";
+
+        List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
+
+        StringBuilder wikiTable = new StringBuilder();
+
+        for (int i = 1; i <= 7; i++) {
+            List<TournamentGame> games = tourneyDAO.getGamesForRound(shortName, i);
+            if (games == null || games.isEmpty())
+                return "not-found";
+
+            wikiTable.append("<h1>Round ").append(i).append("</h2>");
+
+            for (Bucket bucket : buckets) {
+                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" +
+                        "<p>TD: " + bucket.getTd() + "</p>");
+                wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
+                wikiTable.append("<tr>\n" +
+                        "         <th>No</th>\n" +
+                        "         <th width=\"150px\">White player</th>\n" +
+                        "         <th width=\"125px\">Date/Result</th>\n" +
+                        "         <th width=\"150px\">Black player</th>\n" +
+                        "      </tr>");
+
+                int id = 1;
+                List<TournamentGame> bucketGames = UsefulMethods.getBucketGames(bucket, games);
+                for (TournamentGame game : bucketGames) {
+                    String result = "";
+                    if (game.getSecheduled() != null)
+                        result = forumFormatter.format(game.getSecheduled());
+                    if (game.getResult() != null) {
+                        result = game.getResult();
+
+                        if (game.getPng() != null) {
+                            result = "<a href=\"/tourney/pgn/" + game.toString() + "\">"+result+"</a>";
+                        }
+                    }
+
+                    wikiTable.append("<tr>\n" + "         <td>").append(id++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(result).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("      </tr>");
+                }
+
+                wikiTable.append("</table><br/>");
+            }
+        }
+        modelMap.addAttribute("title", "Pairings All Rounds");
+        modelMap.addAttribute("error", wikiTable);
+        return "error";
+    }
+
     Pattern gameForumPattern = Pattern.compile("([^:]+):R([0-9]+)");
 
     @RequestMapping(value = "/pairings/{pairString}", method = RequestMethod.GET)

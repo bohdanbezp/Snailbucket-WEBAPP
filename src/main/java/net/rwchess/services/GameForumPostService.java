@@ -46,21 +46,16 @@ public class GameForumPostService {
         if (username.equals(game.getWhitePlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateWhiteLastPost(game, new Date());
 
-            String uname = game.getBlackPlayer().getAssocMember().getUsername();
-            if (uname.equals("PankracyRozumek") || uname.equals("pchesso") || uname.equals("Bodia") || uname.equals("BethanyGrace")
-                    || uname.equals("RoyRogersC")) {
                 mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getBlackPlayer().getAssocMember().getEmail());
-            }
+
         } else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateBlackLastPost(game, new Date());
 
-            String uname = game.getWhitePlayer().getAssocMember().getUsername();
-            if (uname.equals("PankracyRozumek") || uname.equals("pchesso") || uname.equals("Bodia") || uname.equals("BethanyGrace")
-                    || uname.equals("RoyRogersC")) {
+
                 mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getWhitePlayer().getAssocMember().getEmail());
-            }
+
         }
     }
 

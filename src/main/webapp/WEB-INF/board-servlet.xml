@@ -47,6 +47,7 @@
     <bean id="remindersService" class="net.rwchess.services.RemindersService">
         <constructor-arg ref="tourneyDao"></constructor-arg>
         <constructor-arg ref="gameForumService"></constructor-arg>
+        <constructor-arg ref="mailer"></constructor-arg>
     </bean>
 
     <bean id="imageScaler" class="net.rwchess.utils.ImageMagickImageScaler"/>

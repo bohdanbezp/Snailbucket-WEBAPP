@@ -8,6 +8,7 @@
  <li><a href="/tourney/signup/bucket1">Participants</a></li>
  <li><a href="/tourney/standing/bucket1">Standings</a></li>
  <li><a href="/tourney/pairings/bucket1:R<%=UsefulMethods.getCurrentRound()%>"><b>Pairings</b></a></li>
+ <li><a href="/tourney/pairings/all/bucket1">Pairings All Rounds</a></li>
  <li><a href="/tourney/pending/bucket1">Pending games</a></li>
  <li><a href="/tourney/completed/bucket1">Completed games</a></li>
 </ul>
