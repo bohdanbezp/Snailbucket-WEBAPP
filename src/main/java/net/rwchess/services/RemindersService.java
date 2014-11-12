@@ -103,7 +103,7 @@ public class RemindersService {
         //String signOff = getRandomSignoff();
         String contents = "You play "+color+" against "+against+" in round "+round+" of "+tourneyName+". Please access your Game forum at " +
                 "http://snailbucket.org and begin negotiations soon.*\n" +
-                "\n" +
+                '\n' +
                 "This is an automatic reminder. Please ask TD "+tdName+" if you have any questions.";
         return contents /*+ "\n\n"+signOff+",\nsnailbot."*/;
     }
@@ -127,16 +127,17 @@ public class RemindersService {
                         if (now.isAfter(start)) {
                             LocalDate localDate = now.toLocalDate();
                             log.debug("localDate.getDayOfWeek() " + localDate.getDayOfWeek());
-                            if (localDate.getDayOfWeek() > DateTimeConstants.TUESDAY &&
+                            if (localDate.getDayOfWeek() >= DateTimeConstants.TUESDAY &&
                                     localDate.getDayOfWeek() < DateTimeConstants.SATURDAY) {
                                 DateTime roundStart = now.withDayOfWeek(DateTimeConstants.TUESDAY).withHourOfDay(19).withMinuteOfHour(0);
                                 DateTime initContactDeadline = roundStart.plusDays(2);
                                 DateTime finalContactDeadline = roundStart.plusDays(3);
-                                int round = Weeks.weeksBetween(roundStart, now).getWeeks() + 1;
+                                int round = UsefulMethods.getCurrentRound();
 
-                                log.debug("round " + round);
+                                log.warn("round " + round);
                                 List<TournamentGame> gameForums = tourneyDAO.getGamesForRound(tourney.getShortName(), round);
                                 for (TournamentGame game : gameForums) {
+                                    log.warn("game " + game.toString() +  "  " + !game.isFirstReminder());
                                      if (!game.isFirstReminder()) {
                                          String cont = getFirstContactString("white",
                                                  game.getBlackPlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),

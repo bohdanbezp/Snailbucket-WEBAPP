@@ -345,6 +345,26 @@ public class TourneyDAOHib implements TourneyDAO {
     }
 
     @Override
+    public void updatePlayedDate(TournamentGame game, Date date) {
+        Session session = HibernateUtils.getInstance().openSession();
+        Transaction transaction = session.beginTransaction();
+        String hql = "FROM TournamentGame M WHERE M.key = :key";
+        Query query = session.createQuery(hql);
+        query.setParameter("key", game.getKey());
+
+        TournamentGame m = null;
+        try {
+            m = (TournamentGame) query.list().get(0);
+            m.setPlayed(date);
+            transaction.commit();
+        } catch (IndexOutOfBoundsException e) {
+            transaction.rollback();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public void updateInitContReminderSent(TournamentGame game, boolean val) {
         Session session = HibernateUtils.getInstance().openSession();
         Transaction transaction = session.beginTransaction();

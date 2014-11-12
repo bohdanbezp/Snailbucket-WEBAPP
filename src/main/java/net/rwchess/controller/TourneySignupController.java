@@ -26,10 +26,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -204,8 +201,7 @@ public class TourneySignupController {
 
         int iBucket = 0;
         for (Bucket bucket : buckets) {
-            signedList.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" +
-                    "<p>TD: " + bucket.getTd() + "</p>");
+            signedList.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
             signedList.append("<ul>");
 
             for (TournamentPlayer player : bucket.getPlayerList()) {
@@ -321,7 +317,7 @@ public class TourneySignupController {
         return "error";
     }
 
-    Pattern ficsGamesLink = Pattern.compile("http:\\/\\/www\\.ficsgames\\.org\\/cgi-bin\\/show\\.cgi\\?ID=[0-9]+;action=save");
+    Pattern ficsGamesLink = Pattern.compile("http:\\/\\/(www\\.)?ficsgames\\.org\\/cgi-bin\\/show\\.cgi\\?ID=[0-9]+;action=save");
 
     @RequestMapping(value = "/forum/{forumString}", method = RequestMethod.POST)
     public String tourneyForumPost(@PathVariable String forumString, ModelMap modelMap, HttpServletRequest req) throws Exception {
@@ -331,7 +327,7 @@ public class TourneySignupController {
 
 
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (game.getRound() != UsefulMethods.getCurrentRound()) {
+        if (game.getRound() > UsefulMethods.getCurrentRound()) {
             modelMap.addAttribute("title", "Error");
             modelMap.addAttribute("error", "You cannot negotiate about next round yet.");
             return "error";
@@ -386,7 +382,7 @@ public class TourneySignupController {
                     return "error";
                 }
                 DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
-                DateTime gameDate = df.parseDateTime(ga.getDate() + " " + ga.getTag("Time"));
+                DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
                 DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/Los_Angeles"));
 
                 if (gameDate.isBefore(startDate)) {
@@ -398,6 +394,7 @@ public class TourneySignupController {
                 pgn = UsefulMethods.getPgnRepresentation(ga);
                 gameForumPostService.gameForumPost(game, "Game ended as " + result, "snailbot(TD)");
                 tourneyDAO.updatePgn(game, pgn);
+                tourneyDAO.updatePlayedDate(game, gameDate.toDate());
                 tourneyDAO.updateResult(game, result);
                 return "redirect:/tourney/forum/" + forumString;
             } catch (PGNSyntaxError e) {
@@ -455,8 +452,7 @@ public class TourneySignupController {
                     = standingsService.generateStandings(gameWithResults, players, bucket);
 
 
-            wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" +
-                    "<p>TD: " + bucket.getTd() + "</p>");
+            wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
             wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
             wikiTable.append("<tr>\n" +
                     "         <th>No</th>\n" +
@@ -471,16 +467,7 @@ public class TourneySignupController {
 
             int i = 1;
             for (PythonStandingsService.StandingRecord record : records) {
-                wikiTable.append("<tr>\n" +
-                        "         <td>" + i++ + "</td>\n" +
-                        "         <td><img src=\"/static/images/flags/" + record.player.getAssocMember().getCountry() + ".png\"/> " + record.player.getAssocMember().getUsername() + "</td>\n" +
-                        "         <td>" + record.points + "</td>\n" +
-                        "         <td>" + record.hth + "</td>\n" +
-                        "         <td>" + record.won + "</td>\n" +
-                        "         <td>" + record.white + "</td>\n" +
-                        "         <td>" + record.rating + "</td>\n" +
-                        "         <td>" + record.games + "</td>\n" +
-                        "      </tr>");
+                wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(record.player.getAssocMember().getCountry()).append(".png\"/> ").append(record.player.getAssocMember().getUsername()).append("</td>\n").append("         <td>").append(record.points).append("</td>\n").append("         <td>").append(record.hth).append("</td>\n").append("         <td>").append(record.won).append("</td>\n").append("         <td>").append(record.white).append("</td>\n").append("         <td>").append(record.rating).append("</td>\n").append("         <td>").append(record.games).append("</td>\n").append("      </tr>");
             }
             wikiTable.append("</table><br/>");
         }
@@ -542,7 +529,7 @@ public class TourneySignupController {
                     .append("         <td><img src=\"/static/images/flags/")
                     .append(scheduledGame.getBlackPlayer().getAssocMember().getCountry())
                     .append(".png\" border=\"0\"> ").append(scheduledGame.getBlackPlayer().getAssocMember().getUsername())
-                    .append("</td>\n").append("<td>").append(timeControl.replaceAll("_", " ")).append("</td>").append("<td>" + bucketName + "</td></tr>");
+                    .append("</td>\n").append("<td>").append(timeControl.replaceAll("_", " ")).append("</td>").append("<td>").append(bucketName).append("</td></tr>");
         }
         wikiTable.append("</table>");
 
@@ -570,8 +557,7 @@ public class TourneySignupController {
             wikiTable.append("<h1>Round ").append(i).append("</h2>");
 
             for (Bucket bucket : buckets) {
-                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" +
-                        "<p>TD: " + bucket.getTd() + "</p>");
+                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
                 wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
                 wikiTable.append("<tr>\n" +
                         "         <th>No</th>\n" +
@@ -629,8 +615,7 @@ public class TourneySignupController {
                 return "not-found";
 
             for (Bucket bucket : buckets) {
-                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" +
-                        "<p>TD: " + bucket.getTd() + "</p>");
+                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
                 wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
                 wikiTable.append("<tr>\n" +
                         "         <th>No</th>\n" +
@@ -678,7 +663,7 @@ public class TourneySignupController {
 
         response.setContentType("application/pgn");
         response.setHeader("Content-Disposition", "attachment; filename=" + game.getWhitePlayer().getAssocMember().getUsername()
-                + "_" + game.getBlackPlayer().getAssocMember().getUsername() + "_" + game.getTournament().getShortName() + ".pgn");
+                + '_' + game.getBlackPlayer().getAssocMember().getUsername() + '_' + game.getTournament().getShortName() + ".pgn");
         return game.getPng();
     }
 
@@ -703,7 +688,7 @@ public class TourneySignupController {
 
         int i = 1;
         for (TournamentGame game : games) {
-            wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(game.getResult()).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><a href=\"/tourney/pgn/" + game.toString() + "\">pgn</a></td></tr>");
+            wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(game.getResult()).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><a href=\"/tourney/pgn/").append(game.toString()).append("\">pgn</a></td></tr>");
         }
         wikiTable.append("</table>");
 

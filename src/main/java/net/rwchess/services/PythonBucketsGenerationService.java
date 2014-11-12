@@ -33,7 +33,7 @@ public class PythonBucketsGenerationService {
         StringBuilder inputArr = new StringBuilder("[");
 
         for (TournamentPlayer player : players) {
-            inputArr.append("(").append(player.getFixedRating()).append(", '").append(player.getAssocMember().getUsername()).append("'),");
+            inputArr.append('(').append(player.getFixedRating()).append(", '").append(player.getAssocMember().getUsername()).append("'),");
         }
         inputArr.append(']');
 

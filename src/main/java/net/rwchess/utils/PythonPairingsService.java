@@ -30,7 +30,7 @@ public class PythonPairingsService {
         Collections.shuffle(playerList, random);
         StringBuilder players = new StringBuilder();
         for (TournamentPlayer player : playerList) {
-            players.append("'" + player.getAssocMember().getUsername() + "',");
+            players.append('\'').append(player.getAssocMember().getUsername()).append("',");
         }
 
         PythonInterpreter interp =
@@ -44,7 +44,7 @@ public class PythonPairingsService {
         List<TournamentGame> games = new ArrayList<TournamentGame>();
 
         for (int i = 1; i <= roundsCount; i++) {
-            PyList pyBucket = new PyList(interp.eval("pairings[" + i + "]"));
+            PyList pyBucket = new PyList(interp.eval("pairings[" + i + ']'));
             PyObject[] tupleArray = pyBucket.getArray();
             for (PyObject tuple : tupleArray) {
                 PyTuple pyTuple = (PyTuple) tuple;

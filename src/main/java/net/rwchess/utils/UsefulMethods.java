@@ -306,7 +306,7 @@ public final class UsefulMethods {
             if (insists.contains(Integer.toString(i)))
                 app = " ui-selected";
 
-            content.append("<li class=\"ui-widget-content" + app + "\">" + i + "</li>");
+            content.append("<li class=\"ui-widget-content").append(app).append("\">").append(i).append("</li>");
         }
         return content.toString();
     }

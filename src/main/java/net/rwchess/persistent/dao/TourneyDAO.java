@@ -56,6 +56,8 @@ public interface TourneyDAO {
 
     public void updateBlackLastPost(TournamentGame game, Date date);
 
+    public void updatePlayedDate(TournamentGame game, Date date);
+
     public void updateInitContReminderSent(TournamentGame game, boolean val);
 
     public void updateFirstReminderSent(TournamentGame game, boolean val);

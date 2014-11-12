@@ -56,8 +56,7 @@ public class PythonStandingsService {
                     blackScore = 0.5f;
                 }
 
-                gameArr.append("('" + game.getWhitePlayer().getAssocMember().getUsername() + "', '" + game.getBlackPlayer().getAssocMember().getUsername() + "', " +
-                        whiteScore + ", " + blackScore + "),");
+                gameArr.append("('").append(game.getWhitePlayer().getAssocMember().getUsername()).append("', '").append(game.getBlackPlayer().getAssocMember().getUsername()).append("', ").append(whiteScore).append(", ").append(blackScore).append("),");
             }
         }
         gameArr.append(']');
@@ -66,7 +65,7 @@ public class PythonStandingsService {
                 new PythonInterpreter();
 
         interp.execfile(pythonDir + "standings.py");
-        interp.exec("table = calculate_standings(" + inputArr + "," + gameArr + ")");
+        interp.exec("table = calculate_standings(" + inputArr + ',' + gameArr + ')');
 
         int recCount = interp.eval("len(table)").asInt();
 
