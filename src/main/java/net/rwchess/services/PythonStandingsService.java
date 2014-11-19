@@ -8,17 +8,16 @@ import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyTuple;
 import org.python.util.PythonInterpreter;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PythonStandingsService {
 
-    private String pythonDir;
-
-    public PythonStandingsService(String pythonDir) {
-        this.pythonDir = pythonDir;
-    }
+    @Autowired
+    private ServletContext servletContext;
 
     public static class StandingRecord {
         public int games;
@@ -64,7 +63,8 @@ public class PythonStandingsService {
         PythonInterpreter interp =
                 new PythonInterpreter();
 
-        interp.execfile(pythonDir + "standings.py");
+        String pythonDir = servletContext.getRealPath("/WEB-INF/python");
+        interp.execfile(pythonDir + "/standings.py");
         interp.exec("table = calculate_standings(" + inputArr + ',' + gameArr + ')');
 
         int recCount = interp.eval("len(table)").asInt();

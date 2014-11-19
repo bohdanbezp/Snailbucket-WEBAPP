@@ -26,7 +26,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -734,6 +737,7 @@ public class TourneySignupController {
         modelMap.addAttribute("proposedTime", propTime);
         modelMap.addAttribute("badTimes", badTimes.toString());
         modelMap.addAttribute("htmlText", game.getGameforumHtml());
+        modelMap.addAttribute("round", game.getRound());
         return "gameforum";
     }
 

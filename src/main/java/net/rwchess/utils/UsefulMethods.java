@@ -207,6 +207,15 @@ public final class UsefulMethods {
             "<li id=\"50_10\" class=\"ui-state-default\"> 50 10  <img src=\"/static/images/clock.png\"/></li>"
     };
 
+    public static Bucket getBucket(List<Bucket> buckets, TournamentGame game) {
+        for (Bucket bucket: buckets) {
+            if (bucket.getPlayerList().contains(game.getWhitePlayer())
+                    || bucket.getPlayerList().contains(game.getBlackPlayer()))
+                return bucket;
+        }
+        return null;
+    }
+
     /*
     http://snailbucket.org/wiki/Matching_time_controls_algorithm
      */

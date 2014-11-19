@@ -7,8 +7,10 @@ import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyTuple;
 import org.python.util.PythonInterpreter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +20,11 @@ public class PythonBucketsGenerationService {
     private List<Bucket> cachedBuckets;
     private int cacheHash;
 
-    private String pythonDir;
+    @Autowired
+    private ServletContext servletContext;
 
     private static String[] td = {"BethanyGrace", "BethanyGrace", "RoyRogersC", "BethanyGrace", "PankracyRozumek", "pchesso", "RoyRogersC"};
 
-    public PythonBucketsGenerationService(String pythonDir) {
-        this.pythonDir = pythonDir;
-    }
 
     public List<Bucket> generateBuckets(List<TournamentPlayer> players) {
         if (players.hashCode() == cacheHash)
@@ -40,7 +40,9 @@ public class PythonBucketsGenerationService {
         PythonInterpreter interp =
                 new PythonInterpreter();
 
-        interp.execfile(pythonDir + "bucket_generator.py");
+        String pythonDir = servletContext.getRealPath("/WEB-INF/python");
+
+        interp.execfile(pythonDir + "/bucket_generator.py");
         interp.exec("generator = BucketGenerator(" + inputArr + ')');
         interp.exec("generator.split_players_to_buckets()");
 

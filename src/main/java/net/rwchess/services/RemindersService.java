@@ -1,6 +1,7 @@
 package net.rwchess.services;
 
 
+import net.rwchess.persistent.Bucket;
 import net.rwchess.persistent.Tournament;
 import net.rwchess.persistent.TournamentGame;
 import net.rwchess.persistent.dao.TourneyDAO;
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors;
 public class RemindersService {
     private TourneyDAO tourneyDAO;
     private GameForumPostService gameForumPostService;
+    private PythonBucketsGenerationService bucketsGenerationService;
     private Mailer mailer;
 
     static Logger log = Logger.getLogger(RemindersService.class.getName());
@@ -27,10 +29,11 @@ public class RemindersService {
     private ExecutorService executor;
 
     public RemindersService(TourneyDAO tourneyDAO, GameForumPostService gameForumPostService,
-                            Mailer mailer) {
+                            Mailer mailer, PythonBucketsGenerationService bucketsGenerationService) {
         this.tourneyDAO = tourneyDAO;
         this.gameForumPostService = gameForumPostService;
         this.mailer = mailer;
+        this.bucketsGenerationService = bucketsGenerationService;
     }
 
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("E, MMM d HH:mm");
@@ -99,10 +102,10 @@ public class RemindersService {
     }
 
     private static String getFirstContactString(String color, String against, int round, String tourneyName,
-                                                String tdName) {
+                                                String tdName, String gameForumName) {
         //String signOff = getRandomSignoff();
         String contents = "You play "+color+" against "+against+" in round "+round+" of "+tourneyName+". Please access your Game forum at " +
-                "http://snailbucket.org and begin negotiations soon.*\n" +
+                "http://snailbucket.org/tourney/forum/"+gameForumName+" and begin negotiations soon.*\n" +
                 '\n' +
                 "This is an automatic reminder. Please ask TD "+tdName+" if you have any questions.";
         return contents /*+ "\n\n"+signOff+",\nsnailbot."*/;
@@ -135,20 +138,23 @@ public class RemindersService {
                                 int round = UsefulMethods.getCurrentRound();
 
                                 log.warn("round " + round);
+                                List<Bucket> buckets = bucketsGenerationService.generateBuckets(tourneyDAO.getAllPlayersList(tourney.getShortName()));
                                 List<TournamentGame> gameForums = tourneyDAO.getGamesForRound(tourney.getShortName(), round);
                                 for (TournamentGame game : gameForums) {
                                     log.warn("game " + game.toString() +  "  " + !game.isFirstReminder());
                                      if (!game.isFirstReminder()) {
+                                         String tdName = UsefulMethods.getBucket(buckets, game).getTd();
+
                                          String cont = getFirstContactString("white",
                                                  game.getBlackPlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),
-                                                 game.getTournament().getFullName(), "BethanyGrace");
+                                                 game.getTournament().getFullName(), tdName, game.toString());
 
                                          mailer.sendEmail("snailbot", game.getTournament().getFullName() + " game", cont,
                                                  game.getWhitePlayer().getAssocMember().getEmail());
 
                                          cont = getFirstContactString("black",
                                                  game.getWhitePlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),
-                                                 game.getTournament().getFullName(), "BethanyGrace");
+                                                 game.getTournament().getFullName(), tdName, game.toString());
 
                                          mailer.sendEmail("snailbot", game.getTournament().getFullName() + " game", cont,
                                                  game.getBlackPlayer().getAssocMember().getEmail());

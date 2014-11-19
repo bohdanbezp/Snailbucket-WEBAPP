@@ -1,5 +1,4 @@
 <%@page pageEncoding="UTF-8" %>
-<%@ page import="net.rwchess.utils.UsefulMethods"%>
 
 <!DOCTYPE html
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -88,7 +87,7 @@
 
 
 <div id="content-article">
-<p><a href="/tourney/pairings/bucket1:R<%=(UsefulMethods.getCurrentRound() )%>"><b> ← back to the game list</b></a></p>
+<p><a href="/tourney/pairings/bucket1:R${round}"><b> ← back to the game list</b></a></p>
 <p>Local time:</p>
 <object type="application/x-shockwave-flash" height="57" width="78" data="http://www.usflashmap.com/component/flash_clock/flash_clock.swf">
 <param name="allowScriptAccess" value="sameDomain" />

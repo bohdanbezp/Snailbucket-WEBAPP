@@ -10,6 +10,7 @@
 
 
     <mvc:annotation-driven />
+    <context:component-scan base-package="net.rwchess.services"/>
     <mvc:resources mapping="/static/**" location="/static/" />
 
     <bean id="mainController" class="net.rwchess.controller.MainController">
@@ -48,19 +49,17 @@
         <constructor-arg ref="tourneyDao"></constructor-arg>
         <constructor-arg ref="gameForumService"></constructor-arg>
         <constructor-arg ref="mailer"></constructor-arg>
+        <constructor-arg ref="bucketsGenerator"></constructor-arg>
     </bean>
 
     <bean id="imageScaler" class="net.rwchess.utils.ImageMagickImageScaler"/>
     <bean id="mailer" class="net.rwchess.utils.SendgridMailer"/>
     <bean id="bucketsGenerator" class="net.rwchess.services.PythonBucketsGenerationService">
-        <constructor-arg index="0" value="/home/bodia/server/jetty/webapps/ROOT/WEB-INF/python/"/>
     </bean>
     <bean id="pairingsGenerator" class="net.rwchess.services.PythonPairingsService">
-        <constructor-arg index="0" value="/home/bodia/server/jetty/webapps/ROOT/WEB-INF/python/"/>
     </bean>
 
     <bean id="standingsGenerator" class="net.rwchess.services.PythonStandingsService">
-        <constructor-arg index="0" value="/home/bodia/server/jetty/webapps/ROOT/WEB-INF/python/"/>
     </bean>
 
     <bean id="ratingsService" class="net.rwchess.services.CheckRatingsService">
