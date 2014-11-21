@@ -10,8 +10,10 @@ based on mekk.fics library.
 from __future__ import print_function
 
 import getopt, sys, logging, os
+import MySQLdb
 from twisted.internet import defer, reactor, task
 from twisted.enterprise import adbapi
+from twisted.python import log
 
 from mekk.fics import ReconnectingFicsFactory, FicsClient, FicsEventMethodsMixin
 from mekk.fics import TellCommandsMixin, TellCommand
@@ -27,8 +29,9 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Join Snail Bucket http://snailbucket.org/ FICS chess community for some loooong time controls.
+FINGER_TEXT = """Snailbot v.20141121
 
+Join Snail Bucket http://snailbucket.org/ FICS chess community for some loooong time controls.
 
 This bot is run by Bodia
 Usage:
@@ -37,6 +40,31 @@ Usage:
 """
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
+
+
+class ReconnectingConnectionPool(adbapi.ConnectionPool):
+    """Reconnecting adbapi connection pool for MySQL.
+
+    This class improves on the solution posted at
+    http://www.gelens.org/2008/09/12/reinitializing-twisted-connectionpool/
+    by checking exceptions by error code and only disconnecting the current
+    connection instead of all of them.
+
+    Also see:
+    http://twistedmatrix.com/pipermail/twisted-python/2009-July/020007.html
+
+    """
+    def _runInteraction(self, interaction, *args, **kw):
+        try:
+            return adbapi.ConnectionPool._runInteraction(self, interaction, *args, **kw)
+        except MySQLdb.OperationalError, e:
+            if e[0] not in (2006, 2013):
+                raise
+            print("RCP: got error %s, retrying operation" %(e))
+            conn = self.connections.get(self.threadID())
+            self.disconnect(conn)
+            # try the interaction again
+            return adbapi.ConnectionPool._runInteraction(self, interaction, *args, **kw)
 
 #################################################################################
 # ”Business logic” (processing not directly bound to FICS interface)
@@ -79,7 +107,7 @@ class JoinCommand(TellCommand):
         yield fics_client.tell_to(player, "You are registered. Please use the following form to proceed: http://www.snailbucket.org/wiki/Special:Register")
 
     def help(self, fics_client):
-        return "Initiates the join to SnailBucket"
+        return "Initiates the join to SnailBucket. See more at http://snailbucket.org/wiki/FAQ"
 
 
 class PlayCommand(TellCommand):
@@ -127,7 +155,7 @@ class PlayCommand(TellCommand):
             player_id = str(tx.fetchall()[0][0])
             tx.execute(
             "select ID from TOURN_GAMES where (BLACKPL_ID = "+player_id+" or WHITEPL_ID = "+player_id+") and SHEDULED_DATE IS NOT NULL "
-                                                                                                      "and RESULT IS NULL"
+                                                                                                      "and RESULT IS NULL ORDER BY SHEDULED_DATE DESC"
             )
             game_id = str(tx.fetchall()[0][0])
             tx.execute("select MEMBERS.USERNAME, MEMBERS.PREFERENCE from MEMBERS inner join TOURN_PLAYERS on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID where "
@@ -156,43 +184,43 @@ class PlayCommand(TellCommand):
                 vars = yield fics_client.run_command("var %s" % (res[0]))
                 vars1 = yield fics_client.run_command("var %s" % (res[1]))
                 if "noescape=1" in str(vars):
-                    fics_client.tell_to(player, "Please execute command \"set noescape 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set noescape 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "rated=0" in str(vars):
-                    fics_client.tell_to(player, "Please execute command \"set rated 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set rated 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "kibitz=1" in str(vars):
-                    fics_client.tell_to(player, "Please execute command \"set kibitz 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set kibitz 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "notakeback=0" in str(vars):
-                    fics_client.tell_to(player, "Please execute command \"set notakeback 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set notakeback 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "private=1" in str(vars):
-                    fics_client.tell_to(player, "Please execute command \"set private 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set private 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "noescape=1" in str(vars1):
                     fics_client.tell_to(player, "Your opponent should execute command \"set noescape 0\" before playing the game.")
-                    fics_client.tell_to(res[1], "Please execute command \"set noescape 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[1], "Please execute command \"set noescape 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "rated=0" in str(vars1):
                     fics_client.tell_to(player, "Your opponent should execute command \"set rated 1\" before playing the game.")
-                    fics_client.tell_to(res[1], "Please execute command \"set rated 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[1], "Please execute command \"set rated 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "notakeback=0" in str(vars1):
                     fics_client.tell_to(player, "Your opponent should execute command \"set notakeback 1\" before playing the game.")
-                    fics_client.tell_to(res[1], "Please execute command \"set notakeback 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[1], "Please execute command \"set notakeback 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "kibitz=1" in str(vars1):
                     fics_client.tell_to(player, "Your opponent should execute command \"set kibitz 0\" before playing the game.")
-                    fics_client.tell_to(res[1], "Please execute command \"set kibitz 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[1], "Please execute command \"set kibitz 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
-                if "private=1" in str(vars1):
+                if " private=1" in str(vars1):
                     fics_client.tell_to(player, "Your opponent should execute command \"set private 0\" before playing the game.")
-                    fics_client.tell_to(res[1], "Please execute command \"set private 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[1], "Please execute command \"set private 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "noescape=1" not in str(vars) and "noescape=1" not in str(vars1) and "rated=0" not in str(vars) and "rated=0" not in str(vars1)\
                         and "kibitz=1" not in str(vars) and "kibitz=1" not in str(vars1) and "notakeback=0" not in str(vars) and "notakeback=0" not in str(vars1)\
-                        and "private=1" not in str(vars) and "private=1" not in str(vars1):
+                        and " private=1" not in str(vars) and " private=1" not in str(vars1):
                     fics_client.run_command("rmatch %s %s %s %s" % (res[0], res[1], res[2], "white"))
                     fics_client.tell_to(player, "==== Snailbucket game start issued ====")
                     fics_client.tell_to(res[1], "==== Snailbucket game start issued ====")
@@ -200,43 +228,43 @@ class PlayCommand(TellCommand):
                 vars = yield fics_client.run_command("var %s" % (res[0]))
                 vars1 = yield fics_client.run_command("var %s" % (res[1]))
                 if "noescape=1" in str(vars1):
-                    fics_client.tell_to(player, "Please execute command \"set noescape 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set noescape 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "rated=0" in str(vars1):
-                    fics_client.tell_to(player, "Please execute command \"set rated 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set rated 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "kibitz=1" in str(vars1):
-                    fics_client.tell_to(player, "Please execute command \"set kibitz 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set kibitz 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "notakeback=0" in str(vars1):
-                    fics_client.tell_to(player, "Please execute command \"set notakeback 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set notakeback 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "private=1" in str(vars1):
-                    fics_client.tell_to(player, "Please execute command \"set private 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(player, "Please execute command \"set private 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "noescape=1" in str(vars):
                     fics_client.tell_to(player, "Your opponent should execute command \"set noescape 0\" before playing the game.")
-                    fics_client.tell_to(res[0], "Please execute command \"set noescape 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[0], "Please execute command \"set noescape 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "rated=0" in str(vars):
                     fics_client.tell_to(player, "Your opponent should execute command \"set rated 1\" before playing the game.")
-                    fics_client.tell_to(res[0], "Please execute command \"set rated 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[0], "Please execute command \"set rated 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "notakeback=0" in str(vars):
                     fics_client.tell_to(player, "Your opponent should execute command \"set notakeback 1\" before playing the game.")
-                    fics_client.tell_to(res[0], "Please execute command \"set notakeback 1\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[0], "Please execute command \"set notakeback 1\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "kibitz=1" in str(vars):
                     fics_client.tell_to(player, "Your opponent should execute command \"set kibitz 0\" before playing the game.")
-                    fics_client.tell_to(res[0], "Please execute command \"set kibitz 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[0], "Please execute command \"set kibitz 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
-                if "private=1" in str(vars):
+                if " private=1" in str(vars):
                     fics_client.tell_to(player, "Your opponent should execute command \"set private 0\" before playing the game.")
-                    fics_client.tell_to(res[0], "Please execute command \"set private 0\" before playing a SnailBucket game.")
+                    fics_client.tell_to(res[0], "Please execute command \"set private 0\" before playing a SnailBucket game and \"t snailbot play\" again.")
 
                 if "noescape=1" not in str(vars) and "noescape=1" not in str(vars1) and "rated=0" not in str(vars) and "rated=0" not in str(vars1)\
                         and "kibitz=1" not in str(vars) and "kibitz=1" not in str(vars1) and "notakeback=0" not in str(vars) and "notakeback=0" not in str(vars1)\
-                        and "private=1" not in str(vars) and "private=1" not in str(vars1):
+                        and " private=1" not in str(vars) and " private=1" not in str(vars1):
                     fics_client.run_command("rmatch %s %s %s %s" % (res[1], res[0], res[2], "black"))
                     fics_client.tell_to(player, "==== Snailbucket game start issued ====")
                     fics_client.tell_to(res[0], "==== Snailbucket game start issued ====")
@@ -267,8 +295,8 @@ class HelpCommand(TellCommand):
         return 0,1
 
     def run(self, fics_client, player, *args, **kwargs):
-        if args:
-            return fics_client.command_help(args[0])
+        if args[0]:
+            return fics_client.command_help(args[0][0])
         else:
             return "I support the following commands: %s.\nFor more help try: %s" % (
                 ", ".join(fics_client.command_names()),
@@ -276,6 +304,7 @@ class HelpCommand(TellCommand):
                     "\"tell %s help %s\"" % (fics_client.fics_user_name, command)
                     for command in fics_client.command_names()
                     if command != "help"))
+
     def help(self, fics_client):
         return "I print some help"
 
@@ -366,7 +395,7 @@ logging.basicConfig(level=logging_level)
 
 # TODO: convert back to reconnecting
 
-dbpool = adbapi.ConnectionPool("MySQLdb", user="bodia", passwd="pass", db="test_db"
+dbpool = ReconnectingConnectionPool("MySQLdb", user="bodia", passwd="pass", db="test_db", cp_reconnect=True
 )
 
 clock_statistician = SnailBot(dbpool)
