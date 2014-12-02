@@ -9,6 +9,8 @@ based on mekk.fics library.
 """
 from __future__ import print_function
 
+import urllib2
+import urllib
 import re
 import getopt, sys, logging, os
 import MySQLdb
@@ -30,7 +32,7 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Snailbot v.20141123
+FINGER_TEXT = """Snailbot v.20141202 (Uneven Genevieve)
 
 Join Snail Bucket http://snailbucket.org/ FICS chess community for some loooong time controls.
 
@@ -78,6 +80,7 @@ class ReconnectingConnectionPool(adbapi.ConnectionPool):
 class SnailBot(object):
     def __init__(self, dbpool):
         self.dbpool = dbpool
+        self.processing = False
 
     def __del__(self):
         self.dbpool.close()
@@ -86,42 +89,6 @@ class SnailBot(object):
 
     def save_unregistered_player(self, who):     
         return self.dbpool.runQuery("INSERT INTO MEMBERS(CONFIRMED, GRUP, USERNAME) VALUES (0, 1, '"+who+"')")
-
-    # TODO: move logic of "play" command here
-
-#################################################################################
-# Commands (handling tells to the bot)
-#################################################################################
-
-class JoinCommand(TellCommand):
-    """
-    Join snailbucket community
-    """
-
-    def __init__(self, clock_statistician):
-        self.clock_statistician = clock_statistician
-    @classmethod
-    def named_parameters(cls):
-        return {}
-    @classmethod
-    def positional_parameters_count(cls):       
-        return 0, 0
-    @defer.inlineCallbacks
-    def run(self, fics_client, player, *args, **kwargs):
-        yield self.clock_statistician.save_unregistered_player(player.name)
-        yield fics_client.tell_to(player, "You are registered. Please use the following form to proceed: http://www.snailbucket.org/wiki/Special:Register")
-
-    def help(self, fics_client):
-        return "Initiates the join to SnailBucket. See more at http://snailbucket.org/wiki/FAQ"
-
-
-class PlayCommand(TellCommand):
-    """
-    Play scheduled snailbucket game
-    """
-
-    def __init__(self, clock_statistician):
-        self.clock_statistician = clock_statistician
 
     ##
     # http://snailbucket.org/wiki/Matching_time_controls_algorithm
@@ -151,7 +118,7 @@ class PlayCommand(TellCommand):
 
     ##
     # Return the game parameters of caller's scheduled game if there is any
-    ##    
+    ##
     def get_game_data(self, caller):
 
         def stat(tx):
@@ -176,6 +143,71 @@ class PlayCommand(TellCommand):
         return dbpool.runInteraction(stat)
 
 
+    def updateGameStatus(self, caller, date):
+        def stat(tx):
+            r = tx.execute("select TOURN_PLAYERS.ID from TOURN_PLAYERS inner join MEMBERS on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
+                           " where MEMBERS.username = '"+caller+"'")
+            player_id = str(tx.fetchall()[0][0])
+            tx.execute(
+            "select ID,ROUND from TOURN_GAMES where (BLACKPL_ID = "+player_id+" or WHITEPL_ID = "+player_id+") and SHEDULED_DATE IS NOT NULL "
+                                                                                                      "and RESULT IS NULL ORDER BY SHEDULED_DATE ASC"
+            )
+            vals = tx.fetchall()[0]
+            game_id = str(vals[0])
+            tx.execute("UPDATE TOURN_GAMES SET SHEDULED_DATE='"+date+"' WHERE ID=" + game_id)
+            return game_id
+
+        return dbpool.runInteraction(stat)
+
+    # TODO: move logic of "play" command here
+
+#################################################################################
+# Commands (handling tells to the bot)
+#################################################################################
+
+class JoinCommand(TellCommand):
+    """
+    Join snailbucket community
+    """
+
+    def __init__(self, clock_statistician):
+        self.clock_statistician = clock_statistician
+    @classmethod
+    def named_parameters(cls):
+        return {}
+    @classmethod
+    def positional_parameters_count(cls):       
+        return 0, 0
+    @defer.inlineCallbacks
+    def run(self, fics_client, player, *args, **kwargs):
+        yield self.clock_statistician.save_unregistered_player(player.name)
+        yield fics_client.tell_to(player, "You are registered. Please use the following form to proceed: http://www.snailbucket.org/wiki/Special:Register")
+
+        values = {'to' : 'tds@snailbucket.org',
+          'from' : 'notify@snailbucket.org',
+          'toname' : 'TDs',
+          'subject' : str(player.name) + ' has registered',
+          'text': str(player.name) + ' has registered using the bot.',
+          'api_user': 'bvk256',
+          'api_key': 'bodiaissendgrid'}
+
+        data = urllib.urlencode(values)
+        req = urllib2.Request("https://sendgrid.com/api/mail.send.json", data)
+        response = urllib2.urlopen(req)
+        the_page = response.read()
+
+    def help(self, fics_client):
+        return "Initiates the join to SnailBucket. See more at http://snailbucket.org/wiki/FAQ"
+
+
+class PlayCommand(TellCommand):
+    """
+    Play scheduled snailbucket game
+    """
+
+    def __init__(self, clock_statistician):
+        self.clock_statistician = clock_statistician
+
     @classmethod
     def named_parameters(cls):
         return {}
@@ -184,8 +216,6 @@ class PlayCommand(TellCommand):
         return 0, 0
     @defer.inlineCallbacks
     def run(self, fics_client, player, *args, **kwargs):
-
-        game_start_issued = False
 
         @defer.inlineCallbacks
         def process(res):
@@ -241,7 +271,7 @@ class PlayCommand(TellCommand):
                         yield fics_client.run_command("+gnotify %s" % (player.name))
                         yield fics_client.tell_to(player, "==== Snailbucket game start issued ====")
                         yield fics_client.tell_to(res[1], "==== Snailbucket game start issued ====")
-                        fics_client.run_command("rmatch %s %s %s %s" % (res[0], res[1], res[2], "white"))
+                        yield fics_client.run_command("rmatch %s %s %s %s" % (res[0], res[1], res[2], "white"))
             else:
                 # finger = yield fics_client.run_command("log %s" % (res[0]))
 
@@ -291,11 +321,14 @@ class PlayCommand(TellCommand):
                         yield fics_client.run_command("+gnotify %s" % (player.name))
                         yield fics_client.tell_to(player, "==== Snailbucket game start issued ====")
                         yield fics_client.tell_to(res[0], "==== Snailbucket game start issued ====")
-                        fics_client.run_command("rmatch %s %s %s %s" % (res[1], res[0], res[2], "black"))
+                        yield fics_client.run_command("rmatch %s %s %s %s" % (res[1], res[0], res[2], "black"))
 
-        x = self.get_game_data(player.name)
-        x.addCallback(process)
-        yield x
+        if not self.clock_statistician.processing:
+            self.clock_statistician.processing = True
+            x = self.clock_statistician.get_game_data(player.name)
+            x.addCallback(process)
+            yield x
+            self.clock_statistician.processing = False
 
 
     def help(self, fics_client):
@@ -370,6 +403,7 @@ class MyBot(
     def _notify_finger(self):
         for game in self.ongoing_games:
             self.run_command("t 101 Snailbucket game in progress: " + game["white"] + "(" +game["white_rank"]+ ")" + " vs. " + game["black"] + "(" +game["black_rank"]+ ")" + " -- Round "+ ROUND_CURR +": \"observe " + game["game_no"] + "\" to watch")
+            self.clock_statistician.processing = False
 
 
     def on_login(self, my_username):
@@ -377,7 +411,7 @@ class MyBot(
             my_username, my_username))
 
         self._gamenotify_task = task.LoopingCall(self._notify_finger)
-        self._gamenotify_task.start(900, now=True)
+        self._gamenotify_task.start(1200, now=True)
 
         # Normal post-login processing
         return defer.DeferredList([
@@ -397,28 +431,44 @@ class MyBot(
                 self.run_command("+censor relay")
                 ])
 
+    @defer.inlineCallbacks
     def on_fics_unknown(self, what):
         m = re.search("Game notification:\s(?P<white>\w+)\s\(\s*(?P<white_rank>\d+|\-+|\++)\)\svs.\s(?P<black>\w+)\s\(\s*(?P<black_rank>\d+|\-+|\++)\)\s(?P<is_rated>rated|unrated)\s(?P<variant>[^\s]+)\s(?P<clock_base>\d+)\s(?P<clock_inc>\d+):\sGame\s(?P<game_no>\d+)",
                       what)
         global ROUND_CURR
         if m:
-            self.run_command("t 101 Snailbucket game has started: " + m.group("white") + "(" +m.group("white_rank")+ ")" + " vs. " + m.group("black") + "(" +m.group("black_rank")+ ")" + " -- Round "+ ROUND_CURR +": \"observe " + m.group("game_no") + "\" to watch")
-            self.start_observing_game(m.group("game_no"))
+            try:
+                x = yield self.clock_statistician.get_game_data(m.group("white"))
+                if (m.group("variant").lower() == "standard" and x[0].lower() == m.group("white").lower() and x[1].lower() == m.group("black").lower() and (m.group("clock_base") + " " + m.group("clock_inc")) == x[2]):
+                    self.run_command("t 101 Snailbucket game has started: " + m.group("white") + "(" +m.group("white_rank")+ ")" + " vs. " + m.group("black") + "(" +m.group("black_rank")+ ")" + " -- Round "+ ROUND_CURR +": \"observe " + m.group("game_no") + "\" to watch")
+                    self.start_observing_game(m.group("game_no"))
 
-            curr_game = dict()
-            curr_game['white'] = m.group("white")
-            curr_game['white_rank'] = m.group("white_rank")
-            curr_game['black'] = m.group("black")
-            curr_game['black_rank'] = m.group("black_rank")
-            curr_game['game_no'] = m.group("game_no")
-            self.ongoing_games.append(curr_game)
+                    curr_game = dict()
+                    curr_game['white'] = m.group("white")
+                    curr_game['white_rank'] = m.group("white_rank")
+                    curr_game['black'] = m.group("black")
+                    curr_game['black_rank'] = m.group("black_rank")
+                    curr_game['game_no'] = m.group("game_no")
+                    self.ongoing_games.append(curr_game)
+
+                    self.clock_statistician.updateGameStatus(m.group("white"), "1970-11-27 14:00:05")
+            except:
+                print ("GAME START FAILED!!")
+
+
 
 
     def on_game_finished(self, game):
         global ROUND_CURR
-        self.run_command("t 101 Snailbucket game has ended: " + game.white_name.name + " vs. " + game.black_name.name + " -- Round "+ ROUND_CURR +": " + game.result + " {" + game.result_desc) + "}"
-        self.run_command("-gnotify %s" % (game.white_name.name))
-        self.run_command("-gnotify %s" % (game.black_name.name))
+        self.run_command("t 101 Snailbucket game has ended: " + game.white_name.name + " vs. " + game.black_name.name + " -- Round "+ ROUND_CURR +": " + game.result + " {" + game.result_desc + "}")
+        self.clock_statistician.updateGameStatus(game.white_name.name, "2014-11-27 14:00:05")
+
+        if "lost connection" not in game.result_desc:
+            self.run_command("-gnotify %s" % (game.white_name.name))
+            self.run_command("-gnotify %s" % (game.black_name.name))
+            req = urllib2.Request('http://snailbucket.org/tourney/updateforums/bucket1:R'+str(ROUND_CURR)+'_'+str(game.white_name.name)+'-'+str(game.black_name.name))
+            response = urllib2.urlopen(req)
+            he_page = response.read()
 
         for gm in self.ongoing_games:
             if gm['white'] == game.white_name.name:
