@@ -130,8 +130,11 @@ public class WikiController {
 
                 ListIterator<String> iter = page.getHistory().listIterator(page.getHistory().size());
 
+                int i = 30;
                 while (iter.hasPrevious()) {
                     recentEdits.append("<li>").append(iter.previous()).append("</li>");
+                    if (--i <= 0)
+                        break;
                 }
                 recentEdits.append("</ul>");
                 model.addAttribute("title", "Recent Edits");

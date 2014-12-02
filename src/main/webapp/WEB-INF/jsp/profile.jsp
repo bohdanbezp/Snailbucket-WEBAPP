@@ -128,15 +128,7 @@
 </div>
 <div id="wiki-content">
    <div id="user-menu1">
-             	<ul>
-
-                 <li><a href="/members">Members</a></li>
-                 <li><a href="/wiki/Links">Links</a></li>
-                   <li><a href="/wiki/Wiki-Howto">Wiki Howto</a></li>
-                   <li><a href="/wiki/Trivia">Trivia</a></li>
-                   <li><a href="/wiki/FAQ">FAQ</a></li>
-                    <li><a href="/wiki/Contact">Contact</a></li>
-                 </ul>
+             	<jsp:include page="top-menu.jsp"></jsp:include>
                  </div>
 
 <jsp:include page="reg.jsp"></jsp:include>

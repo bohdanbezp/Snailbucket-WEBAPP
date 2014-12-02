@@ -1,5 +1,6 @@
 package net.rwchess.services;
 
+import net.rwchess.persistent.Member;
 import net.rwchess.persistent.TournamentGame;
 import net.rwchess.persistent.dao.TourneyDAO;
 import net.rwchess.utils.Mailer;
@@ -46,15 +47,23 @@ public class GameForumPostService {
         if (username.equals(game.getWhitePlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateWhiteLastPost(game, new Date());
 
+            if (game.getBlackPlayer().getAssocMember().getRr() > 0 && game.getBlackPlayer().getAssocMember().getGroup() >= Member.USER)
                 mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getBlackPlayer().getAssocMember().getEmail());
 
         } else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateBlackLastPost(game, new Date());
 
-
+            if (game.getWhitePlayer().getAssocMember().getRr() > 0 && game.getWhitePlayer().getAssocMember().getGroup() >= Member.USER)
                 mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getWhitePlayer().getAssocMember().getEmail());
+
+        }
+        else {
+            mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+                    content, game.getBlackPlayer().getAssocMember().getEmail());
+            mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+                    content, game.getWhitePlayer().getAssocMember().getEmail());
 
         }
     }

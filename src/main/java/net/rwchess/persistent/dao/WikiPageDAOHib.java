@@ -12,6 +12,16 @@ import java.util.Stack;
  * Created by bodia on 10/14/14.
  */
 public class WikiPageDAOHib implements WikiPageDAO {
+
+    private static WikiPageDAOHib cached;
+
+    public static WikiPageDAOHib getCachedDao() {
+        if (cached == null)
+            cached = new WikiPageDAOHib();
+
+        return cached;
+    }
+
     @Override
     public WikiPage getWikiPageByName(String name) {
         Session session = HibernateUtils.getInstance().openSession();

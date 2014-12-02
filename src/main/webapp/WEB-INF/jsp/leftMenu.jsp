@@ -1,26 +1,21 @@
 <%@ page import="net.rwchess.utils.UsefulMethods"%>
+<%@ page import="net.rwchess.persistent.dao.WikiPageDAOHib"%>
+<%@ page import="net.rwchess.persistent.WikiPage"%>
+<%@ page import="net.rwchess.services.DisplayPositionService"%>
+<%@ page import="net.rwchess.services.DisplayPositionService.PosInfo"%>
 
-<ul>
+<%
+ WikiPage pgg = WikiPageDAOHib.getCachedDao().getWikiPageByName("Special:LeftMenu");
+%>
 
-<li><a href="/">Home</a></li>
- <li><a href="/wiki/Snail_Bucket_1">Snail Bucket 1</a></li>
- <li><a href="/wiki/Tourney_Guide">Tourney Guide</a></li>
- <li><a href="/tourney/signup/bucket1">Participants</a></li>
- <li><a href="/tourney/standing/bucket1">Standings</a></li>
- <li><a href="/tourney/pairings/bucket1:R<%=UsefulMethods.getCurrentRound()%>"><b>Pairings R<%=UsefulMethods.getCurrentRound()%></b></a></li>
-  <li><a href="/tourney/pairings/bucket1:R<%=UsefulMethods.getCurrentRound()-1%>">Pairings R<%=UsefulMethods.getCurrentRound()-1%></a></li>
- <li><a href="/tourney/pairings/all/bucket1">Pairings All Rounds</a></li>
- <li><a href="/tourney/pending/bucket1">Pending games</a></li>
- <li><a href="/tourney/completed/bucket1">Completed games</a></li>
-</ul>
-<hr/>
-<ul><li><a href="/wiki/Conduct">Conduct</a></li></ul>
-<hr />
-<ul>
-<li><a href="/wiki/Special:CreatePage" title="Special:CreatePage">Create page</a></li>
-<li><a href="/wiki/Special:Upload" title="Special:Upload">Upload image</a></li>
-<!-- <li><a href="/wiki/Special:ImageRegistry" title="Special:ImageRegistry">Uploaded images</a></li>  -->
-<li><a href="/wiki/Special:RecentEdits" title="Special:RecentEdits">Recent edits</a></li>
+<%=pgg.getHtmlText().replaceAll("CURR_ROUND", Integer.toString(UsefulMethods.getCurrentRound())).replaceAll("PREV_ROUND", Integer.toString(UsefulMethods.getCurrentRound()-1))%>
 
-</ul>
-<hr />
+<br/>
+<center>
+<p><i>Random game position</i><br/>
+<%=DisplayPositionService.info.gameString%>
+
+</p>
+<img src="/wikiImg/fen.png"/>
+<p>after <%=DisplayPositionService.info.lastMove%></p>
+</center>

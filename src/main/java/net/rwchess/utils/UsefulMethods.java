@@ -18,11 +18,17 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by bodia on 10/12/14.
  */
 public final class UsefulMethods {
+
+    public static ScheduledExecutorService utilExecutor = Executors.newScheduledThreadPool(2);
+
     private static final WikiModel wikiModel = new WikiModel(
             "/wikiImg/${image}",
             "/wiki/${title}") {

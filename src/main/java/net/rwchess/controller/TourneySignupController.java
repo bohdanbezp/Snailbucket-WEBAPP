@@ -10,6 +10,7 @@ import net.rwchess.persistent.dao.TourneyDAO;
 import net.rwchess.services.*;
 import net.rwchess.utils.UsefulMethods;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
@@ -22,14 +23,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,6 +64,7 @@ public class TourneySignupController {
 
     void startRemindersService() {
         remindersService.runService();
+        DisplayPositionService.getInstance(tourneyDAO).run();
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)
@@ -273,6 +274,97 @@ public class TourneySignupController {
 
         modelMap.addAttribute("title", "");
         modelMap.addAttribute("error", body.toString());
+        return "error";
+    }
+
+    private final static Pattern ficsGamesLinkMod = Pattern.compile("\\/cgi-bin\\/show\\.cgi\\?ID=[0-9]+;action=save");
+
+    /**
+     * Fetch game results from ficsgames.org after game finish
+     * @param modelMap
+     * @return
+     */
+    @RequestMapping(value = "/updateforums/{forumString}", method = RequestMethod.GET)
+    public String updateForums(@PathVariable String forumString, ModelMap modelMap) {
+        try {
+            TournamentGame game = tourneyDAO.getGameByForumString(forumString);
+
+            URL urll = new URL("http://www.ficsgames.org/cgi-bin/search.cgi?player="+game.getBlackPlayer().getAssocMember().getUsername()+"&action=History");
+            URLConnection con = urll.openConnection();
+            InputStream inn = con.getInputStream();
+            String encoding = con.getContentEncoding();
+            encoding = encoding == null ? "UTF-8" : encoding;
+            String body = IOUtils.toString(inn, encoding);
+            Matcher m = ficsGamesLinkMod.matcher(body);
+            if (m.find()) {
+                String s = "http://www.ficsgames.org" + m.group(0);
+
+                URL url = new URL(s);
+                String pgn = IOUtils.toString(new InputStreamReader(
+                        url.openStream()));
+
+                boolean in = false;
+                char last = ' ';
+                StringBuilder buff = new StringBuilder();
+                for (char c : pgn.toCharArray()) {
+                    if (c == ']' && in)
+                        in = false;
+
+                    if (in)
+                        continue;
+
+                    if (c == '[' && last == '{')
+                        in = true;
+
+                    last = c;
+                    buff.append(c);
+                }
+                pgn = buff.toString().replace("{[]}", "");
+
+                String result;
+
+                PGNReader red = new PGNReader(IOUtils.toInputStream(pgn), game.getTournament().getShortName() + ".pgn");
+                try {
+                    Game ga = red.parseGame();
+                    ga.setTag("Round", Integer.toString(game.getRound()));
+                    ga.setTag("Event", game.getTournament().getFullName());
+                    result = ga.getResultStr();
+
+                    if (!ga.getWhite().equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername()) ||
+                            !ga.getBlack().equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
+                        modelMap.addAttribute("title", "Error");
+                        modelMap.addAttribute("error", "You posted the wrong game: " + ga.getWhite() + "-" + ga.getBlack());
+                        return "error";
+                    }
+                    DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
+                    DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
+                    DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/Los_Angeles"));
+
+                    if (gameDate.isBefore(startDate)) {
+                        modelMap.addAttribute("title", "Error");
+                        modelMap.addAttribute("error", "Game date is before tha date of tournament start.");
+                        return "error";
+                    }
+
+                    pgn = UsefulMethods.getPgnRepresentation(ga);
+                    gameForumPostService.gameForumPost(game, "Game ended as " + result, "snailbot(TD)");
+                    tourneyDAO.updatePgn(game, pgn);
+                    tourneyDAO.updatePlayedDate(game, gameDate.toDate());
+                    tourneyDAO.updateResult(game, result);
+                    modelMap.addAttribute("title", "Done");
+                    modelMap.addAttribute("error", "Set.");
+                    return "error";
+                } catch (PGNSyntaxError e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        modelMap.addAttribute("title", "Error");
+        modelMap.addAttribute("error", "Not Set.");
         return "error";
     }
 
@@ -500,6 +592,7 @@ public class TourneySignupController {
                 "         <th width=\"125px\">Date</th>\n" +
                 "         <th width=\"150px\">Black player</th>\n" +
                 "         <th>Time control</th>\n" +
+                "         <th>Round</th>\n" +
                 "         <th>Bucket</th>\n" +
                 "      </tr>");
         int i = 1;
@@ -511,11 +604,18 @@ public class TourneySignupController {
             }
 
             String sched = forumFormatter.format(scheduledGame.getSecheduled());
+
+            if (scheduledGame.getSecheduled().getYear() < 100)
+                sched = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+
             DateTime now = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
             Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("America/Los_Angeles")));
             if (p2.getStandardHours() <= 4) {
-                if (p2.getStandardHours() > 0)
-                    sched += " (in " + p2.getStandardHours() + " hours)";
+                if (p2.getStandardHours() > 0) {
+                    String[] arr = DurationFormatUtils.formatDuration(p2.getMillis(), "H#m").split("#");
+                    sched += " (in " + arr[0] + (arr[0].equals("1") ? " hour " : " hours ");
+                    sched +=  arr[1] + (arr[1].equals("1") ? " minute)" : " minutes)");
+                }
                 else if (p2.getStandardHours() == 0) {
                     if (p2.getStandardMinutes() > 0)
                         sched += " (in " + p2.getStandardMinutes() + " minutes)";
@@ -532,7 +632,7 @@ public class TourneySignupController {
                     .append("         <td><img src=\"/static/images/flags/")
                     .append(scheduledGame.getBlackPlayer().getAssocMember().getCountry())
                     .append(".png\" border=\"0\"> ").append(scheduledGame.getBlackPlayer().getAssocMember().getUsername())
-                    .append("</td>\n").append("<td>").append(timeControl.replaceAll("_", " ")).append("</td>").append("<td>").append(bucketName).append("</td></tr>");
+                    .append("</td>\n").append("<td><center>").append(timeControl.replaceAll("_", " ")).append("</center></td>").append("<td><center>").append(scheduledGame.getRound()).append("</center></td><td>").append(bucketName).append("</td></tr>");
         }
         wikiTable.append("</table>");
 
@@ -573,8 +673,12 @@ public class TourneySignupController {
                 List<TournamentGame> bucketGames = UsefulMethods.getBucketGames(bucket, games);
                 for (TournamentGame game : bucketGames) {
                     String result = "";
-                    if (game.getSecheduled() != null)
-                        result = forumFormatter.format(game.getSecheduled());
+                    if (game.getSecheduled() != null) {
+                        if (game.getSecheduled().getYear() < 100)
+                            result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+                        else
+                            result = forumFormatter.format(game.getSecheduled());
+                    }
                     if (game.getResult() != null) {
                         result = game.getResult();
 
@@ -632,8 +736,12 @@ public class TourneySignupController {
                 List<TournamentGame> bucketGames = UsefulMethods.getBucketGames(bucket, games);
                 for (TournamentGame game : bucketGames) {
                     String result = "";
-                    if (game.getSecheduled() != null)
-                        result = forumFormatter.format(game.getSecheduled());
+                    if (game.getSecheduled() != null) {
+                        if (game.getSecheduled().getYear() < 100)
+                            result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+                        else
+                            result = forumFormatter.format(game.getSecheduled());
+                    }
                     if (game.getResult() != null) {
                         result = game.getResult();
 
@@ -655,6 +763,20 @@ public class TourneySignupController {
         }
 
         return "not-found";
+    }
+
+    @RequestMapping(value = "/pgn/all/{shortName}", method = RequestMethod.GET, produces = "application/pgn")
+    @ResponseBody
+    public String tourneyPgnGetAll(@PathVariable String shortName, HttpServletResponse response) {
+        List<TournamentGame> games = tourneyDAO.getGamesByPgn(shortName);
+        StringBuilder sb = new StringBuilder();
+        for (TournamentGame game: games) {
+            sb.append(game.getPng()).append("\n\n");
+        }
+
+        response.setContentType("application/pgn");
+        response.setHeader("Content-Disposition", "attachment; filename=" + shortName + ".pgn");
+        return sb.toString();
     }
 
     @RequestMapping(value = "/pgn/{forumString}", method = RequestMethod.GET, produces = "application/pgn")
@@ -680,6 +802,8 @@ public class TourneySignupController {
         }
 
         StringBuilder wikiTable = new StringBuilder();
+        wikiTable.append("<p>All games can be downloaded here - <a href=\"/tourney/pgn/all/"+games.get(0).getTournament().getShortName()+"\">"+games.get(0).getTournament().getShortName()
+        +".pgn</a></p>");
         wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
         wikiTable.append("<tr>\n" +
                 "         <th>No</th>\n" +

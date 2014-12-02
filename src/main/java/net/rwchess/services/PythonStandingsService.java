@@ -50,7 +50,8 @@ public class PythonStandingsService {
                     whiteScore = 1f;
                 else if (game.getResult().equals("0-1") || game.getResult().equals("-:+"))
                     blackScore = 1f;
-                else if (game.getResult().equals("1/2-1/2") || game.getResult().equals("0.5-0.5")) {
+                else if (game.getResult().equals("1/2-1/2") || game.getResult().equals("0.5-0.5")
+                        || game.getResult().equals("i/2-i/2")) {
                     whiteScore = 0.5f;
                     blackScore = 0.5f;
                 }
