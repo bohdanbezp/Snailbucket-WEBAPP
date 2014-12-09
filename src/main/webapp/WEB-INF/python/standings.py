@@ -76,6 +76,8 @@ def calculate_standings(players, matches):
         adjust_hth(current_bucket)
       current_points = record.points
       current_bucket = [record]
+  if len(current_bucket) >= 2:
+    adjust_hth(current_bucket)
 
   records_list.sort(
       key=operator.attrgetter('points', 'hth', 'won', 'white', 'rating'),
