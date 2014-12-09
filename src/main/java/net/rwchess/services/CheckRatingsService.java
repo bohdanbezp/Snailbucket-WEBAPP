@@ -15,7 +15,8 @@ public class CheckRatingsService {
 
     private TourneyDAO tourneyDAO;
 
-    public CheckRatingsService() {}
+    public CheckRatingsService() {
+    }
 
     public CheckRatingsService(TourneyDAO tourneyDAO) {
         this.tourneyDAO = tourneyDAO;
@@ -36,14 +37,14 @@ public class CheckRatingsService {
 
                 List<String> usernames = new ArrayList<String>();
 
-                for (TournamentPlayer player: players) {
+                for (TournamentPlayer player : players) {
                     usernames.add(player.getAssocMember().getUsername());
                 }
 
                 ChessClient chessClient = new ChessClient(ratingListener, usernames);
                 try {
                     chessClient.login("guest", "");
-                    for (String player: usernames) {
+                    for (String player : usernames) {
                         chessClient.finger(player);
                         try {
                             Thread.sleep(700);

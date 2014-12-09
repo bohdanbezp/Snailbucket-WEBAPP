@@ -34,19 +34,19 @@ public class WikiImageController {
 
     @RequestMapping(value = "/{imgName:.*}", method = RequestMethod.GET)
     @ResponseBody
-    public byte[] wikiImgProcessJpeg(@PathVariable String imgName, HttpServletRequest request,HttpServletResponse response) {
+    public byte[] wikiImgProcessJpeg(@PathVariable String imgName, HttpServletRequest request, HttpServletResponse response) {
         Matcher m = scalePatt.matcher(imgName);
 
         ServletContext context = request.getSession().getServletContext();
-        String absPath = context.getRealPath("/")+"/wikiImg/";
-        String filePath = absPath+imgName;
+        String absPath = context.getRealPath("/") + "/wikiImg/";
+        String filePath = absPath + imgName;
 
         try {
             if (m.matches()) {
                 int size = Integer.parseInt(m.group(1));
-                File res = new File(absPath+imgName);
-                if (!res.exists()  && !res.isDirectory()) {
-                    imageScaler.scale(absPath+m.group(2), absPath+imgName, size);
+                File res = new File(absPath + imgName);
+                if (!res.exists() && !res.isDirectory()) {
+                    imageScaler.scale(absPath + m.group(2), absPath + imgName, size);
                 }
 
             }

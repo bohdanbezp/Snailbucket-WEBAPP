@@ -1,5 +1,6 @@
 package net.rwchess.services;
 
+import net.rwchess.persistent.Member;
 import net.rwchess.persistent.TournamentGame;
 import net.rwchess.persistent.dao.TourneyDAO;
 import net.rwchess.utils.Mailer;
@@ -30,13 +31,13 @@ public class GameForumPostService {
 
 
     public void gameForumPost(TournamentGame game, String content,
-                               String username) {
+                              String username) {
         log.info("Posted message to " + game.toString());
 
         DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
         String date = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z").print(zoned);
 
-        String text ="<p><b>" + username
+        String text = "<p><b>" + username
                 + "</b> (" + date + "):<br/>"
                 + content.replaceAll("\n", "<br/>") + "</p><hr/>\n"
                 + game.getGameforumHtml();
@@ -46,22 +47,24 @@ public class GameForumPostService {
         if (username.equals(game.getWhitePlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateWhiteLastPost(game, new Date());
 
-            String uname = game.getBlackPlayer().getAssocMember().getUsername();
-            if (uname.equals("PankracyRozumek") || uname.equals("pchesso") || uname.equals("Bodia") || uname.equals("BethanyGrace")
-                    || uname.equals("RoyRogersC")) {
+            if (game.getBlackPlayer().getAssocMember().getRr() > 0 && game.getBlackPlayer().getAssocMember().getGroup() >= Member.USER)
                 mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getBlackPlayer().getAssocMember().getEmail());
-            }
-        }
-        else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
+
+        } else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateBlackLastPost(game, new Date());
 
-            String uname = game.getWhitePlayer().getAssocMember().getUsername();
-            if (uname.equals("PankracyRozumek") || uname.equals("pchesso") || uname.equals("Bodia") || uname.equals("BethanyGrace")
-                    || uname.equals("RoyRogersC")) {
+            if (game.getWhitePlayer().getAssocMember().getRr() > 0 && game.getWhitePlayer().getAssocMember().getGroup() >= Member.USER)
                 mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
                         content, game.getWhitePlayer().getAssocMember().getEmail());
-            }
+
+        }
+        else {
+            mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+                    content, game.getBlackPlayer().getAssocMember().getEmail());
+            mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+                    content, game.getWhitePlayer().getAssocMember().getEmail());
+
         }
     }
 
@@ -69,7 +72,7 @@ public class GameForumPostService {
         Calendar cld = Calendar.getInstance();
         cld.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
         cld.set(Calendar.YEAR, cld.get(Calendar.YEAR));
-        cld.set(Calendar.MONTH, Integer.parseInt(month)-1);
+        cld.set(Calendar.MONTH, Integer.parseInt(month) - 1);
         cld.set(Calendar.DAY_OF_MONTH, Integer.parseInt(day));
         cld.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hour));
         cld.set(Calendar.MINUTE, Integer.parseInt(minute));

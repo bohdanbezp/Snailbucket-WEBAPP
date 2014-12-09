@@ -7,8 +7,10 @@ import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyTuple;
 import org.python.util.PythonInterpreter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +20,11 @@ public class PythonBucketsGenerationService {
     private List<Bucket> cachedBuckets;
     private int cacheHash;
 
-    private String pythonDir;
+    @Autowired
+    private ServletContext servletContext;
 
     private static String[] td = {"BethanyGrace", "BethanyGrace", "RoyRogersC", "BethanyGrace", "PankracyRozumek", "pchesso", "RoyRogersC"};
 
-    public PythonBucketsGenerationService(String pythonDir) {
-        this.pythonDir = pythonDir;
-    }
 
     public List<Bucket> generateBuckets(List<TournamentPlayer> players) {
         if (players.hashCode() == cacheHash)
@@ -32,16 +32,18 @@ public class PythonBucketsGenerationService {
 
         StringBuilder inputArr = new StringBuilder("[");
 
-        for (TournamentPlayer player: players) {
-            inputArr.append("(").append(player.getFixedRating()).append(", '").append(player.getAssocMember().getUsername()).append("'),");
+        for (TournamentPlayer player : players) {
+            inputArr.append('(').append(player.getFixedRating()).append(", '").append(player.getAssocMember().getUsername()).append("'),");
         }
         inputArr.append(']');
 
         PythonInterpreter interp =
                 new PythonInterpreter();
 
-        interp.execfile(pythonDir +"bucket_generator.py");
-        interp.exec("generator = BucketGenerator("+inputArr+ ')');
+        String pythonDir = servletContext.getRealPath("/WEB-INF/python");
+
+        interp.execfile(pythonDir + "/bucket_generator.py");
+        interp.exec("generator = BucketGenerator(" + inputArr + ')');
         interp.exec("generator.split_players_to_buckets()");
 
         int bucketsCount = interp.eval("len(generator.buckets)").asInt();
@@ -50,10 +52,10 @@ public class PythonBucketsGenerationService {
         for (int i = 0; i < bucketsCount; i++) {
             List<TournamentPlayer> bucketArr = new ArrayList<TournamentPlayer>();
 
-            PyList pyBucket = new PyList(interp.eval("generator.buckets[generator.bucket_names["+i+"]]"));
+            PyList pyBucket = new PyList(interp.eval("generator.buckets[generator.bucket_names[" + i + "]]"));
             PyObject[] tupleArray = pyBucket.getArray();
-            for (PyObject tuple: tupleArray) {
-                PyTuple pyTuple = (PyTuple)tuple;
+            for (PyObject tuple : tupleArray) {
+                PyTuple pyTuple = (PyTuple) tuple;
 
                 try {
                     bucketArr.add(UsefulMethods.findByName(players, pyTuple.getArray()[1].toString()));
@@ -63,7 +65,7 @@ public class PythonBucketsGenerationService {
             }
 
             Bucket bucket = new Bucket();
-            bucket.setName(interp.eval("generator.bucket_names["+i+ ']').asString());
+            bucket.setName(interp.eval("generator.bucket_names[" + i + ']').asString());
             bucket.setPlayerList(bucketArr);
             bucket.setTd(td[i]);
             buckets.add(bucket);

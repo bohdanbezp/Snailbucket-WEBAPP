@@ -60,7 +60,7 @@ public class WikiController {
 
         StringBuilder imgAvailable = new StringBuilder();
         imgAvailable.append("<ul>");
-        for (DownloadFile file: fileList) {
+        for (DownloadFile file : fileList) {
             if (file.getName().endsWith(".jpg") || file.getName().endsWith(".JPG") || file.getName().endsWith(".jpeg")
                     || file.getName().endsWith(".png") || file.getName().endsWith(".PNG")) {
                 imgAvailable.append("<li><a href=\"/wikiImg/").append(file.getName()).append("\">File:").append(file.getName()).append("</a> uploaded by <img src=\"/static/images/flags/").append(file.getCreator().getCountry()).append(".png\"/> ").append(file.getCreator().getUsername()).append("</li>");
@@ -68,7 +68,7 @@ public class WikiController {
         }
         imgAvailable.append("</ul>");
         model.addAttribute("title", "Image registry");
-        model.addAttribute("error", "<p>Uploaded images list:</p> "+ imgAvailable);
+        model.addAttribute("error", "<p>Uploaded images list:</p> " + imgAvailable);
         return "error";
     }
 
@@ -80,14 +80,14 @@ public class WikiController {
 
         Object user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (pageName.startsWith("User:")) {
-            Member member = memberDAO.getMemberByUsername(pageName.substring(pageName.indexOf(':')+1));
+            Member member = memberDAO.getMemberByUsername(pageName.substring(pageName.indexOf(':') + 1));
 
             if (member == null)
                 return pageName;
 
             StringBuilder toggleUserHtml = new StringBuilder("<div id=\"flip\">Click to show/hide users' time control preferences.</div>\n" +
                     "<div id=\"panel\"><p>I prefer the following time controls, in order:</p><ul id=\"sortable\"> ");
-            for (String time: member.getPreference().split(",")) {
+            for (String time : member.getPreference().split(",")) {
                 toggleUserHtml.append("<li class=\"ui-state-default\"> ").append(time.replaceAll("_", " ")).append(" <img src=\"/static/images/clock.png\"/></li>");
             }
 
@@ -95,7 +95,7 @@ public class WikiController {
             toggleUserHtml.append("</ul></div>");
 
 
-            if (page == null && !(user instanceof String) && pageName.endsWith(((Member)user).getUsername())) {
+            if (page == null && !(user instanceof String) && pageName.endsWith(((Member) user).getUsername())) {
                 model.addAttribute("wikiPageName", pageName);
                 model.addAttribute("urlFriendlyName", pageName.replace(' ', '_'));
                 return "page-nonexistent";
@@ -109,17 +109,14 @@ public class WikiController {
                 model.addAttribute("urlFriendlyName", pageName.replace(' ', '_'));
                 model.addAttribute("toggleUser", toggleUserHtml);
                 return "view-page";
-            }
-            else {
+            } else {
                 model.addAttribute("wikiPage", page);
-                model.addAttribute("tdProtectionText", (page.isTdProtected() ? "Unset" : "Set")+"TD protection");
+                model.addAttribute("tdProtectionText", (page.isTdProtected() ? "Unset" : "Set") + "TD protection");
                 model.addAttribute("urlFriendlyName", page.getName().replace(' ', '_'));
-                model.addAttribute("toggleUser", toggleUserHtml );
+                model.addAttribute("toggleUser", toggleUserHtml);
                 return "view-page";
             }
-        }
-
-        else {
+        } else {
             if (page == null) {
                 if (pageName.startsWith("Special:"))
                     return pageName;
@@ -127,15 +124,17 @@ public class WikiController {
                 model.addAttribute("wikiPageName", pageName);
                 model.addAttribute("urlFriendlyName", pageName.replace(' ', '_'));
                 return "page-nonexistent";
-            }
-            else if (pageName.startsWith("Special:RecentEdits")) {
+            } else if (pageName.startsWith("Special:RecentEdits")) {
                 StringBuilder recentEdits = new StringBuilder();
                 recentEdits.append("<ul>");
 
                 ListIterator<String> iter = page.getHistory().listIterator(page.getHistory().size());
 
+                int i = 30;
                 while (iter.hasPrevious()) {
                     recentEdits.append("<li>").append(iter.previous()).append("</li>");
+                    if (--i <= 0)
+                        break;
                 }
                 recentEdits.append("</ul>");
                 model.addAttribute("title", "Recent Edits");
@@ -145,7 +144,7 @@ public class WikiController {
         }
 
         model.addAttribute("wikiPage", page);
-        model.addAttribute("tdProtectionText", (page.isTdProtected() ? "Unset" : "Set")+"TD protection");
+        model.addAttribute("tdProtectionText", (page.isTdProtected() ? "Unset" : "Set") + "TD protection");
         model.addAttribute("urlFriendlyName", page.getName().replace(' ', '_'));
         model.addAttribute("toggleUser", "");
 
@@ -162,7 +161,7 @@ public class WikiController {
 
         if (page.isTdProtected()) {
             Object user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (((Member)user).getGroup() < Member.TD) {
+            if (((Member) user).getGroup() < Member.TD) {
                 model.addAttribute("title", "TD protected");
                 model.addAttribute("error", "The page is protected and can be edited only by a TD.");
                 return "error";
@@ -181,12 +180,12 @@ public class WikiController {
         wikiDao.toggleProtectTd(pageName);
 
         String referer = req.getHeader("Referer");
-        return "redirect:"+ referer;
+        return "redirect:" + referer;
     }
 
     @RequestMapping(value = "/Special:Edit", method = RequestMethod.POST)
     public String wikiEditAct(@RequestParam(value = "pageName") String pageName, @RequestParam(value = "contents") String rawText,
-                            @RequestParam(value = "save") String buttVal, ModelMap model) {
+                              @RequestParam(value = "save") String buttVal, ModelMap model) {
         String origPage = pageName;
         pageName = pageName.replace('_', ' ');
 
@@ -229,9 +228,9 @@ public class WikiController {
             wikiDao.updatePageWithText("Special:RecentEdits", "", history);
         }
 
-        wikiDao.updatePageWithText(pageName, rawText, dealWithHistoryStack(page.getHistory(), ((Member)user).getUsername()));
+        wikiDao.updatePageWithText(pageName, rawText, dealWithHistoryStack(page.getHistory(), ((Member) user).getUsername()));
 
-        return "redirect:/wiki/"+origPage;
+        return "redirect:/wiki/" + origPage;
     }
 
     @RequestMapping(value = "/Special:Register", method = RequestMethod.GET)
@@ -255,8 +254,7 @@ public class WikiController {
             model.addAttribute("title", "Confirmed");
             model.addAttribute("error", "The email has been successfully confirmed!");
             return "error";
-        }
-        else {
+        } else {
             model.addAttribute("title", "Error");
             model.addAttribute("error", "Error!");
             return "error";
@@ -271,7 +269,7 @@ public class WikiController {
         String timeControlPreferrence = "45 45";
         String insist = "no";
         if (request.getParameter("def_time") == null) {
-           timeControlPreferrence = time_order.replace(",", ", ");
+            timeControlPreferrence = time_order.replace(",", ", ");
         }
         if (!bad_times.isEmpty())
             insist = bad_times;
@@ -291,8 +289,8 @@ public class WikiController {
 
         memberDAO.updateWithData(username, passwordHash, country, insist, timeControlPreferrence, email);
 
-        mailer.sendEmail("notify@snailbucket.org", "Snailbucket registration", "Please follow this link: http://snailbucket.org/wiki/Special:Confirm?username="+username
-            +"&hash="+passwordHash, email);
+        mailer.sendEmail("notify@snailbucket.org", "Snailbucket registration", "Please follow this link: http://snailbucket.org/wiki/Special:Confirm?username=" + username
+                + "&hash=" + passwordHash, email);
 
         model.addAttribute("title", "Sucessful registration");
         model.addAttribute("error", "You should confirm your email address by following the link we have sent you. If there are any problems please contact admins or TDs.");
@@ -326,8 +324,8 @@ public class WikiController {
     public String wikiCreate(@RequestParam(value = "page") String pageName, ModelMap model) {
         pageName = pageName.replace('_', ' ');
 
-            model.addAttribute("wikiPageName", pageName);
-            return "page-create";
+        model.addAttribute("wikiPageName", pageName);
+        return "page-create";
 
     }
 
@@ -336,10 +334,10 @@ public class WikiController {
     public String imgGet(HttpServletRequest request) {
         String uri = request.getRequestURI();
         if (uri.contains("px-")) {
-            return "redirect:/wikiImg/"+uri.substring(uri.indexOf('-')+1);
+            return "redirect:/wikiImg/" + uri.substring(uri.indexOf('-') + 1);
         }
 
-        return "redirect:/wikiImg/"+uri.substring(uri.indexOf(':')+1);
+        return "redirect:/wikiImg/" + uri.substring(uri.indexOf(':') + 1);
     }
 //    @RequestMapping(value = "/File{filename}.png", method = RequestMethod.GET)
 //    public String imgGetPng(@RequestParam(value = "filename") String filename) {
@@ -371,13 +369,11 @@ public class WikiController {
                     if (item.isFormField()
                             && item.getFieldName().equals("description")) {
                         description = IOUtils.toString(in);
-                    }
-                    else if (!item.isFormField()) {
+                    } else if (!item.isFormField()) {
                         fileName = item.getName().replace(' ', '_');
                         data = IOUtils.toByteArray(in);
                     }
-                }
-                finally {
+                } finally {
                     IOUtils.closeQuietly(in);
                 }
             }
@@ -386,25 +382,23 @@ public class WikiController {
                 Object user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                 DownloadFile downloadFile = new DownloadFile();
                 downloadFile.setName(fileName);
-                downloadFile.setCreator(((Member)user));
+                downloadFile.setCreator(((Member) user));
                 downloadFile.setDescription(description);
 
                 ServletContext context = req.getSession().getServletContext();
-                String absPath = context.getRealPath("/")+"/wikiImg/";
-                FileOutputStream out = new FileOutputStream(absPath+fileName);
+                String absPath = context.getRealPath("/") + "/wikiImg/";
+                FileOutputStream out = new FileOutputStream(absPath + fileName);
                 IOUtils.write(data, out);
                 IOUtils.closeQuietly(out);
                 downloadFileDAO.store(downloadFile);
                 model.addAttribute("title", "Sucessfull upload");
-                model.addAttribute("error", "<p>Your image has bee successfully uploaded! Use [[File:"+fileName+"]] syntax to insert" +
+                model.addAttribute("error", "<p>Your image has bee successfully uploaded! Use [[File:" + fileName + "]] syntax to insert" +
                         " it into a wiki page. Use <a href=\"/wiki/Special:ImageRegistry\">Image Registry</a> to see all uploaded images.</p>");
                 return "error";
-            }
-            else
+            } else
                 throw new FileUploadException("Something went wrong");
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             model.addAttribute("title", e.getClass().getName());
             model.addAttribute("error", e.getMessage());
             return "error";
@@ -458,15 +452,15 @@ public class WikiController {
         page.setHistory(dealWithHistoryStack(page.getHistory(), ((Member) user).getUsername()));
         wikiDao.store(page);
 
-        return "redirect:/wiki/"+page.getName().replace(' ', '_');
+        return "redirect:/wiki/" + page.getName().replace(' ', '_');
     }
 
     @RequestMapping(value = "/files/{fileName:.*}", method = RequestMethod.GET)
     @ResponseBody
     public byte[] wikiImgProcessFile(@PathVariable String fileName, HttpServletRequest request, HttpServletResponse response) {
         ServletContext context = request.getSession().getServletContext();
-        String absPath = context.getRealPath("/")+"/wikiImg/";
-        String filePath = absPath+fileName;
+        String absPath = context.getRealPath("/") + "/wikiImg/";
+        String filePath = absPath + fileName;
 
         try {
             File file = new File(filePath);
@@ -490,7 +484,7 @@ public class WikiController {
             list = new Stack<String>();
 
         Stack<String> history = new Stack<String>();
-        for (String s: list) {
+        for (String s : list) {
             history.push(s);
         }
 
@@ -501,7 +495,7 @@ public class WikiController {
         DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
         String date = UsefulMethods.getWikiDateFormatter().print(zoned);
         //history.push(date + " by <a href=\"/members/"+username+"\">"+username+"</a>" );
-        history.insertElementAt(date + " by <a href=\"/wiki/User:"+username+"\">"+username+"</a>" , 0);
+        history.insertElementAt(date + " by <a href=\"/wiki/User:" + username + "\">" + username + "</a>", 0);
         return history;
     }
 }

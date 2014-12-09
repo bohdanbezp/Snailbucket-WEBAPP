@@ -52,6 +52,7 @@
       	$().ready(function() {
       	    $( "#From" ).datepicker();
             $( "#To" ).datepicker();
+            $( "#Start" ).datepicker();
       	    $("#TourneyForm").validate({
                                 			rules: {
                                 				Full_name: {
@@ -88,6 +89,7 @@
                                 				},
                                 				From: "Please enter a date",
                                 				To: "Please enter a date",
+                                				Start: "Please enter a date",
                                 			}
                                 		});
                                 		});
@@ -107,6 +109,7 @@
                                                    	font-size: 90%;
                                                    }
                                                  </style>
+                                                 <jsp:include page="tracking.jsp"></jsp:include>
 </head>
 <body>
 
@@ -125,15 +128,7 @@
 </div>
 <div id="wiki-content">
                  <div id="user-menu1">
-                          	<ul>
-
-                              <li><a href="/members">Members</a></li>
-                              <li><a href="/wiki/Links">Links</a></li>
-                                <li><a href="/wiki/Wiki-Howto">Wiki Howto</a></li>
-                                <li><a href="/wiki/Trivia">Trivia</a></li>
-                                <li><a href="/wiki/FAQ">FAQ</a></li>
-                                 <li><a href="/wiki/Contact">Contact</a></li>
-                              </ul>
+                          	<jsp:include page="top-menu.jsp"></jsp:include>
                               </div>
 
 <jsp:include page="reg.jsp"></jsp:include>
@@ -156,7 +151,7 @@
 
 
 <div id="content-article">
-
+<p>Note: start, from and to fields assume the chosen date with 19:00 server time.</p>
 <form id="TourneyForm" action="/tourney/create" method="post">
         <fieldset>
             <legend>Tourney information</legend>
@@ -170,6 +165,10 @@
             <input id="From" name="From" type="text" />
             <label for="To">Signup end date:</label>
                         <input id="To" name="To" type="text" />
+                        <label for="Start">Tourney start date:</label>
+                                                <input id="Start" name="Start" type="text" />
+                                                <label for="Start">Tourney end date:</label>
+                                                                                                <input id="End" name="End" type="text" />
 
         </fieldset>
         <p>

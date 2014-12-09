@@ -27,10 +27,10 @@ public class WikiPage implements Serializable {
     @Column(name = "HTML_TEXT")
     private String htmlText;
 
-    @Column(name = "HISTORY", length=10000)
+    @Column(name = "HISTORY", length = 10000)
     private Stack<String> history;
 
-    @Column(name = "TD_PROTECT", nullable=false)
+    @Column(name = "TD_PROTECT", nullable = false)
     private Boolean tdProtected;
 
     public WikiPage() {

@@ -18,11 +18,17 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by bodia on 10/12/14.
  */
 public final class UsefulMethods {
+
+    public static ScheduledExecutorService utilExecutor = Executors.newScheduledThreadPool(2);
+
     private static final WikiModel wikiModel = new WikiModel(
             "/wikiImg/${image}",
             "/wiki/${title}") {
@@ -33,13 +39,14 @@ public final class UsefulMethods {
 
     private static DateTimeFormatter dateFormat;
 
-    private UsefulMethods() {} // provides non-instensability
+    private UsefulMethods() {
+    } // provides non-instensability
 
     /**
      * Gets a plain password string and returns MD5 hash
      */
     public static String getMD5(String passwd) {
-       return DigestUtils.md5Hex(passwd.getBytes());
+        return DigestUtils.md5Hex(passwd.getBytes());
     }
 
     public static String getHtml(String rawText) {
@@ -57,7 +64,7 @@ public final class UsefulMethods {
 
 
     public static TournamentPlayer findByName(List<TournamentPlayer> players, String username) {
-        for (TournamentPlayer player: players) {
+        for (TournamentPlayer player : players) {
             if (player.getAssocMember().getUsername().equalsIgnoreCase(username))
                 return player;
         }
@@ -66,7 +73,7 @@ public final class UsefulMethods {
     }
 
     public static List<List<TournamentPlayer>> getBuckets(List<TournamentPlayer> players, int plsInBucket) {
-        int buckets = players.size()/plsInBucket + 1;
+        int buckets = players.size() / plsInBucket + 1;
 
         List<List<TournamentPlayer>> metaBuckets = new ArrayList<List<TournamentPlayer>>();
 
@@ -199,12 +206,21 @@ public final class UsefulMethods {
     }
 
     private static String[] sortables = {
-        "<li id=\"45_45\" class=\"ui-state-default\"> 45 45  <img src=\"/static/images/clock.png\"/></li>\n",
-                "<li id=\"120_30\" class=\"ui-state-default\">120 30 <img src=\"/static/images/clock.png\"/></li>\n",
-                "<li id=\"90_30\" class=\"ui-state-default\"> 90 30  <img src=\"/static/images/clock.png\"/></li>\n",
-                "<li id=\"75_0\" class=\"ui-state-default\"> 75 0   <img src=\"/static/images/clock.png\"/></li>\n",
-                "<li id=\"50_10\" class=\"ui-state-default\"> 50 10  <img src=\"/static/images/clock.png\"/></li>"
+            "<li id=\"45_45\" class=\"ui-state-default\"> 45 45  <img src=\"/static/images/clock.png\"/></li>\n",
+            "<li id=\"120_30\" class=\"ui-state-default\">120 30 <img src=\"/static/images/clock.png\"/></li>\n",
+            "<li id=\"90_30\" class=\"ui-state-default\"> 90 30  <img src=\"/static/images/clock.png\"/></li>\n",
+            "<li id=\"75_0\" class=\"ui-state-default\"> 75 0   <img src=\"/static/images/clock.png\"/></li>\n",
+            "<li id=\"50_10\" class=\"ui-state-default\"> 50 10  <img src=\"/static/images/clock.png\"/></li>"
     };
+
+    public static Bucket getBucket(List<Bucket> buckets, TournamentGame game) {
+        for (Bucket bucket: buckets) {
+            if (bucket.getPlayerList().contains(game.getWhitePlayer())
+                    || bucket.getPlayerList().contains(game.getBlackPlayer()))
+                return bucket;
+        }
+        return null;
+    }
 
     /*
     http://snailbucket.org/wiki/Matching_time_controls_algorithm
@@ -214,11 +230,11 @@ public final class UsefulMethods {
         Set<String> B = new HashSet<String>();
         List<String> listA = Arrays.asList(player1Pref.trim().replaceAll("45 45", "45_45").split(", "));
         List<String> listB = Arrays.asList(player2Pref.trim().replaceAll("45 45", "45_45").split(", "));
-        for (String str: listA) {
+        for (String str : listA) {
             A.add(str.trim().replaceAll("^\\s+", ""));
         }
 
-        for (String str: listB) {
+        for (String str : listB) {
             B.add(str.trim().replaceAll("^\\s+", ""));
         }
 
@@ -226,15 +242,14 @@ public final class UsefulMethods {
 
         String bestTc = "";
         int bestVal = Integer.MAX_VALUE;
-        for (String tc: A) {
+        for (String tc : A) {
             int of = listA.indexOf(tc) + listB.indexOf(tc);
             if (of < bestVal) {
                 bestVal = of;
                 bestTc = tc;
-            }
-            else if (of == bestVal) {
-                if (Integer.parseInt(tc.replaceAll("75_0", "75_00").replaceAll("_",""))
-                        < Integer.parseInt(bestTc.replaceAll("75_0", "75_00").replaceAll("_",""))) {
+            } else if (of == bestVal) {
+                if (Integer.parseInt(tc.replaceAll("75_0", "75_00").replaceAll("_", ""))
+                        < Integer.parseInt(bestTc.replaceAll("75_0", "75_00").replaceAll("_", ""))) {
                     bestVal = of;
                     bestTc = tc;
                 }
@@ -252,7 +267,7 @@ public final class UsefulMethods {
     public static List<String> sortToSortables(String preference) {
         StringBuilder sortable1 = new StringBuilder();
         StringBuilder sortable2 = new StringBuilder();
-        for (String pref: preference.split(",")) {
+        for (String pref : preference.split(",")) {
             pref = pref.replaceAll("^\\s+", "").trim();
             if (pref.equals("120_30"))
                 sortable1.append(sortables[1]);
@@ -284,7 +299,7 @@ public final class UsefulMethods {
     public static List<TournamentGame> getBucketGames(Bucket bucket, List<TournamentGame> games) {
         List<TournamentGame> result = new ArrayList<TournamentGame>();
 
-        for (TournamentGame game: games) {
+        for (TournamentGame game : games) {
             if (findByName(bucket.getPlayerList(), game.getWhitePlayer().getAssocMember().getUsername()) != null
                     || findByName(bucket.getPlayerList(), game.getBlackPlayer().getAssocMember().getUsername()) != null)
                 result.add(game);
@@ -297,7 +312,7 @@ public final class UsefulMethods {
         StringBuilder content = new StringBuilder();
         List<String> insis = Arrays.asList(insist.split(","));
         List<String> insists = new ArrayList<String>(insis.size());
-        for (String str: insis) {
+        for (String str : insis) {
             insists.add(str.replaceAll("^\\s+", "").trim());
         }
 
@@ -306,7 +321,7 @@ public final class UsefulMethods {
             if (insists.contains(Integer.toString(i)))
                 app = " ui-selected";
 
-            content.append("<li class=\"ui-widget-content"+app+"\">"+i+"</li>");
+            content.append("<li class=\"ui-widget-content").append(app).append("\">").append(i).append("</li>");
         }
         return content.toString();
     }

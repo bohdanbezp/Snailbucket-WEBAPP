@@ -13,10 +13,10 @@ public class HibernateUtils {
 
 
     public static SessionFactory getInstance() {
-       if (sessionFactory == null) {
-           Configuration configuration = new AnnotationConfiguration().configure();
-           sessionFactory = configuration.buildSessionFactory();
-       }
+        if (sessionFactory == null) {
+            Configuration configuration = new AnnotationConfiguration().configure();
+            sessionFactory = configuration.buildSessionFactory();
+        }
 
         return sessionFactory;
     }

@@ -10,8 +10,10 @@ import org.python.core.PyList;
 import org.python.core.PyObject;
 import org.python.core.PyTuple;
 import org.python.util.PythonInterpreter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,41 +21,41 @@ import java.util.Random;
 
 @Service
 public class PythonPairingsService {
-    private String pythonDir;
 
-    public PythonPairingsService(String pythonDir) {
-        this.pythonDir = pythonDir;
-    }
+    @Autowired
+    private ServletContext servletContext;
 
     public List<TournamentGame> allRoundsGame(Bucket bucket, Tournament tournament,
                                               Random random) {
         List<TournamentPlayer> playerListOrig = bucket.getPlayerList();
         List<TournamentPlayer> playerList = new ArrayList<TournamentPlayer>(playerListOrig.size());
-        for (TournamentPlayer player: playerListOrig) {
+        for (TournamentPlayer player : playerListOrig) {
             playerList.add(player);
         }
 
         Collections.shuffle(playerList, random);
         StringBuilder players = new StringBuilder();
-        for (TournamentPlayer player: playerList) {
+        for (TournamentPlayer player : playerList) {
             players.append('\'').append(player.getAssocMember().getUsername()).append("',");
         }
 
         PythonInterpreter interp =
                 new PythonInterpreter();
 
-        interp.execfile(pythonDir +"pairings.py");
-        interp.exec("pairings = generate(["+players+"])");
+        String pythonDir = servletContext.getRealPath("/WEB-INF/python");
+       // interp.execfile(is);
+        interp.execfile(pythonDir + "/pairings.py");
+        interp.exec("pairings = generate([" + players + "])");
 
         int roundsCount = interp.eval("len(pairings)").asInt();
 
         List<TournamentGame> games = new ArrayList<TournamentGame>();
 
         for (int i = 1; i <= roundsCount; i++) {
-            PyList pyBucket = new PyList(interp.eval("pairings["+i+ ']'));
+            PyList pyBucket = new PyList(interp.eval("pairings[" + i + ']'));
             PyObject[] tupleArray = pyBucket.getArray();
-            for (PyObject tuple: tupleArray) {
-                PyTuple pyTuple = (PyTuple)tuple;
+            for (PyObject tuple : tupleArray) {
+                PyTuple pyTuple = (PyTuple) tuple;
 
                 try {
                     String white = pyTuple.getArray()[0].toString();
@@ -75,6 +77,7 @@ public class PythonPairingsService {
 
 
         }
+        //IOUtils.closeQuietly(is);
         return games;
     }
 }

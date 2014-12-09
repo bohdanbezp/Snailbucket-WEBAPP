@@ -29,25 +29,25 @@ public class PythonPairingsService {
         List<TournamentPlayer> playerList = bucket.getPlayerList();
         Collections.shuffle(playerList, random);
         StringBuilder players = new StringBuilder();
-        for (TournamentPlayer player: playerList) {
-            players.append("'"+player.getAssocMember().getUsername()+"',");
+        for (TournamentPlayer player : playerList) {
+            players.append('\'').append(player.getAssocMember().getUsername()).append("',");
         }
 
         PythonInterpreter interp =
                 new PythonInterpreter();
 
-        interp.execfile(pythonDir +"pairings.py");
-        interp.exec("pairings = generate(["+players+"])");
+        interp.execfile(pythonDir + "pairings.py");
+        interp.exec("pairings = generate([" + players + "])");
 
         int roundsCount = interp.eval("len(pairings)").asInt();
 
         List<TournamentGame> games = new ArrayList<TournamentGame>();
 
         for (int i = 1; i <= roundsCount; i++) {
-            PyList pyBucket = new PyList(interp.eval("pairings["+i+"]"));
+            PyList pyBucket = new PyList(interp.eval("pairings[" + i + ']'));
             PyObject[] tupleArray = pyBucket.getArray();
-            for (PyObject tuple: tupleArray) {
-                PyTuple pyTuple = (PyTuple)tuple;
+            for (PyObject tuple : tupleArray) {
+                PyTuple pyTuple = (PyTuple) tuple;
 
                 try {
                     String white = pyTuple.getArray()[0].toString();

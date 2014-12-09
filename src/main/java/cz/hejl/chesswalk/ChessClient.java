@@ -70,30 +70,32 @@ public class ChessClient {
     private Runnable listenTask = new Runnable() {
         @Override
         public void run() {
-                try {
-                    BufferedReader br = new BufferedReader(
-                            new InputStreamReader(in));
+            try {
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(in));
 
-                    while (true) {
-                        String line = "";
+                while (true) {
+                    String line = "";
 
-                        line = br.readLine();
-                        Object o = null;
-                        if ((o = (Object) ficsParser.parseRatingLine(line)) != null) {
-                            FicsParser.Rating rating = (FicsParser.Rating) o;
-                            if (rating.type == FicsParser.Rating.STANDARD)
-                                ratingListener.ratingChecked(players.get(playerId++), Integer.parseInt(rating.rating));
-                        }
+                    line = br.readLine();
+                    Object o = null;
+                    if ((o = (Object) ficsParser.parseRatingLine(line)) != null) {
+                        FicsParser.Rating rating = (FicsParser.Rating) o;
+                        if (rating.type == FicsParser.Rating.STANDARD)
+                            ratingListener.ratingChecked(players.get(playerId++), Integer.parseInt(rating.rating));
                     }
-                } catch (IOException e) {
                 }
+            } catch (IOException e) {
+            }
 
         }
     };
 
     // -------------------------------------------------------------------------------------------------------
 
-    /** Releases all resources - threads, connection... */
+    /**
+     * Releases all resources - threads, connection...
+     */
     public void cancel() {
         try {
             if (timer != null)
@@ -140,7 +142,7 @@ public class ChessClient {
     // -------------------------------------------------------------------------------------------------------
 
     public void finger(String player) {
-        write("finger "+player+ '\n');
+        write("finger " + player + '\n');
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -171,7 +173,7 @@ public class ChessClient {
         if (endsWith(sb, "password:")) {
             // username exists
             write(password + '\n');
-            StringBuffer sb1 = readUntil(new String[] { "fics%", "login:" });
+            StringBuffer sb1 = readUntil(new String[]{"fics%", "login:"});
             // wrong password
             if (endsWith(sb1, "login:")) {
                 cancel();
@@ -237,7 +239,6 @@ public class ChessClient {
     // -------------------------------------------------------------------------------------------------------
 
 
-
     // -------------------------------------------------------------------------------------------------------
 
     public void resign() {
@@ -262,13 +263,13 @@ public class ChessClient {
     // -------------------------------------------------------------------------------------------------------
 
     private StringBuffer readUntil(String pattern) throws IOException {
-        return readUntil(new String[] { pattern });
+        return readUntil(new String[]{pattern});
     }
 
     // -------------------------------------------------------------------------------------------------------
 
     public void seek(int minutes, int seconds, String colorSymbol,
-            String ratedSymbol) {
+                     String ratedSymbol) {
         write("seek " + minutes + ' ' + seconds + ' ' + colorSymbol + ' '
                 + ratedSymbol + " formula\n");
     }
@@ -278,7 +279,7 @@ public class ChessClient {
     public void resumeGame() {
         write("resume\n");
     }
-    
+
     // -------------------------------------------------------------------------------------------------------
 
 

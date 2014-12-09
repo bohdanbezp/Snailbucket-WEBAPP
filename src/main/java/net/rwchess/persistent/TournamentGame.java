@@ -12,11 +12,11 @@ public class TournamentGame {
     private Long key;
 
     @ManyToOne
-    @JoinColumn(name="WHITEPL_ID")
+    @JoinColumn(name = "WHITEPL_ID")
     private TournamentPlayer whitePlayer;
 
     @ManyToOne
-    @JoinColumn(name="BLACKPL_ID")
+    @JoinColumn(name = "BLACKPL_ID")
     private TournamentPlayer blackPlayer;
 
     @Lob
@@ -24,7 +24,7 @@ public class TournamentGame {
     private String png;
 
     @ManyToOne
-    @JoinColumn(name="TOURNEY_ID")
+    @JoinColumn(name = "TOURNEY_ID")
     private Tournament tournament;
 
     @Column(name = "RESULT")
@@ -154,7 +154,8 @@ public class TournamentGame {
         this.blackLastPost = blackLastPost;
     }
 
-    public boolean isInitContReminderSent() {       return initContReminderSent;
+    public boolean isInitContReminderSent() {
+        return initContReminderSent;
     }
 
     public void setInitContReminderSent(boolean initContReminderSent) {
@@ -192,6 +193,6 @@ public class TournamentGame {
     }
 
     public String toString() {
-        return tournament.getShortName()+":R"+ round + '_' + whitePlayer.getAssocMember().getUsername()+ '-' + blackPlayer.getAssocMember().getUsername();
+        return tournament.getShortName() + ":R" + round + '_' + whitePlayer.getAssocMember().getUsername() + '-' + blackPlayer.getAssocMember().getUsername();
     }
 }

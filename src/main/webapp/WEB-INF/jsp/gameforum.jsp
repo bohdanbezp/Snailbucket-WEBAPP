@@ -1,5 +1,4 @@
 <%@page pageEncoding="UTF-8" %>
-<%@ page import="net.rwchess.utils.UsefulMethods"%>
 
 <!DOCTYPE html
      PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -38,7 +37,7 @@
                	font-size: 90%;
                }
              </style>
-
+     <jsp:include page="tracking.jsp"></jsp:include>
 </head>
 <body>
 
@@ -57,15 +56,7 @@
 </div>
 <div id="wiki-content">
    <div id="user-menu1">
-             	<ul>
-
-                 <li><a href="/members">Members</a></li>
-                 <li><a href="/wiki/Links">Links</a></li>
-                   <li><a href="/wiki/Wiki-Howto">Wiki Howto</a></li>
-                   <li><a href="/wiki/Trivia">Trivia</a></li>
-                   <li><a href="/wiki/FAQ">FAQ</a></li>
-                    <li><a href="/wiki/Contact">Contact</a></li>
-                 </ul>
+             	<jsp:include page="top-menu.jsp"></jsp:include>
                  </div>
 
 <jsp:include page="reg.jsp"></jsp:include>
@@ -88,7 +79,7 @@
 
 
 <div id="content-article">
-<p><a href="/tourney/pairings/bucket1:R<%=(UsefulMethods.getCurrentRound() )%>"><b> ← back to the game list</b></a></p>
+<p><a href="/tourney/pairings/bucket1:R${round}"><b> ← back to the game list</b></a></p>
 <p>Local time:</p>
 <object type="application/x-shockwave-flash" height="57" width="78" data="http://www.usflashmap.com/component/flash_clock/flash_clock.swf">
 <param name="allowScriptAccess" value="sameDomain" />

@@ -204,8 +204,8 @@ public class FicsParser {
     public int[] parseRatingChange(String line) {
         ratingChange.reset(line);
         if (ratingChange.find())
-            return new int[] { Integer.parseInt(ratingChange.group(1)),
-                    Integer.parseInt(ratingChange.group(2)) };
+            return new int[]{Integer.parseInt(ratingChange.group(1)),
+                    Integer.parseInt(ratingChange.group(2))};
         else
             return null;
     }
@@ -249,7 +249,6 @@ public class FicsParser {
         tooManyAdjourned2.reset(line);
         return tooManyAdjourned2.find();
     }
-
 
 
     // -------------------------------------------------------------------------------------------------------
