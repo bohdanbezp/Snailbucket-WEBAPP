@@ -228,8 +228,8 @@ public final class UsefulMethods {
     public static String recommendTime(String player1Pref, String player2Pref) {
         Set<String> A = new HashSet<String>();
         Set<String> B = new HashSet<String>();
-        List<String> listA = Arrays.asList(player1Pref.trim().replaceAll("45 45", "45_45").split(", "));
-        List<String> listB = Arrays.asList(player2Pref.trim().replaceAll("45 45", "45_45").split(", "));
+        List<String> listA = Arrays.asList(player1Pref.trim().replaceAll("45 45", "45_45").replaceAll(" ", "").split(","));
+        List<String> listB = Arrays.asList(player2Pref.trim().replaceAll("45 45", "45_45").replaceAll(" ", "").split(","));
         for (String str : listA) {
             A.add(str.trim().replaceAll("^\\s+", ""));
         }
