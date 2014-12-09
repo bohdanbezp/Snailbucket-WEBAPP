@@ -32,7 +32,7 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Snailbot v.20141202 (Uneven Genevieve)
+FINGER_TEXT = """Snailbot v.20141209 (Cold Clem)
 
 Join Snail Bucket http://snailbucket.org/ FICS chess community for some loooong time controls.
 
@@ -44,9 +44,6 @@ Usage:
 """
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-
-
-ROUND_CURR = "1"
 
 
 class ReconnectingConnectionPool(adbapi.ConnectionPool):
@@ -219,8 +216,6 @@ class PlayCommand(TellCommand):
 
         @defer.inlineCallbacks
         def process(res):
-            global ROUND_CURR
-            ROUND_CURR = res[3]
 
             if res[0] == player.name:
                 # finger = yield fics_client.run_command("log %s" % (res[1]))
@@ -402,7 +397,7 @@ class MyBot(
 
     def _notify_finger(self):
         for game in self.ongoing_games:
-            self.run_command("t 101 Snailbucket game in progress: " + game["white"] + "(" +game["white_rank"]+ ")" + " vs. " + game["black"] + "(" +game["black_rank"]+ ")" + " -- Round "+ ROUND_CURR +": \"observe " + game["game_no"] + "\" to watch")
+            self.run_command("t 101 Snailbucket game in progress: " + game["white"] + "(" +game["white_rank"]+ ")" + " vs. " + game["black"] + "(" +game["black_rank"]+ ")" + " -- Round "+ game["round"] +": \"observe " + game["game_no"] + "\" to watch")
             self.clock_statistician.processing = False
 
 
@@ -435,12 +430,11 @@ class MyBot(
     def on_fics_unknown(self, what):
         m = re.search("Game notification:\s(?P<white>\w+)\s\(\s*(?P<white_rank>\d+|\-+|\++)\)\svs.\s(?P<black>\w+)\s\(\s*(?P<black_rank>\d+|\-+|\++)\)\s(?P<is_rated>rated|unrated)\s(?P<variant>[^\s]+)\s(?P<clock_base>\d+)\s(?P<clock_inc>\d+):\sGame\s(?P<game_no>\d+)",
                       what)
-        global ROUND_CURR
         if m:
             try:
                 x = yield self.clock_statistician.get_game_data(m.group("white"))
                 if (m.group("variant").lower() == "standard" and x[0].lower() == m.group("white").lower() and x[1].lower() == m.group("black").lower() and (m.group("clock_base") + " " + m.group("clock_inc")) == x[2]):
-                    self.run_command("t 101 Snailbucket game has started: " + m.group("white") + "(" +m.group("white_rank")+ ")" + " vs. " + m.group("black") + "(" +m.group("black_rank")+ ")" + " -- Round "+ ROUND_CURR +": \"observe " + m.group("game_no") + "\" to watch")
+                    self.run_command("t 101 Snailbucket game has started: " + m.group("white") + "(" +m.group("white_rank")+ ")" + " vs. " + m.group("black") + "(" +m.group("black_rank")+ ")" + " -- Round "+ x[3] +": \"observe " + m.group("game_no") + "\" to watch")
                     self.start_observing_game(m.group("game_no"))
 
                     curr_game = dict()
@@ -449,6 +443,7 @@ class MyBot(
                     curr_game['black'] = m.group("black")
                     curr_game['black_rank'] = m.group("black_rank")
                     curr_game['game_no'] = m.group("game_no")
+                    curr_game['round'] = x[3]
                     self.ongoing_games.append(curr_game)
 
                     self.clock_statistician.updateGameStatus(m.group("white"), "1970-11-27 14:00:05")
@@ -459,14 +454,14 @@ class MyBot(
 
 
     def on_game_finished(self, game):
-        global ROUND_CURR
-        self.run_command("t 101 Snailbucket game has ended: " + game.white_name.name + " vs. " + game.black_name.name + " -- Round "+ ROUND_CURR +": " + game.result + " {" + game.result_desc + "}")
+        x = yield self.clock_statistician.get_game_data(game.white_name.name)
+        self.run_command("t 101 Snailbucket game has ended: " + game.white_name.name + " vs. " + game.black_name.name + " -- Round "+ x[3] +": " + game.result + " {" + game.result_desc + "}")
         self.clock_statistician.updateGameStatus(game.white_name.name, "2014-11-27 14:00:05")
 
         if "lost connection" not in game.result_desc:
             self.run_command("-gnotify %s" % (game.white_name.name))
             self.run_command("-gnotify %s" % (game.black_name.name))
-            req = urllib2.Request('http://snailbucket.org/tourney/updateforums/bucket1:R'+str(ROUND_CURR)+'_'+str(game.white_name.name)+'-'+str(game.black_name.name))
+            req = urllib2.Request('http://snailbucket.org/tourney/updateforums/bucket1:R'+str(x[3])+'_'+str(game.white_name.name)+'-'+str(game.black_name.name))
             response = urllib2.urlopen(req)
             he_page = response.read()
 
