@@ -216,7 +216,7 @@ public class WikiController {
             if (history.size() == 30) {
                 history.remove(0);
             }
-            DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
+            DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
             String date = UsefulMethods.getWikiDateFormatter().print(zoned);
             if (!history.isEmpty() && history.peek().contains(((Member) user).getUsername() + "</a>") &&
                     history.peek().contains(pageName)) {
@@ -437,7 +437,7 @@ public class WikiController {
             if (history.size() == 50) {
                 history.remove(0);
             }
-            DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
+            DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
             String date = UsefulMethods.getWikiDateFormatter().print(zoned);
             if (!history.isEmpty() && history.peek().contains(((Member) user).getUsername() + "</a>") &&
                     history.peek().contains(pageName)) {
@@ -492,7 +492,7 @@ public class WikiController {
             history.remove(0);
         }
 
-        DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
+        DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
         String date = UsefulMethods.getWikiDateFormatter().print(zoned);
         //history.push(date + " by <a href=\"/members/"+username+"\">"+username+"</a>" );
         history.insertElementAt(date + " by <a href=\"/wiki/User:" + username + "\">" + username + "</a>", 0);

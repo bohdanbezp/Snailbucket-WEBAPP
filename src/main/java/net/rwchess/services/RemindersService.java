@@ -40,7 +40,7 @@ public class RemindersService {
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("E, MMM d HH:mm");
 
     private static String getCorrectDateFormat(DateTime date) {
-        return formatter.print(date) + " server time";
+        return formatter.print(date.withZone(DateTimeZone.forID("GMT"))) + " GMT";
     }
 
     private static final String[] SO = {"Good luck", "Best", "Regards", "Yours Truly", "Thanks", "Thank you",

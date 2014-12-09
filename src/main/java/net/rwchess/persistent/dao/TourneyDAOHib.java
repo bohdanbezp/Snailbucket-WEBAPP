@@ -571,6 +571,6 @@ public class TourneyDAOHib implements TourneyDAO {
     }
 
     public void initTimezone() {
-        TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles"));
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
     }
 }

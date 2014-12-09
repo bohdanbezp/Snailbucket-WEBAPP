@@ -514,7 +514,7 @@ public class TourneySignupController {
             DateTime now = DateTime.now();
             DateTime dateTime = new DateTime(now.getYear(), Integer.parseInt(req.getParameter("month")),
                     Integer.parseInt(req.getParameter("day")), Integer.parseInt(req.getParameter("hour")),
-                    Integer.parseInt(req.getParameter("minute")), DateTimeZone.forID("America/Los_Angeles"));
+                    Integer.parseInt(req.getParameter("minute")), DateTimeZone.forID("GMT"));
             if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/Los_Angeles")))) {
                 modelMap.addAttribute("title", "Error");
                 modelMap.addAttribute("error", "The date before tourney start.");
@@ -609,7 +609,7 @@ public class TourneySignupController {
                 sched = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
 
             DateTime now = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
-            Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("America/Los_Angeles")));
+            Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("GMT")));
             if (p2.getStandardHours() <= 4) {
                 if (p2.getStandardHours() > 0) {
                     String[] arr = DurationFormatUtils.formatDuration(p2.getMillis(), "H#m").split("#");

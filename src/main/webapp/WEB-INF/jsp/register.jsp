@@ -73,7 +73,9 @@
                         $(".ui-selected").removeClass("ui-selected");
                         $('#bad_times').val("");
                     });
-      	    $( "#selectable" ).selectable({
+      	    $( "#selectable" ).bind("mousedown", function(e) {
+                                e.metaKey = true;
+                              }).selectable({
       	        filter: "li" ,
                     unselected:mapSelected,
                     selected:mapSelected
@@ -468,7 +470,7 @@
                         <hr style="height:1px;border:none;color:#333;background-color:#333;"/>
                         <p>Are there times that are GENERALLY BAD for you, on weekdays AND on the weekend, for example, because they are your sleeping times? Then you may mark them red below - this will help your opponent schedule the game with you.</p>
 
-                           <p>The following times are <font color="#C00000">generally bad for me</font> (FICS server time; hold <b>LEFT CTRL/STRG</b> key and move mouse to select multiple ranges):</p>
+                           <p>The following times are <font color="#C00000">generally bad for me</font> (GMT; hold <b>LEFT CTRL/STRG</b> key and move mouse to select multiple ranges):</p>
 
                                                                          <div id="var2">
                                                                               <ol id="selectable">

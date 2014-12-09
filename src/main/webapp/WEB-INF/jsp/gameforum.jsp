@@ -153,7 +153,7 @@
 </object>
 <br/>
 <table border="1" cellpadding="2" cellspacing="0">
-<tr><th colspan="25"><font color="red">Red:</font> Generally bad times (in server time)</th></tr>
+<tr><th colspan="25"><font color="red">Red:</font> Generally bad times (GMT)</th></tr>
 ${badTimes}
 </table>
 <br/>

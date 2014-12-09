@@ -34,7 +34,7 @@ public class GameForumPostService {
                               String username) {
         log.info("Posted message to " + game.toString());
 
-        DateTime zoned = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
+        DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
         String date = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z").print(zoned);
 
         String text = "<p><b>" + username
@@ -60,17 +60,16 @@ public class GameForumPostService {
 
         }
         else {
-            mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+            mailer.sendEmail(username, game.getTournament().getFullName() + " game forum message",
                     content, game.getBlackPlayer().getAssocMember().getEmail());
-            mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+            mailer.sendEmail(username, game.getTournament().getFullName() + " game forum message",
                     content, game.getWhitePlayer().getAssocMember().getEmail());
-
         }
     }
 
     public String dateSetPost(String month, String day, String hour, String minute, TournamentGame game) {
         Calendar cld = Calendar.getInstance();
-        cld.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        cld.setTimeZone(TimeZone.getTimeZone("GMT"));
         cld.set(Calendar.YEAR, cld.get(Calendar.YEAR));
         cld.set(Calendar.MONTH, Integer.parseInt(month) - 1);
         cld.set(Calendar.DAY_OF_MONTH, Integer.parseInt(day));
@@ -83,7 +82,7 @@ public class GameForumPostService {
 
         SimpleDateFormat forumFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm",
                 Locale.US);
-        forumFormatter.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+        forumFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 
         String date = forumFormatter.format(dt);
 
