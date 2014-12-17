@@ -153,7 +153,7 @@
 </object>
 <br/>
 <table border="1" cellpadding="2" cellspacing="0">
-<tr><th colspan="12">Possibly good times (GMT)</th><th colspan="13" bgcolor="red"><a href="/wiki/Generally_Bad_Times">Generally</a> bad times (GMT)</th></tr>
+<tr><th colspan="9">Possibly good times (GMT)</th><th colspan="8" bgcolor="orange">Generally hard times (GMT)</th><th colspan="8" bgcolor="red"><a href="/wiki/Generally_Bad_Times">Generally</a> bad times (GMT)</th></tr>
 ${badTimes}
 </table>
 <br/>

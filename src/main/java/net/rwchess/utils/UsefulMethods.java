@@ -307,8 +307,8 @@ public final class UsefulMethods {
 
         return result;
     }
-
-    public static String insistToSelectable(String insist) {
+    
+    public static String timesToSelectable(String insist) {
         StringBuilder content = new StringBuilder();
         List<String> insis = Arrays.asList(insist.split(","));
         List<String> insists = new ArrayList<String>(insis.size());

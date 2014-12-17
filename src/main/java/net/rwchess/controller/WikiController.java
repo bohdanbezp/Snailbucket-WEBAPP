@@ -265,14 +265,12 @@ public class WikiController {
     public String wikiRegisterDo(HttpServletRequest request, ModelMap model, @RequestParam(value = "Username") String username,
                                  @RequestParam(value = "Email") String email,
                                  @RequestParam(value = "Password") String password, @RequestParam(value = "Country") String country,
-                                 @RequestParam(value = "time_order") String time_order, @RequestParam(value = "bad_times") String bad_times) {
+                                 @RequestParam(value = "time_order") String time_order, @RequestParam(value = "bad_times") String bad_times, @RequestParam(value = "hard_times") String hard_times) {
         String timeControlPreferrence = "45 45";
-        String insist = "no";
+        
         if (request.getParameter("def_time") == null) {
             timeControlPreferrence = time_order.replace(",", ", ");
         }
-        if (!bad_times.isEmpty())
-            insist = bad_times;
 
         Member ourM = memberDAO.getMemberByUsername(username);
         if (ourM == null) {
@@ -287,7 +285,7 @@ public class WikiController {
         }
         String passwordHash = UsefulMethods.getMD5(password);
 
-        memberDAO.updateWithData(username, passwordHash, country, insist, timeControlPreferrence, email);
+        memberDAO.updateWithData(username, passwordHash, country, bad_times, hard_times, timeControlPreferrence, email);
 
         mailer.sendEmail("notify@snailbucket.org", "Snailbucket registration", "Please follow this link: http://snailbucket.org/wiki/Special:Confirm?username=" + username
                 + "&hash=" + passwordHash, email);

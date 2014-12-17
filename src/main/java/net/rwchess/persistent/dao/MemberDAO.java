@@ -20,7 +20,7 @@ public interface MemberDAO {
 
     public List<Member> getAllMembers();
 
-    public void updateWithData(String username, String passwordHash, String country, String insist, String timeControlPreferrence, String email);
+    public void updateWithData(String username, String passwordHash, String country, String badTimes, String hardTimes, String timeControlPreferrence, String email);
 
     public void updateRole(Long key, int newGroup);
 
@@ -30,5 +30,7 @@ public interface MemberDAO {
 
     public void updateTimeorder(Long key, String timeOrder);
 
-    public void updateInsist(Long key, String insist);
+    public void updateInsist(Long key, String badTimes, String hardTimes);
+    
+    public InsistData getInsistData(String insist);
 }

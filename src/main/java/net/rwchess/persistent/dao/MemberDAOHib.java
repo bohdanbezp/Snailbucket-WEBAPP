@@ -127,7 +127,7 @@ public class MemberDAOHib implements MemberDAO {
     }
 
     @Override
-    public void updateWithData(String username, String passwordHash, String country, String insist,
+    public void updateWithData(String username, String passwordHash, String country, String badTimes, String hardTimes,
                                String timeControlPreferrence, String email) {
         Session session = HibernateUtils.getInstance().openSession();
         Transaction transaction = session.beginTransaction();
@@ -143,7 +143,7 @@ public class MemberDAOHib implements MemberDAO {
             m.setConfirmed(false);
             m.setGroup(Member.USER);
             m.setCountry(country.toLowerCase());
-            m.setInsist(insist);
+            m.setInsist(this.getInsistData(badTimes, hardTimes).toString());
             m.setPreference(timeControlPreferrence);
             m.setEmail(email);
             transaction.commit();
@@ -235,7 +235,7 @@ public class MemberDAOHib implements MemberDAO {
     }
 
     @Override
-    public void updateInsist(Long key, String insist) {
+    public void updateInsist(Long key, String badTimes, String hardTimes) {
         Session session = HibernateUtils.getInstance().openSession();
         Transaction transaction = session.beginTransaction();
         String hql = "FROM Member M WHERE M.key = :key";
@@ -245,12 +245,20 @@ public class MemberDAOHib implements MemberDAO {
         Member m = null;
         try {
             m = (Member) query.list().get(0);
-            m.setInsist(insist);
+            m.setInsist(this.getInsistData(badTimes, hardTimes).toString());
             transaction.commit();
         } catch (IndexOutOfBoundsException e) {
             transaction.rollback();
         } finally {
             session.close();
         }
+    }
+    
+    public InsistData getInsistData(String insist) {
+    	return new InsistData(insist);
+    }
+    
+    public InsistData getInsistData(String badTimes, String hardTimes) {
+    	return new InsistData(badTimes, hardTimes);
     }
 }

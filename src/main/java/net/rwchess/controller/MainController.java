@@ -1,6 +1,7 @@
 package net.rwchess.controller;
 
 import net.rwchess.persistent.Member;
+import net.rwchess.persistent.dao.InsistData;
 import net.rwchess.persistent.dao.MemberDAO;
 import net.rwchess.utils.UsefulMethods;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,25 +59,29 @@ public class MainController {
         Member ourM = memberDAO.getMemberByUsername(user.getUsername());
 
         List<String> sortables = UsefulMethods.sortToSortables(ourM.getPreference());
-        String selectable = UsefulMethods.insistToSelectable(ourM.getInsist());
-
+        InsistData insistData = memberDAO.getInsistData(ourM.getInsist());
+        String selectable = UsefulMethods.timesToSelectable(insistData.getBadTimes());
+		String hardSelectable = UsefulMethods.timesToSelectable(insistData.getHardTimes());
+		
         modelMap.addAttribute("username", user.getUsername());
         modelMap.addAttribute("sortable1", sortables.get(0));
         modelMap.addAttribute("sortable2", sortables.get(1));
         modelMap.addAttribute("selectable", selectable);
+		modelMap.addAttribute("hard_selectable", hardSelectable);
         modelMap.addAttribute("time_order", ourM.getPreference());
-        modelMap.addAttribute("bad_times", ourM.getInsist());
+		modelMap.addAttribute("bad_times", insistData.getBadTimes());
+		modelMap.addAttribute("hard_times", insistData.getHardTimes());
         modelMap.addAttribute("key", user.getKey());
         return "profile";
     }
 
     @RequestMapping(value = "/profile/time", method = RequestMethod.POST)
     public String profileTimePost(@RequestParam(value = "time_order") String time_order,
-                                  @RequestParam(value = "bad_times") String badTimes, Model modelMap) {
+                                  @RequestParam(value = "bad_times") String badTimes, @RequestParam(value = "hard_times") String hardTimes, Model modelMap) {
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         memberDAO.updateTimeorder(user.getKey(), time_order.replace(",", ", "));
-        memberDAO.updateInsist(user.getKey(), badTimes);
+        memberDAO.updateInsist(user.getKey(), badTimes, hardTimes);
 
         modelMap.addAttribute("title", "");
         modelMap.addAttribute("error", "Your time preferences have been updated.");

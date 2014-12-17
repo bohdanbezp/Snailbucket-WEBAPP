@@ -65,31 +65,58 @@
                         #feedback { font-size: 1.4em; }
                           #selectable .ui-selecting { background: #FECA40; }
                           #selectable .ui-selected { background: #C00000; color: white; }
+                          #hard_selectable .ui-selecting { background: #FECAA8; }
+                          #hard_selectable .ui-selected { background: #FECA40; color: white; }
+                          
                           #selectable { list-style-type: none; margin: 0; padding: 0; width: 100%; }
                           #selectable li { margin: 3px; padding: 1px; float: left; width: 33px; height: 20px; font-size: 1em; text-align: center; }
+                          #hard_selectable { list-style-type: none; margin: 0; padding: 0; width: 100%; }
+                          #hard_selectable li { margin: 3px; padding: 1px; float: left; width: 33px; height: 20px; font-size: 1em; text-align: center; }
+                          
+                          
 
 
                      </style>
 
           <script>
-               function mapSelected(event,ui){
-                 var $selected = $(this).children('.ui-selected');
-                 var text = $.map($selected, function(el){
+				function getSelectedTimes(thisItem) {
+					var $selected = thisItem.children('.ui-selected');
+					var text = $.map($selected, function(el){
                     return $(el).text()
                  }).join();
+					return text;
+				}
+               function mapSelected(event,ui){
+				 var text=getSelectedTimes($(this));
                  $('#bad_times').val(text)
                }
+               function mapHardSelected(event,ui){
+                   var text=getSelectedTimes($(this));
+                   $('#hard_times').val(text)
+                 }
 
                	$().ready(function() {
                	$("#buttonClear").click(function() {
-                                 $(".ui-selected").removeClass("ui-selected");
+               					//assume that button is into a parent item which wraps whole bad times selection 
+                                 $(this).parent().find('.ui-selected').removeClass('ui-selected')
                                  $('#bad_times').val("");
+                             });
+				$("#buttonHardClear").click(function() {
+								//assume that button is into a parent item which wraps whole hard times selection 
+                                 $(this).parent().find('.ui-selected').removeClass('ui-selected')
+                                 $('#hard_times').val("");
                              });
                	    $( "#selectable" ).selectable({
                	        filter: "li" ,
                              unselected:mapSelected,
                              selected:mapSelected
                	    });
+               	 $( "#hard_selectable" ).selectable({
+            	        filter: "li" ,
+                          unselected:mapHardSelected,
+                          selected:mapHardSelected
+            	    });
+               	 
                	    $( "#sortable, #sortable2" ).sortable({
                	     connectWith: ".connectedSortable",
                       beforeStop: function (event, ui) {
@@ -180,12 +207,25 @@ Repeat password: <br/><input type="password" name="newpassword"><br/>
                                                         <p>Are there times that are GENERALLY BAD for you, on weekdays AND on the weekend, for example, because they are your sleeping times? Then you may mark them red below - this will help your opponent schedule the game with you.</p>
 
                                                            <p>The following times are <font color="#C00000">generally bad for me</font> (GMT; hold <b>LEFT CTRL/STRG</b> key and move mouse to select multiple ranges):</p>
-
+								<div id="generally_bad_times">
                                 <ol id="selectable">
                                                                                                                       ${selectable}</ol>
                                                                                                                     <input type="hidden" id="bad_times" name="bad_times" value="${bad_times}" />
                                                                                                                     <br/>
+								
                                                                                                                                                                                             <div id="buttonClear">Click here to clear</div><br/>
+								</div>
+								
+                                                           <p>The following times are <font color="#FECA40">generally hard for me</font> (GMT; hold <b>LEFT CTRL/STRG</b> key and move mouse to select multiple ranges):</p>
+								<div id="generally_hard_times">
+                                <ol id="hard_selectable">
+                                                                                                                      ${hard_selectable}</ol>
+                                                                                                                    <input type="hidden" id="hard_times" name="hard_times" value="${hard_times}" />
+                                                                                                                    <br/>
+								
+                                                                                                                                                                                            <div id="buttonHardClear">Click here to clear</div><br/>
+								</div>								
+								
 
          <input name="tcpref" type="submit" value="Update"/>
 </fieldset>

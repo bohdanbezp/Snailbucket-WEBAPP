@@ -5,6 +5,7 @@ import chesspresso.game.Game;
 import chesspresso.pgn.PGNReader;
 import chesspresso.pgn.PGNSyntaxError;
 import net.rwchess.persistent.*;
+import net.rwchess.persistent.dao.InsistData;
 import net.rwchess.persistent.dao.MemberDAO;
 import net.rwchess.persistent.dao.TourneyDAO;
 import net.rwchess.services.*;
@@ -831,29 +832,10 @@ public class TourneySignupController {
             return "not-found";
 
         StringBuilder badTimes = new StringBuilder();
-        badTimes.append("<tr><td><b>").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</b></td>");
-        List<String> badTimesA = Arrays.asList(game.getWhitePlayer().getAssocMember().getInsist().split(","));
-        for (int i = 1; i <= 24; i++) {
-            if (badTimesA.contains(Integer.toString(i))) {
-                badTimes.append("<td bgcolor=\"red\">");
-            } else
-                badTimes.append("<td>");
-
-            badTimes.append(i).append("</td>");
-        }
-        badTimes.append("</tr>");
-        badTimes.append("<tr><td><b>").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</b></td>");
-        List<String> badTimesB = Arrays.asList(game.getBlackPlayer().getAssocMember().getInsist().split(","));
-        for (int i = 1; i <= 24; i++) {
-            if (badTimesB.contains(Integer.toString(i))) {
-                badTimes.append("<td bgcolor=\"red\">");
-            } else
-                badTimes.append("<td>");
-
-            badTimes.append(i).append("</td>");
-        }
-        badTimes.append("</tr>");
-        badTimes.append("</table>");
+        StringBuilder whitePlayerRow = this.getPlayerTimesRow(game.getWhitePlayer().getAssocMember().getUsername(), memberDAO.getInsistData(game.getWhitePlayer().getAssocMember().getInsist()));
+        badTimes.append(whitePlayerRow);
+        StringBuilder blackPlayerRow = this.getPlayerTimesRow(game.getBlackPlayer().getAssocMember().getUsername(), memberDAO.getInsistData(game.getBlackPlayer().getAssocMember().getInsist()));
+        badTimes.append(blackPlayerRow);
 
         String propTime = UsefulMethods.recommendTime(game.getWhitePlayer().getAssocMember().getPreference(),
                 game.getBlackPlayer().getAssocMember().getPreference());
@@ -863,7 +845,7 @@ public class TourneySignupController {
         modelMap.addAttribute("htmlText", game.getGameforumHtml());
         modelMap.addAttribute("round", game.getRound());
         return "gameforum";
-    }
+    }    
 
     @RequestMapping(value = "/signup/{tourneyShortName}", method = RequestMethod.POST)
     public String tourneySignupPost(@PathVariable String tourneyShortName, ModelMap modelMap) {
@@ -908,5 +890,26 @@ public class TourneySignupController {
         modelMap.addAttribute("title", "Sucessfull tourney creation");
         modelMap.addAttribute("error", "Your tourney signup page has been created at <a href=\"/tourney/signup/" + shortName + "\">/tourney/" + shortName + "/signup</a>.");
         return "error";
+    }
+    
+    private StringBuilder getPlayerTimesRow(String playerName, InsistData insistDataA) {
+    	List<String> badTimesA = Arrays.asList(insistDataA.getBadTimes().split(","));
+        List<String> hardTimesA = Arrays.asList(insistDataA.getHardTimes().split(","));
+    	StringBuilder rowBuilder = new StringBuilder();
+    	rowBuilder.append("<tr><td><b>").append(playerName).append("</b></td>");
+    	
+        for (int i = 1; i <= 24; i++) {
+            if (badTimesA.contains(Integer.toString(i))) {
+                rowBuilder.append("<td bgcolor=\"red\">");
+            } else if (hardTimesA.contains(Integer.toString(i))) {
+            	rowBuilder.append("<td bgcolor=\"orange\">");
+            } else {
+                rowBuilder.append("<td>");
+            }
+            rowBuilder.append(i).append("</td>");
+        }
+        rowBuilder.append("</tr>");
+        
+        return rowBuilder;
     }
 }
