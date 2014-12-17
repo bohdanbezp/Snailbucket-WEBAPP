@@ -2,7 +2,10 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+<<<<<<< HEAD
 
+=======
+>>>>>>> 4fd31651d72f230f1280e89d57cdcbd5abc42e2b
     <bean id="memberDao"
           class="net.rwchess.persistent.dao.MemberDAOHib" />
 
