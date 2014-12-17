@@ -116,13 +116,13 @@
 <param name="bgcolor" value="#ffffff" />
 </object>
 
-<p>Server time:</p>
+<p>GMT:</p>
 <object type="application/x-shockwave-flash" height="57" width="78" data="http://www.usflashmap.com/component/flash_clock/flash_clock.swf">
 <param name="allowScriptAccess" value="sameDomain" />
 <param name="movie" value="http://www.usflashmap.com/component/flash_clock/flash_clock.swf" />
 <param name="base" value="http://www.usflashmap.com/component/flash_clock/" />
 <param name="flashvars" value="
-      &gmt=-480&
+      &gmt=0&
       &dl_start=3|2SU|2&
       &dl_end=11|1SU|2&
       &bodycolor=0x0066ff&
@@ -153,7 +153,7 @@
 </object>
 <br/>
 <table border="1" cellpadding="2" cellspacing="0">
-<tr><th colspan="25"><font color="red">Red:</font> Generally bad times (GMT)</th></tr>
+<tr><th colspan="12">Possibly good times (GMT)</th><th colspan="13" bgcolor="red"><a href="/wiki/Generally_Bad_Times">Generally</a> bad times (GMT)</th></tr>
 ${badTimes}
 </table>
 <br/>

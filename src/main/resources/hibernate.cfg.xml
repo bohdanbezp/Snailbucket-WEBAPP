@@ -23,6 +23,10 @@
         </property>
         <!--<property name="hbm2ddl.auto">create-drop</property>-->
 
+        <property name="connection.autoReconnect">true</property>
+        <property name="connection.autoReconnectForPools">true</property>
+        <property name="connection.is-connection-validation-required">true</property>
+
         <mapping class="net.rwchess.persistent.Member" />
         <mapping class="net.rwchess.persistent.WikiPage" />
         <mapping class="net.rwchess.persistent.Tournament" />
