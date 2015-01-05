@@ -90,7 +90,12 @@ public class TourneyDAOHib implements TourneyDAO {
         String hql = "FROM Tournament M WHERE M.shortName = :shortName";
         Query query = session.createQuery(hql);
         query.setParameter("shortName", shortName);
-        Tournament tournament = (Tournament) query.list().get(0);
+
+        List<Tournament> tournaments = query.list();
+        if (tournaments == null || tournaments.isEmpty())
+            return null;
+
+        Tournament tournament = tournaments.get(0);
 
         hql = "FROM TournamentPlayer M WHERE M.tournament = :tournament";
         query = session.createQuery(hql);

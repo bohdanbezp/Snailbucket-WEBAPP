@@ -3,8 +3,10 @@
 
 <%
  WikiPage pgg = WikiPageDAOHib.getCachedDao().getWikiPageByName("Special:TopMenu");
+ if (pgg != null) {
 %>
 
 <%=pgg.getHtmlText()%>
 
+<% }%>
 

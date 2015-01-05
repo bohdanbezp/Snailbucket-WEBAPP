@@ -6,16 +6,19 @@
 
 <%
  WikiPage pgg = WikiPageDAOHib.getCachedDao().getWikiPageByName("Special:LeftMenu");
+ if (pgg != null) {
 %>
 
 <%=pgg.getHtmlText().replaceAll("CURR_ROUND", Integer.toString(UsefulMethods.getCurrentRound())).replaceAll("PREV_ROUND", Integer.toString(UsefulMethods.getCurrentRound()-1))%>
 
 <br/>
 <center>
+<% if (DisplayPositionService.info != null) { %>
 <p><i>Random game position</i><br/>
 <%=DisplayPositionService.info.gameString%>
 
 </p>
 <img src="/wikiImg/fen.png"/>
 <p>after <%=DisplayPositionService.info.lastMove%></p>
+<% } }%>
 </center>

@@ -200,6 +200,9 @@ public class TourneySignupController {
 //            }
 //        }
 
+        List<String> greenFont = Arrays.asList("erusin", "mejker", "Relu", "Maxmagnus", "Mahog", "BethanyGrace",
+                "IMOEC");
+
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
 
         List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
@@ -210,7 +213,9 @@ public class TourneySignupController {
             signedList.append("<ul>");
 
             for (TournamentPlayer player : bucket.getPlayerList()) {
-                signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
+                signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(
+                        greenFont.contains(player.getAssocMember().getUsername()) ? "<font color=\"green\">" +player.getAssocMember().getUsername()+"</font>" :
+                                player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
                 if (!(user instanceof String)) {
                     if (player.getAssocMember().getUsername().equals(((Member) user).getUsername()))
                         signedUp = true;
@@ -539,6 +544,12 @@ public class TourneySignupController {
         List<TournamentGame> gameWithResults = tourneyDAO.getGamesByResult(shortName);
         List<TournamentPlayer> players = tourneyDAO.getAllPlayersList(shortName);
 
+        if (players == null || players.isEmpty()) {
+            modelMap.addAttribute("title", "Standings");
+            modelMap.addAttribute("error", "No standings yet.");
+            return "error";
+        }
+
         List<Bucket> buckets = bucketsGenerationService.generateBuckets(players);
         StringBuilder wikiTable = new StringBuilder();
 
@@ -576,7 +587,15 @@ public class TourneySignupController {
     @RequestMapping(value = "/pending/{shortName}", method = RequestMethod.GET)
     public String tourneyPendingGet(@PathVariable String shortName, ModelMap modelMap) {
         List<TournamentGame> games = tourneyDAO.getGamesByDate(shortName);
-        List<Bucket> buckets = bucketsGenerationService.generateBuckets(tourneyDAO.getAllPlayersList(shortName));
+        List<TournamentPlayer> players = tourneyDAO.getAllPlayersList(shortName);
+
+        if (players == null || players.isEmpty()) {
+            modelMap.addAttribute("title", "Pending games");
+            modelMap.addAttribute("error", "No games yet.");
+            return "error";
+        }
+
+        List<Bucket> buckets = bucketsGenerationService.generateBuckets(players);
 
         if (games == null || games.isEmpty()) {
             modelMap.addAttribute("title", "Pending games");

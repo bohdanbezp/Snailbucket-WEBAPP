@@ -495,10 +495,11 @@
                         <br/>
                         <br/>
                         <hr style="height:1px;border:none;color:#333;background-color:#333;"/>
-                        <p>Are there times that are GENERALLY BAD for you, on weekdays AND on the weekend, for example, because they are your sleeping times? Then you may mark them red below - this will help your opponent schedule the game with you.</p>
+                        <p>Below, please mark times (*in GMT*) <a href="/wiki/Generally_Bad_Times">that are bad for you</a> - this will help your opponent schedule the game with you.</p>
 
-                           <p>The following times are <font color="#C00000">generally bad for me</font> (GMT; hold <b>LEFT CTRL/STRG</b> key and move mouse to select multiple ranges):</p>
-						<div id="generally_bad_times">
+
+                           <p>The following times are <font color="#C00000">always bad</font> (all 7 days of the week, e.g. sleeping times):</p>
+                           								<div id="generally_bad_times">
                                                                          <div id="var2">
                                                                               <ol id="selectable">
                                                                                        <li class="ui-widget-content">1</li>
@@ -529,10 +530,11 @@
                                                                                     <input type="hidden" id="bad_times" name="bad_times" value="" />
                                                                         </div>
                                                                         <br/><br/> <br/><br/>
+                                                                        <p>(hold LEFT CTRL/STRG key and move mouse to select multiple ranges)</p>
                                                                         <div id="buttonClear">Click here to clear</div><br/>
 						</div>
-						<p>The following times are <font color="#FECA40">generally hard for me</font> (GMT; hold <b>LEFT CTRL/STRG</b> key and move mouse to select multiple ranges):</p>
-								<div id="generally_hard_times">
+						<p>The following times are <font color="#FECA40">often bad</font> (some days of the week, e.g. school/work times):</p>
+                        								<div id="generally_hard_times">
 																			<ol id="hard_selectable">
                                                                                        <li class="ui-widget-content">1</li>
                                                                                        <li class="ui-widget-content">2</li>
@@ -561,10 +563,9 @@
                                                                                     </ol>
                                                                                                                     <input type="hidden" id="hard_times" name="hard_times" value="${hard_times}" />
                                                                                                                     <br/>
-								
+								<p>(hold LEFT CTRL/STRG key and move mouse to select multiple ranges)</p>
                                                                                                                                                                                             <div id="buttonHardClear">Click here to clear</div><br/>
 								</div>
-                                                                        <p>This will work for many players, but not for all. Leave it blank, if, for example, you do alternating shifts at work and your sleeping schedule looks different every week.  </p>
 
 
                                                                         <hr style="height:1px;border:none;color:#333;background-color:#333;"/>
