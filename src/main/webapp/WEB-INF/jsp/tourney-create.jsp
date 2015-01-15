@@ -53,6 +53,7 @@
       	    $( "#From" ).datepicker();
             $( "#To" ).datepicker();
             $( "#Start" ).datepicker();
+            $( "#End" ).datepicker();
       	    $("#TourneyForm").validate({
                                 			rules: {
                                 				Full_name: {
@@ -151,7 +152,7 @@
 
 
 <div id="content-article">
-<p>Note: start, from and to fields assume the chosen date with 19:00 server time.</p>
+<p>Note: all date fields assume 3:00 GMT.</p>
 <form id="TourneyForm" action="/tourney/create" method="post">
         <fieldset>
             <legend>Tourney information</legend>
@@ -167,7 +168,7 @@
                         <input id="To" name="To" type="text" />
                         <label for="Start">Tourney start date:</label>
                                                 <input id="Start" name="Start" type="text" />
-                                                <label for="Start">Tourney end date:</label>
+                                                <label for="End">Tourney end date:</label>
                                                                                                 <input id="End" name="End" type="text" />
 
         </fieldset>

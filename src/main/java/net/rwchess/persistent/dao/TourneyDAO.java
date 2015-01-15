@@ -36,7 +36,7 @@ public interface TourneyDAO {
 
     public List<TournamentGame> getGamesForTourney(String shortTourneyName);
 
-    public void updateRating(String username, int rating);
+    public void updateRating(String username, int rating, String tournId);
 
     public TournamentGame getGameByForumString(String forumString);
 

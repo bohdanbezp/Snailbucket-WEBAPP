@@ -55,13 +55,12 @@ public final class UsefulMethods {
 
     public static DateTimeFormatter getWikiDateFormatter() {
         if (dateFormat == null) {
-            dateFormat = DateTimeFormat.forPattern("H:mm, d MMMMM yyyy z")
+            dateFormat = DateTimeFormat.forPattern("H:mm, d MMMMM yyyy zzzz")
                     .withLocale(Locale.US);
         }
 
         return dateFormat;
     }
-
 
     public static TournamentPlayer findByName(List<TournamentPlayer> players, String username) {
         for (TournamentPlayer player : players) {

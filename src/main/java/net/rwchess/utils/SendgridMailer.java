@@ -25,29 +25,29 @@ public class SendgridMailer implements Mailer {
 
     @Override
     public void sendEmail(final String from, final String subject, final String contents, final String to) {
-//        taskExecutor.execute(new Runnable() {
-//            @Override
-//            public void run() {
-//                HttpClient httpclient = new DefaultHttpClient();
-//                HttpPost get = new HttpPost("https://sendgrid.com/api/mail.send.json");
-//                log.info("Preparing email to " + to);
-//                try {
-//                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-//                    nameValuePairs.add(new BasicNameValuePair("to", to));
-//                    nameValuePairs.add(new BasicNameValuePair("toname", "Member"));
-//                    nameValuePairs.add(new BasicNameValuePair("subject", subject));
-//                    nameValuePairs.add(new BasicNameValuePair("text", contents));
-//                    nameValuePairs.add(new BasicNameValuePair("from", from));
-//                    nameValuePairs.add(new BasicNameValuePair("api_user", "bvk256"));
-//                    nameValuePairs.add(new BasicNameValuePair("api_key", "bodiaissendgrid"));
-//                    get.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-//                    HttpResponse r = httpclient.execute(get);
-//                    log.info("Response " + r.toString());
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
+        taskExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                HttpClient httpclient = new DefaultHttpClient();
+                HttpPost get = new HttpPost("https://sendgrid.com/api/mail.send.json");
+                log.info("Preparing email to " + to);
+                try {
+                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                    nameValuePairs.add(new BasicNameValuePair("to", to));
+                    nameValuePairs.add(new BasicNameValuePair("toname", "Member"));
+                    nameValuePairs.add(new BasicNameValuePair("subject", subject));
+                    nameValuePairs.add(new BasicNameValuePair("text", contents));
+                    nameValuePairs.add(new BasicNameValuePair("from", from));
+                    nameValuePairs.add(new BasicNameValuePair("api_user", "bvk256"));
+                    nameValuePairs.add(new BasicNameValuePair("api_key", "bodiaissendgrid"));
+                    get.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                    HttpResponse r = httpclient.execute(get);
+                    log.info("Response " + r.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 

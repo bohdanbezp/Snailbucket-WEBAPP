@@ -47,7 +47,7 @@ public class TourneySignupController {
     private RemindersService remindersService;
     private PythonStandingsService standingsService;
 
-    private static SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+    private static SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy h:mm");
 
     public TourneySignupController(TourneyDAO tourneyDAO, MemberDAO memberDAO, CheckRatingsService ratingsService,
                                    PythonBucketsGenerationService bucketsGenerationService,
@@ -153,7 +153,7 @@ public class TourneySignupController {
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (user.getGroup() >= Member.ADMIN) {
-            //body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Update ratings\"></form><br/><br/>");
+            body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Update ratings\"></form><br/><br/>");
             body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Create pairings\"></form><br/><br/>");
         }
 
@@ -228,9 +228,9 @@ public class TourneySignupController {
         }
 
 
-        DateTime today = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
-        DateTime signupFrom = new DateTime(tournament.getSignupFrom(), DateTimeZone.forID("America/Los_Angeles"));
-        DateTime signupTo = new DateTime(tournament.getSignupTo(), DateTimeZone.forID("America/Los_Angeles"));
+        DateTime today = DateTime.now(DateTimeZone.forID("GMT"));
+        DateTime signupFrom = new DateTime(tournament.getSignupFrom(), DateTimeZone.forID("GMT"));
+        DateTime signupTo = new DateTime(tournament.getSignupTo(), DateTimeZone.forID("GMT"));
 
         if (signupFrom.isAfter(today)) {
             signupMessage = "<p>The registration will start at " + UsefulMethods.getWikiDateFormatter().print(signupFrom) + "</p>";
@@ -665,8 +665,11 @@ public class TourneySignupController {
     public String tourneyPairingsAll(@PathVariable String shortName, ModelMap modelMap) {
 
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(shortName);
-        if (sorted == null || sorted.isEmpty())
-            return "not-found";
+        if (sorted == null || sorted.isEmpty()){
+            modelMap.addAttribute("title", "Pairings All Rounds");
+            modelMap.addAttribute("error", "No pairings yet.");
+            return "error";
+        }
 
         List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
 
@@ -674,8 +677,11 @@ public class TourneySignupController {
 
         for (int i = 1; i <= 7; i++) {
             List<TournamentGame> games = tourneyDAO.getGamesForRound(shortName, i);
-            if (games == null || games.isEmpty())
-                return "not-found";
+            if (games == null || games.isEmpty()){
+                modelMap.addAttribute("title", "Pairings All Rounds");
+                modelMap.addAttribute("error", "No pairings yet.");
+                return "error";
+            }
 
             wikiTable.append("<h1>Round ").append(i).append("</h2>");
 
@@ -731,15 +737,21 @@ public class TourneySignupController {
 
 
             List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
-            if (sorted == null || sorted.isEmpty())
-                return "not-found";
+            if (sorted == null || sorted.isEmpty()) {
+                modelMap.addAttribute("title", "Pairings");
+                modelMap.addAttribute("error", "No pairings yet.");
+                return "error";
+            }
 
             List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
 
             StringBuilder wikiTable = new StringBuilder();
             List<TournamentGame> games = tourneyDAO.getGamesForRound(tourneyShortName, round);
-            if (games == null || games.isEmpty())
-                return "not-found";
+            if (games == null || games.isEmpty()) {
+                modelMap.addAttribute("title", "Pairings");
+                modelMap.addAttribute("error", "No pairings yet.");
+                return "error";
+            }
 
             for (Bucket bucket : buckets) {
                 wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
@@ -896,10 +908,10 @@ public class TourneySignupController {
         newTourn.setShortName(shortName);
         newTourn.setMaxCount(Integer.parseInt(max));
         try {
-            newTourn.setSignupFrom(formatter.parse(from));
-            newTourn.setSignupTo(formatter.parse(to));
-            newTourn.setStartDate(formatter.parse(start));
-            newTourn.setEndDate(formatter.parse(end));
+            newTourn.setSignupFrom(formatter.parse(from+" 3:00"));
+            newTourn.setSignupTo(formatter.parse(to+" 3:00"));
+            newTourn.setStartDate(formatter.parse(start+" 3:00"));
+            newTourn.setEndDate(formatter.parse(end+" 3:00"));
         } catch (ParseException e) {
             e.printStackTrace();
         }

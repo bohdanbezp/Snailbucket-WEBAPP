@@ -25,7 +25,7 @@ public class RemindersService {
     private PythonBucketsGenerationService bucketsGenerationService;
     private Mailer mailer;
 
-    static Logger log = Logger.getLogger(RemindersService.class.getName());
+    public static Logger log = Logger.getLogger(RemindersService.class.getName());
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 

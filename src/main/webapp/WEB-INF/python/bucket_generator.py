@@ -16,7 +16,7 @@ class BucketGenerator:
     self.player_count = len(player_list)
     self.player_list = player_list
     # fetch the names automatically from ratings.fide.com
-    self.bucket_names = [ 'Aronian', 'Bacrot', 'Carlsen', 'Ding', 'Eljanov',
+    self.bucket_names = [ 'Anand', 'Bacrot', 'Carlsen', 'Ding', 'Eljanov',
       'Fressinet', 'Grischuk', 'Harikrishna', 'Ivanchuk', 'Jakovenko',
       'Karjakin', 'Leko', 'Mamedjarov', 'Nakamura' ]
     self.buckets = dict()

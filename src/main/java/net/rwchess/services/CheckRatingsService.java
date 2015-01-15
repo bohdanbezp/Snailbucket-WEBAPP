@@ -31,7 +31,7 @@ public class CheckRatingsService {
                 ChessClient.RatingListener ratingListener = new ChessClient.RatingListener() {
                     @Override
                     public void ratingChecked(String player, int rating) {
-                        tourneyDAO.updateRating(player, rating);
+                        tourneyDAO.updateRating(player, rating, tourney);
                     }
                 };
 

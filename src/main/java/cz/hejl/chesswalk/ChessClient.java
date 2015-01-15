@@ -81,7 +81,7 @@ public class ChessClient {
                     Object o = null;
                     if ((o = (Object) ficsParser.parseRatingLine(line)) != null) {
                         FicsParser.Rating rating = (FicsParser.Rating) o;
-                        if (rating.type == FicsParser.Rating.STANDARD)
+                        if (rating.type == FicsParser.Rating.STANDARD && Integer.parseInt(rating.rating) > 1000)
                             ratingListener.ratingChecked(players.get(playerId++), Integer.parseInt(rating.rating));
                     }
                 }

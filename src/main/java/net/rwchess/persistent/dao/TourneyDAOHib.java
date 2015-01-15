@@ -120,7 +120,12 @@ public class TourneyDAOHib implements TourneyDAO {
         String hql = "FROM Tournament M WHERE M.shortName = :shortName";
         Query query = session.createQuery(hql);
         query.setParameter("shortName", shortName);
-        Tournament tournament = (Tournament) query.list().get(0);
+
+        List<Tournament> tournaments = query.list();
+        if (tournaments == null || tournaments.isEmpty())
+            return null;
+
+        Tournament tournament = tournaments.get(0);
 
         hql = "FROM TournamentPlayer M WHERE M.tournament = :tournament  order by M.fixedRating desc";
         query = session.createQuery(hql);
@@ -139,12 +144,14 @@ public class TourneyDAOHib implements TourneyDAO {
     }
 
     @Override
-    public void updateRating(String username, int rating) {
+    public void updateRating(String username, int rating, String tournId) {
         Session session = HibernateUtils.getInstance().openSession();
         Transaction transaction = session.beginTransaction();
-        String hql = "FROM TournamentPlayer M WHERE M.assocMember.username = :username";
+        String hql = "FROM TournamentPlayer M WHERE M.assocMember.username = :username" +
+                " and M.tournament.shortName = :key";
         Query query = session.createQuery(hql);
         query.setParameter("username", username);
+        query.setParameter("key", tournId);
 
         TournamentPlayer m = null;
         try {
@@ -469,7 +476,13 @@ public class TourneyDAOHib implements TourneyDAO {
         if (res == null)
             return false;
 
-        return !res.isEmpty();
+        if (res.isEmpty())
+            return false;
+
+        if (res.size() == 2 || res.get(0).getTournament().getShortName().equals("bucket2"))
+            return true;
+
+        return false;
     }
 
     @Override
