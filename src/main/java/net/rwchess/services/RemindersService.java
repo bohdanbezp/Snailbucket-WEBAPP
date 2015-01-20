@@ -120,18 +120,18 @@ public class RemindersService {
                     log.debug("Started RemindersService date local: " + new Date());
                     List<Tournament> tourneys = tourneyDAO.getAllTourneys();
 
-                    DateTime now = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
+                    DateTime now = DateTime.now(DateTimeZone.forID("GMT"));
                     for (Tournament tourney : tourneys) {
-                        DateTime end = new DateTime(tourney.getEndDate(), DateTimeZone.forID("America/Los_Angeles"));
-                        DateTime start = new DateTime(tourney.getStartDate(), DateTimeZone.forID("America/Los_Angeles"));
+                        DateTime end = new DateTime(tourney.getEndDate(), DateTimeZone.forID("GMT"));
+                        DateTime start = new DateTime(tourney.getStartDate(), DateTimeZone.forID("GMT"));
                         log.debug("Tourney " + tourney.getShortName() + " starts at " + getCorrectDateFormat(start));
 
                         if (now.isAfter(start)) {
                             LocalDate localDate = now.toLocalDate();
                             log.debug("localDate.getDayOfWeek() " + localDate.getDayOfWeek());
-                            if (localDate.getDayOfWeek() >= DateTimeConstants.TUESDAY &&
+                            if (localDate.getDayOfWeek() >= DateTimeConstants.WEDNESDAY &&
                                     localDate.getDayOfWeek() < DateTimeConstants.SATURDAY) {
-                                DateTime roundStart = now.withDayOfWeek(DateTimeConstants.TUESDAY).withHourOfDay(19).withMinuteOfHour(0);
+                                DateTime roundStart = now.withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(3).withMinuteOfHour(0);
                                 DateTime initContactDeadline = roundStart.plusDays(2);
                                 DateTime finalContactDeadline = roundStart.plusDays(3);
                                 int round = UsefulMethods.getCurrentRound();

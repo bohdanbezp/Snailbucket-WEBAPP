@@ -23,7 +23,7 @@ public class PythonBucketsGenerationService {
     @Autowired
     private ServletContext servletContext;
 
-    private static String[] td = {"BethanyGrace", "BethanyGrace", "RoyRogersC", "BethanyGrace", "PankracyRozumek", "pchesso", "RoyRogersC"};
+    private static String[] td = {"BethanyGrace", "BethanyGrace", "RoyRogersC", "BethanyGrace", "Maxmagnus", "herrahuu", "RoyRogersC"};
 
 
     public List<Bucket> generateBuckets(List<TournamentPlayer> players) {

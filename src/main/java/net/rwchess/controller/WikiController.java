@@ -217,7 +217,7 @@ public class WikiController {
                 history.remove(0);
             }
             DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
-            String date = UsefulMethods.getWikiDateFormatter().print(zoned);
+            String date = UsefulMethods.formatDateWiki(zoned);
             if (!history.isEmpty() && history.peek().contains(((Member) user).getUsername() + "</a>") &&
                     history.peek().contains(pageName)) {
                 history.pop();
@@ -436,7 +436,7 @@ public class WikiController {
                 history.remove(0);
             }
             DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
-            String date = UsefulMethods.getWikiDateFormatter().print(zoned);
+            String date = UsefulMethods.formatDateWiki(zoned);
             if (!history.isEmpty() && history.peek().contains(((Member) user).getUsername() + "</a>") &&
                     history.peek().contains(pageName)) {
                 history.pop();
@@ -491,7 +491,7 @@ public class WikiController {
         }
 
         DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
-        String date = UsefulMethods.getWikiDateFormatter().print(zoned);
+        String date = UsefulMethods.formatDateWiki(zoned);
         //history.push(date + " by <a href=\"/members/"+username+"\">"+username+"</a>" );
         history.insertElementAt(date + " by <a href=\"/wiki/User:" + username + "\">" + username + "</a>", 0);
         return history;

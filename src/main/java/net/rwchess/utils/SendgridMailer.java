@@ -21,11 +21,11 @@ public class SendgridMailer implements Mailer {
 
     static Logger log = Logger.getLogger(SendgridMailer.class.getName());
 
-    private ExecutorService taskExecutor = Executors.newFixedThreadPool(4);
+    private ExecutorService taskExecutor = Executors.newFixedThreadPool(2);
 
     @Override
     public void sendEmail(final String from, final String subject, final String contents, final String to) {
-//        taskExecutor.execute(new Runnable() {
+        //        taskExecutor.execute(new Runnable() {
 //            @Override
 //            public void run() {
 //                HttpClient httpclient = new DefaultHttpClient();
@@ -48,7 +48,6 @@ public class SendgridMailer implements Mailer {
 //                }
 //            }
 //        });
-
     }
 
 }

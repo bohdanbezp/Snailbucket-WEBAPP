@@ -151,9 +151,13 @@ public class TourneySignupController {
         StringBuilder body = new StringBuilder();
 
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Tournament currTourney = tourneyDAO.getByShortName(tourneyShortName);
 
         if (user.getGroup() >= Member.ADMIN) {
-            body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Update ratings\"></form><br/><br/>");
+            if (currTourney.getSignupTo().after(new Date())) {
+                body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Update ratings\"></form><br/><br/>");
+            }
+
             body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Create pairings\"></form><br/><br/>");
         }
 
@@ -233,9 +237,9 @@ public class TourneySignupController {
         DateTime signupTo = new DateTime(tournament.getSignupTo(), DateTimeZone.forID("GMT"));
 
         if (signupFrom.isAfter(today)) {
-            signupMessage = "<p>The registration will start at " + UsefulMethods.getWikiDateFormatter().print(signupFrom) + "</p>";
+            signupMessage = "<p>The registration will start at " + UsefulMethods.formatDateWiki(signupFrom) + "</p>";
         } else if (signupTo.isBefore(today)) {
-            signupMessage = "<p>The registration has been closed at " + UsefulMethods.getWikiDateFormatter().print(signupTo) + "</p>";
+            signupMessage = "<p>The registration has been closed at " + UsefulMethods.formatDateWiki(signupTo) + "</p>";
         } else {
             if (user instanceof String) {
                 signupMessage = "<p>Log in in order to sign up.</p>";
@@ -302,7 +306,7 @@ public class TourneySignupController {
             encoding = encoding == null ? "UTF-8" : encoding;
             String body = IOUtils.toString(inn, encoding);
             Matcher m = ficsGamesLinkMod.matcher(body);
-            if (m.find()) {
+            while (m.find()) {
                 String s = "http://www.ficsgames.org" + m.group(0);
 
                 URL url = new URL(s);
@@ -338,18 +342,14 @@ public class TourneySignupController {
 
                     if (!ga.getWhite().equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername()) ||
                             !ga.getBlack().equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
-                        modelMap.addAttribute("title", "Error");
-                        modelMap.addAttribute("error", "You posted the wrong game: " + ga.getWhite() + "-" + ga.getBlack());
-                        return "error";
+                         continue;
                     }
                     DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
                     DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
-                    DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/Los_Angeles"));
+                    DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("GMT"));
 
                     if (gameDate.isBefore(startDate)) {
-                        modelMap.addAttribute("title", "Error");
-                        modelMap.addAttribute("error", "Game date is before tha date of tournament start.");
-                        return "error";
+                         continue;
                     }
 
                     pgn = UsefulMethods.getPgnRepresentation(ga);
@@ -484,7 +484,7 @@ public class TourneySignupController {
                 }
                 DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
                 DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
-                DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/Los_Angeles"));
+                DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("GMT"));
 
                 if (gameDate.isBefore(startDate)) {
                     modelMap.addAttribute("title", "Error");
@@ -521,7 +521,7 @@ public class TourneySignupController {
             DateTime dateTime = new DateTime(now.getYear(), Integer.parseInt(req.getParameter("month")),
                     Integer.parseInt(req.getParameter("day")), Integer.parseInt(req.getParameter("hour")),
                     Integer.parseInt(req.getParameter("minute")), DateTimeZone.forID("GMT"));
-            if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/Los_Angeles")))) {
+            if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("GMT")))) {
                 modelMap.addAttribute("title", "Error");
                 modelMap.addAttribute("error", "The date before tourney start.");
                 return "error";
@@ -628,7 +628,7 @@ public class TourneySignupController {
             if (scheduledGame.getSecheduled().getYear() < 100)
                 sched = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
 
-            DateTime now = DateTime.now(DateTimeZone.forID("America/Los_Angeles"));
+            DateTime now = DateTime.now(DateTimeZone.forID("GMT"));
             Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("GMT")));
             if (p2.getStandardHours() <= 4) {
                 if (p2.getStandardHours() > 0) {

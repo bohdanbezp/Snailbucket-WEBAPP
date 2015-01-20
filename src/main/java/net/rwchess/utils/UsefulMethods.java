@@ -53,9 +53,13 @@ public final class UsefulMethods {
         return wikiModel.render(rawText);
     }
 
+    public static String formatDateWiki(DateTime dateTime) {
+        return getWikiDateFormatter().print(dateTime) + " GMT";
+    }
+
     public static DateTimeFormatter getWikiDateFormatter() {
         if (dateFormat == null) {
-            dateFormat = DateTimeFormat.forPattern("H:mm, d MMMMM yyyy zzzz")
+            dateFormat = DateTimeFormat.forPattern("H:mm, d MMMMM yyyy")
                     .withLocale(Locale.US);
         }
 
@@ -258,9 +262,9 @@ public final class UsefulMethods {
     }
 
     public static int getCurrentRound() {
-        DateTime dateTime = new DateTime(2014, 11, 4, 19, 0, DateTimeZone.forID("America/Los_Angeles"));
+        DateTime dateTime = new DateTime(2015, 1, 21, 3, 0, DateTimeZone.forID("GMT"));
 
-        return Weeks.weeksBetween(dateTime, DateTime.now(DateTimeZone.forID("America/Los_Angeles"))).getWeeks() + 1;
+        return Weeks.weeksBetween(dateTime, DateTime.now(DateTimeZone.forID("GMT"))).getWeeks() + 1;
     }
 
     public static List<String> sortToSortables(String preference) {
