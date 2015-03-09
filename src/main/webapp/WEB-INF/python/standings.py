@@ -6,7 +6,7 @@ class PlayerRecord:
     self.rating = -rating
     self.games = 0
     self.points = 0
-    self.forfeits = forfeits
+    self.forfeits = -forfeits
     self.won = 0
     self.white = 0
     self.hth = 0
