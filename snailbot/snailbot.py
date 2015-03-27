@@ -186,8 +186,8 @@ class JoinCommand(TellCommand):
             'toname' : 'TDs',
             'subject' : str(player.name) + ' has registered',
             'text': str(player.name) + ' has registered using the bot.',
-            'api_user': 'bvk256',
-            'api_key': 'bodiaissendgrid'}
+            'api_user': '',
+            'api_key': ''}
 
             data = urllib.urlencode(values)
             req = urllib2.Request("https://sendgrid.com/api/mail.send.json", data)
