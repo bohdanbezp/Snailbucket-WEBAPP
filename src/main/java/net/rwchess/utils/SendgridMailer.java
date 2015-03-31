@@ -38,8 +38,8 @@ public class SendgridMailer implements Mailer {
 //                    nameValuePairs.add(new BasicNameValuePair("subject", subject));
 //                    nameValuePairs.add(new BasicNameValuePair("text", contents));
 //                    nameValuePairs.add(new BasicNameValuePair("from", from));
-//                    nameValuePairs.add(new BasicNameValuePair("api_user", "bvk256"));
-//                    nameValuePairs.add(new BasicNameValuePair("api_key", "bodiaissendgrid"));
+//                    nameValuePairs.add(new BasicNameValuePair("api_user", ""));
+//                    nameValuePairs.add(new BasicNameValuePair("api_key", ""));
 //                    get.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 //                    HttpResponse r = httpclient.execute(get);
 //                    log.info("Response " + r.toString());
