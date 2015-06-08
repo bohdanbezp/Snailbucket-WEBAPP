@@ -33,15 +33,15 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Snailbot v.20150120 (Shallow Val)
+FINGER_TEXT = """Snailbot v.20150506 
 
 Join Snail Bucket http://snailbucket.org/ FICS chess community for some loooong time controls.
 
 This bot is run by Bodia
-Usage:
-    tell snailbot join
-    tell snailbot play
+More about supported commands:
     tell snailbot help
+
+If snailbot is logged off, please message Bodia, BethanyGrace, PankracyRozumek, or pchesso, or (preferrably) email us at tds@snailbucket.org - thanks!
 """
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -121,11 +121,11 @@ class SnailBot(object):
 
         def stat(tx):
             r = tx.execute("select TOURN_PLAYERS.ID from TOURN_PLAYERS inner join MEMBERS on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
-                           " where MEMBERS.username = '"+caller+"' and TOURN_PLAYERS.TOURNEY_ID = 3")
+                           " where MEMBERS.username = '"+caller+"' and TOURN_PLAYERS.TOURNEY_ID = (select max(ID) from TOURNAMENTS)")
             player_id = str(tx.fetchall()[0][0])
             tx.execute(
             "select ID,ROUND from TOURN_GAMES where (BLACKPL_ID = "+player_id+" or WHITEPL_ID = "+player_id+") and SHEDULED_DATE IS NOT NULL "
-                                                                                                      "and RESULT IS NULL and TOURNEY_ID = 3 ORDER BY SHEDULED_DATE ASC"
+                                                                                                      "and RESULT IS NULL and TOURNEY_ID = (select max(ID) from TOURNAMENTS) ORDER BY SHEDULED_DATE ASC"
             )
             vals = tx.fetchall()[0]
             game_id = str(vals[0])
@@ -144,11 +144,11 @@ class SnailBot(object):
     def updateGameStatus(self, caller, date):
         def stat(tx):
             r = tx.execute("select TOURN_PLAYERS.ID from TOURN_PLAYERS inner join MEMBERS on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
-                           " where MEMBERS.username = '"+caller+"' and TOURN_PLAYERS.TOURNEY_ID = 3")
+                           " where MEMBERS.username = '"+caller+"' and TOURN_PLAYERS.TOURNEY_ID = (select max(ID) from TOURNAMENTS)")
             player_id = str(tx.fetchall()[0][0])
             tx.execute(
             "select ID,ROUND from TOURN_GAMES where (BLACKPL_ID = "+player_id+" or WHITEPL_ID = "+player_id+") and SHEDULED_DATE IS NOT NULL "
-                                                                                                      "and RESULT IS NULL and TOURNEY_ID = 3 ORDER BY SHEDULED_DATE ASC"
+                                                                                                      "and RESULT IS NULL and TOURNEY_ID = (select max(ID) from TOURNAMENTS) ORDER BY SHEDULED_DATE ASC"
             )
             vals = tx.fetchall()[0]
             game_id = str(vals[0])
@@ -209,6 +209,29 @@ class JoinCommand(TellCommand):
 
     def help(self, fics_client):
         return "Initiates the join to SnailBucket. See more at http://snailbucket.org/wiki/FAQ"
+    
+    
+class ExecuteCommand(TellCommand):
+    """
+    Join snailbucket community
+    """
+
+    def __init__(self, clock_statistician):
+        self.clock_statistician = clock_statistician
+    @defer.inlineCallbacks
+    def run(self, fics_client, player, *args, **kwargs):
+        if str(player.name) == "Bodia" or str(player.name) == "pchesso" or str(player.name) == "BethanyGrace" or str(player.name) == "PankracyRozumek":
+            command_to_exec = ' '.join(args[0])
+            #command_to_exec = args[0]
+            resu = yield fics_client.run_command(command_to_exec)
+            if (resu is not None):
+                fics_client.tell_to(player, "Success")
+        else:
+            fics_client.tell_to(player, "You're not the admin, sorry!")
+
+
+    def help(self, fics_client):
+        return "Exectutes admin's command on behalf of the bot account."
 
 
 class PlayCommand(TellCommand):
@@ -395,8 +418,8 @@ class MyBot(
 
         self.use_keep_alive = True
         self.variables_to_set_after_login = {
-            'shout': 0,
-            'cshout': 0,
+            'shout': 1,
+            'cshout': 1,
             'tzone': 'EURCST',
             'tell': 0,
             'noescape': 0,
@@ -412,15 +435,24 @@ class MyBot(
 
         self.register_command(JoinCommand(self.clock_statistician))
         self.register_command(PlayCommand(self.clock_statistician))
+        self.register_command(ExecuteCommand(self.clock_statistician))
         self.register_command(HelpCommand())
 
-        self.ongoing_games = []
+        self.ongoing_games = []        
 
     def _notify_finger(self):
         for game in self.ongoing_games:
             self.run_command("t 101 Snailbucket game in progress: " + game["white"] + "(" +game["white_rank"]+ ")" + " vs. " + game["black"] + "(" +game["black_rank"]+ ")" + " -- Round "+ game["round"] +": \"observe " + game["game_no"] + "\" to watch")
             self.clock_statistician.processing = False
 
+    def _notify_ch101(self):
+	self.run_command("t 101 Registration to Snail Bucket 3, a Slow time control Tournament for individuals on FICS, will open on May 6th. Find all info on http://www.snailbucket.org/wiki/TourneyGuide")
+
+    def _notify_ch90(self):
+	self.run_command("t 90 Registration to Snail Bucket 3, a Slow time control Tournament for individuals on FICS, will open on May 6th. Find all info on http://www.snailbucket.org/wiki/TourneyGuide")
+
+    def _notify_cshout(self):
+	self.run_command("cshout Registration to Snail Bucket 3, a Slow time control Tournament for individuals on FICS, will open on May 6th. Find all info on http://www.snailbucket.org/wiki/TourneyGuide")
 
     def on_login(self, my_username):
         print("I am logged as %s, use \"tell %s help\" to start conversation on FICS" % (
@@ -428,6 +460,18 @@ class MyBot(
 
         self._gamenotify_task = task.LoopingCall(self._notify_finger)
         self._gamenotify_task.start(1200, now=True)
+
+	#self._notify_ch101 = task.LoopingCall(self._notify_ch101)
+        #self._notify_ch101.start(3600, now=True)
+
+	#self._notify_cshout = task.LoopingCall(self._notify_cshout)
+        #self._notify_cshout.start(3600, now=True)
+
+	#def f(s):
+	#	self._notify_ch90 = task.LoopingCall(self._notify_ch90)
+        #	self._notify_ch90.start(3600, now=True)
+
+	#reactor.callLater(1800, f, "hello, world")
 
         # Normal post-login processing
         return defer.DeferredList([
@@ -483,7 +527,7 @@ class MyBot(
             self.run_command("-gnotify %s" % (game.white_name.name))
             self.run_command("-gnotify %s" % (game.black_name.name))
             time.sleep(15)
-            req = urllib2.Request('http://snailbucket.org/tourney/updateforums/bucket2:R'+str(x[3])+'_'+str(game.white_name.name)+'-'+str(game.black_name.name))
+            req = urllib2.Request('http://snailbucket.org/tourney/updateforums/bucket3:R'+str(x[3])+'_'+str(game.white_name.name)+'-'+str(game.black_name.name))
             response = urllib2.urlopen(req)
             he_page = response.read()
 
@@ -534,5 +578,6 @@ reactor.connectTCP(
 )
 #noinspection PyUnresolvedReferences
 reactor.run()
+
 
 
