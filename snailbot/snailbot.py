@@ -18,6 +18,7 @@ import time
 from twisted.internet import defer, reactor, task
 from twisted.enterprise import adbapi
 from twisted.python import log
+from snailbot.state import state
 
 from mekk.fics import ReconnectingFicsFactory, FicsClient, FicsEventMethodsMixin
 from mekk.fics import TellCommandsMixin, TellCommand
@@ -243,6 +244,23 @@ class JoinCommand(TellCommand):
         return ("Initiates the join to SnailBucket. "
                 "See more at http://snailbucket.org/wiki/FAQ")
     
+
+
+class SetmessageCommand(TellCommand):
+    @defer.inlineCallbacks
+    def run(self, fics_client, player, *args, **kwargs):
+        if str(player.name) not in [
+                "Bodia", "pchesso", "BethanyGrace", "PankracyRozumek"]:
+            yield fics_client.tell_to(player, "You're not the admin, sorry!")
+            return
+        state.state['channel_message'] = ' '.join(args[0])
+        state.SaveState()
+        yield fics_client.tell_to(player, "Ok.")
+
+    def help(self, fics_client):
+        return "Sets channel101 message."
+
+
     
 class ExecuteCommand(TellCommand):
     """
@@ -399,6 +417,7 @@ class MyBot(
         self.register_command(JoinCommand(self.clock_statistician))
         self.register_command(PlayCommand(self.clock_statistician))
         self.register_command(ExecuteCommand(self.clock_statistician))
+        self.register_command(SetmessageCommand())
         self.register_command(HelpCommand())
 
         self.ongoing_games = []        
@@ -410,18 +429,20 @@ class MyBot(
                 '-- Round {round} "observe {game_no}'.format(**game))
             self.clock_statistician.processing = False
 
-    _channel_message = ("Registration to Snail Bucket 3, a Slow time control "
-        "Tournament for individuals on FICS, will open on May 6th. "
-        "Find all info on http://www.snailbucket.org/wiki/TourneyGuide")
+    def GetChannelMessage(self):
+        return str(state.state.get('channel_message',
+            "Registration to Snail Bucket 3, a Slow time control "
+            "Tournament for individuals on FICS, will open on May 6th. "
+            "Find all info on http://www.snailbucket.org/wiki/TourneyGuide"))
 
     def _notify_ch101(self):
-        self.run_command("t 101 %s", self._channel_message)
+        self.run_command("t 101 %s" % self.GetChannelMessage())
 
     def _notify_ch90(self):
-        self.run_command("t 90 %s", self._channel_message)
+        self.run_command("t 90 %s" % self.GetChannelMessage())
 
     def _notify_cshout(self):
-        self.run_command("cshout %s", self._channel_message)
+        self.run_command("cshout %s" % self.GetChannelMessage())
 
     def on_login(self, my_username):
         print('I am logged as %s, use "tell %s help" to start conversation on '
@@ -430,17 +451,17 @@ class MyBot(
         self._gamenotify_task = task.LoopingCall(self._notify_finger)
         self._gamenotify_task.start(1200, now=True)
 
-	#self._notify_ch101 = task.LoopingCall(self._notify_ch101)
-        #self._notify_ch101.start(3600, now=True)
+        self._notify_ch101 = task.LoopingCall(self._notify_ch101)
+        self._notify_ch101.start(3600, now=True)
 
-	#self._notify_cshout = task.LoopingCall(self._notify_cshout)
+    #self._notify_cshout = task.LoopingCall(self._notify_cshout)
         #self._notify_cshout.start(3600, now=True)
 
-	#def f(s):
-	#	self._notify_ch90 = task.LoopingCall(self._notify_ch90)
-        #	self._notify_ch90.start(3600, now=True)
+    #def f(s):
+    #   self._notify_ch90 = task.LoopingCall(self._notify_ch90)
+        #   self._notify_ch90.start(3600, now=True)
 
-	#reactor.callLater(1800, f, "hello, world")
+    #reactor.callLater(1800, f, "hello, world")
 
         # Normal post-login processing
         return defer.DeferredList([
