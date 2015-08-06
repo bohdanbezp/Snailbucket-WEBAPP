@@ -449,17 +449,17 @@ class MyBot(
             'FICS' % (my_username, my_username))
 
         self._gamenotify_task = task.LoopingCall(self._notify_finger)
-        self._gamenotify_task.start(1200, now=True)
+        self._gamenotify_task.start(1200, now=False)
 
         self._notify_ch101 = task.LoopingCall(self._notify_ch101)
-        self._notify_ch101.start(3600, now=True)
+        self._notify_ch101.start(3600, now=False)
 
     #self._notify_cshout = task.LoopingCall(self._notify_cshout)
-        #self._notify_cshout.start(3600, now=True)
+        #self._notify_cshout.start(3600, now=False)
 
     #def f(s):
     #   self._notify_ch90 = task.LoopingCall(self._notify_ch90)
-        #   self._notify_ch90.start(3600, now=True)
+        #   self._notify_ch90.start(3600, now=False)
 
     #reactor.callLater(1800, f, "hello, world")
 
