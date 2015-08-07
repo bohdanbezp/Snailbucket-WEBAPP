@@ -126,42 +126,64 @@ class SnailBot(object):
         return best_tc
 
     ##
-    # Return the game parameters of caller's scheduled game if there is any
+    # Return the game parameters of caller's first scheduled game if there is
+    # any.
     ##
     def get_game_data(self, caller):
 
-        def stat(tx):
-            r = tx.execute("select TOURN_PLAYERS.ID from TOURN_PLAYERS inner"
-                " join MEMBERS on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
-                " where MEMBERS.username = %s and TOURN_PLAYERS.TOURNEY_ID"
-                " = (select max(ID) from TOURNAMENTS)", caller)
+        def _get_game_data(tx):
+            # TODO: Update to allow players' games from not the newest tourneys.
+            tx.execute(
+                "select TOURN_PLAYERS.ID "
+                "from TOURN_PLAYERS "
+                "inner join MEMBERS "
+                "on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID "
+                "where MEMBERS.username = %s "
+                "and TOURN_PLAYERS.TOURNEY_ID = "
+                "  (select max(ID) from TOURNAMENTS) ",
+                caller)
             (player_id,) = tx.fetchone()
 
-            tx.execute("select ID,ROUND from TOURN_GAMES where"
-                " (BLACKPL_ID = %s or WHITEPL_ID = %s)"
-                " and SHEDULED_DATE IS NOT NULL and RESULT IS NULL and"
-                " TOURNEY_ID = (select max(ID) from TOURNAMENTS)"
-                " ORDER BY SHEDULED_DATE ASC",
+            # TODO: update to fetch all pending games of the player.
+            tx.execute(
+                "select ID, ROUND "
+                "from TOURN_GAMES "
+                "where (BLACKPL_ID = %s or WHITEPL_ID = %s) "
+                "and SHEDULED_DATE IS NOT NULL "
+                "and RESULT IS NULL "
+                "and TOURNEY_ID = (select max(ID) from TOURNAMENTS) "
+                "order by SHEDULED_DATE asc ",
                 (player_id, player_id))
-            (game_id, round) = tx.fetchone()
+            (game_id, rnd) = tx.fetchone()
 
-            tx.execute("select MEMBERS.USERNAME, MEMBERS.PREFERENCE"
-                " from MEMBERS inner join TOURN_PLAYERS"
-                " on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
-                " where TOURN_PLAYERS.ID ="
-                " (select WHITEPL_ID from TOURN_GAMES where ID=%s)", game_id)
+            tx.execute(
+                "select MEMBERS.USERNAME, MEMBERS.PREFERENCE "
+                "from MEMBERS "
+                "inner join TOURN_PLAYERS "
+                "on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID "
+                "where TOURN_PLAYERS.ID = "
+                "  (select WHITEPL_ID from TOURN_GAMES where ID=%s) ",
+                game_id)
             (white_username, white_preference) = tx.fetchone()
-            tx.execute("select MEMBERS.USERNAME, MEMBERS.PREFERENCE"
-                " from MEMBERS inner join TOURN_PLAYERS"
-                " on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
-                " where TOURN_PLAYERS.ID ="
-                " (select BLACKPL_ID from TOURN_GAMES where ID=%s)", game_id)
-            black_username, black_preference = tx.fetchone()
-            return (white_username, black_username,
-                    self.recommend_time(white_preference, black_preference)
-                        .replace("_", " "), round)
 
-        return dbpool.runInteraction(stat)
+            tx.execute(
+                "select MEMBERS.USERNAME, MEMBERS.PREFERENCE "
+                "from MEMBERS "
+                "inner join TOURN_PLAYERS "
+                "on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID "
+                "where TOURN_PLAYERS.ID = "
+                "  (select BLACKPL_ID from TOURN_GAMES where ID=%s) ",
+                game_id)
+            black_username, black_preference = tx.fetchone()
+
+            return (
+                white_username,
+                black_username,
+                self.recommend_time(white_preference, black_preference)
+                    .replace("_", " "),
+                rnd)
+
+        return dbpool.runInteraction(_get_game_data)
 
 
     def updateGameStatus(self, caller, date):
