@@ -34,7 +34,7 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Snailbot v.20150506 
+FINGER_TEXT = """Snailbot v.20150825 
 
 Join Snail Bucket http://snailbucket.org/ \
 FICS chess community for some loooong time controls.
@@ -340,16 +340,16 @@ class PlayCommand(TellCommand):
                     vars_ok = False
                     fics_client.tell_to(player, 
                         'Please execute command "set %s %d" before playing '
-                        'a SnailBucket game and "t snailbot play" again.',
+                        'a SnailBucket game and "t snailbot play" again.' %
                         (var, value))
                 if ("%s=%d" % (var, 1-value)) in str(opponent_vars):
                     vars_ok = False
                     fics_client.tell_to(player, 
                         'Your opponent should execute command "set %s %d" '
-                        'before playing the game.', (var, value))
+                        'before playing the game.' % (var, value))
                     fics_client.tell_to(opponent, 
                         'Please execute command "set %s %d" before playing '
-                        'a SnailBucket game and "t snailbot play" again.',
+                        'a SnailBucket game and "t snailbot play" again.' %
                         (var, value))
 
             if vars_ok:
@@ -367,9 +367,9 @@ class PlayCommand(TellCommand):
                 x.addCallback(process)
                 yield x
             except Exception as e:
-                if "tuple index out of range" in str(e.message):
-                    fics_client.tell_to(player, "Error starting the game. "
-                        "Please contact Bodia if the problem persists.")
+                fics_client.tell_to(player, "Error starting the game. "
+                    "Please contact Bodia if the problem persists.")
+                print("PlayCommand of user %s failed with: %s" % (player, e))
 
             self.clock_statistician.processing = False
 
