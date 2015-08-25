@@ -31,7 +31,7 @@ logger = logging.getLogger("snail")
 
 from mekk.fics import FICS_HOST, FICS_PORT
 
-FICS_USER='snailbotguestPR'
+FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
 FINGER_TEXT = """Snailbot v.20150825 
