@@ -34,7 +34,7 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Snailbot v.20150825 
+FINGER_TEXT = """Snailbot v.20150831 
 
 Join Snail Bucket http://snailbucket.org/ \
 FICS chess community for some loooong time controls.
@@ -553,7 +553,7 @@ class MyBot(
             self.run_command("-gnotify %s" % (game.black_name.name))
             time.sleep(15)
             req = urllib2.Request(
-                'http://snailbucket.org/tourney/updateforums/bucket3:R' + 
+                'http://snailbucket.org/tourney/updateforums/monthly15:R' + 
                 str(x[3]) + '_' + str(game.white_name.name) + '-' + 
                 str(game.black_name.name))
             response = urllib2.urlopen(req)
