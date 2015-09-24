@@ -34,7 +34,7 @@ from mekk.fics import FICS_HOST, FICS_PORT
 FICS_USER='snailbotguest'
 FICS_PASSWORD=''
 
-FINGER_TEXT = """Snailbot v.20150831 
+FINGER_TEXT = """Snailbot v.20150924 
 
 Join Snail Bucket http://snailbucket.org/ \
 FICS chess community for some loooong time controls.
@@ -176,6 +176,7 @@ class SnailBot(object):
                 game_id)
             black_username, black_preference = tx.fetchone()
 
+            print('get_game: %s %s %s' % (white_username, black_username, rnd))
             return (
                 white_username,
                 black_username,
@@ -352,12 +353,13 @@ class PlayCommand(TellCommand):
                         'a SnailBucket game and "t snailbot play" again.' %
                         (var, value))
 
+            print('vars_ok: %s' % str(vars_ok))
             if vars_ok:
                 yield fics_client.run_command("+gnotify %s" % (player.name))
                 color = "white" if player_index == 0 else "black"
-                rmatch_res = yield fics_client.run_command(
-                    "rmatch %s %s %s %s" %
-                    (player_name, opponent, time_control, color))
+		command = "rmatch %s %s %s %s" % (player_name, opponent, time_control, color)
+		print('running command: %s' % command)
+                rmatch_res = yield fics_client.run_command(command)
                 my_bot.on_fics_unknown(str(rmatch_res))
 
         if not self.clock_statistician.processing:
@@ -446,7 +448,7 @@ class MyBot(
 
     def _notify_finger(self):
         for game in self.ongoing_games:
-            self.run_command('t 101 Snailbucket game in progress: '
+            self.run_command('t 101 SB Monthly 2015 game in progress: '
                 '{white} ({white_rank}) vs. {black} ({black_rank}) '
                 '-- Round {round} "observe {game_no}'.format(**game))
             self.clock_statistician.processing = False
@@ -526,25 +528,28 @@ class MyBot(
                     self.run_command('t 101 Snailbucket game has started: '
                         '{white}({white_rank}) vs. {black}({black_rank}) -- '
                         'Round {round} "observe {game_no}" to watch'
-                        .format(curr_game))
+                        .format(**curr_game))
                     self.start_observing_game(m.group("game_no"))
 
                     self.ongoing_games.append(curr_game)
 
                     self.clock_statistician.updateGameStatus(
                         m.group("white"), "1970-11-27 14:00:05")
-            except:
+            except Exception as e:
                 print ("GAME START FAILED!!")
+		print(e)
+	else:
+            print("Unknown message: %s" % what)
 
 
 
     @defer.inlineCallbacks
     def on_game_finished(self, game):
         x = yield self.clock_statistician.get_game_data(game.white_name.name)
-        self.run_command("t 101 Snailbucket game has ended: " +
-            game.white_name.name + " vs. " + game.black_name.name + 
-            " -- Round "+ x[3] +": " + game.result + " {" + game.result_desc +
-            "}")
+        self.run_command(
+	    "t 101 Snailbucket game has ended: %s vs. %s -- Round %d: %s {%s}" %
+	    (game.white_name.name, game.black_name.name, x[3], game.result,
+	    game.result_desc))
         self.clock_statistician.updateGameStatus(
             game.white_name.name, "2014-11-27 14:00:05")
 
@@ -606,6 +611,7 @@ reactor.connectTCP(
         auth_username=FICS_USER, auth_password=FICS_PASSWORD))
 #noinspection PyUnresolvedReferences
 reactor.run()
+
 
 
 
