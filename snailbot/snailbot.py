@@ -31,10 +31,10 @@ logger = logging.getLogger("snail")
 
 from mekk.fics import FICS_HOST, FICS_PORT
 
-FICS_USER='snailbotguest'
-FICS_PASSWORD=''
+FICS_USER='snailbot'
+FICS_PASSWORD='n11urt'
 
-FINGER_TEXT = """Snailbot v.20150924 
+FINGER_TEXT = """Snailbot v.20150831 
 
 Join Snail Bucket http://snailbucket.org/ \
 FICS chess community for some loooong time controls.
@@ -334,31 +334,33 @@ class PlayCommand(TellCommand):
                              ('notakeback', 1), ('private', 0)]
             player_vars = yield fics_client.run_command("var %s" % (player))
             opponent_vars = yield fics_client.run_command("var %s" % (opponent))
+            print("player_vars: %s", player_vars)
+            print("opponent_vars: %s", opponent_vars)
 
             vars_ok = True
             for (var, value) in required_vars:
                 if ("%s=%d" % (var, 1-value)) in str(player_vars):
                     vars_ok = False
-                    fics_client.tell_to(player, 
-                        'Please execute command "set %s %d" before playing '
-                        'a SnailBucket game and "t snailbot play" again.' %
-                        (var, value))
+                    message = ('Please execute command "set {0} {1}" before playing ' +
+                        'a SnailBucket game and "t snailbot play" again.').format(var, value)
+                    print(message)
+                    fics_client.tell_to(player, message)
                 if ("%s=%d" % (var, 1-value)) in str(opponent_vars):
                     vars_ok = False
-                    fics_client.tell_to(player, 
-                        'Your opponent should execute command "set %s %d" '
-                        'before playing the game.' % (var, value))
+                    message = ('Your opponent should execute command "set {0} {1}" ' +
+                        'before playing the game.').format(var, value)
+                    print(message)
+                    fics_client.tell_to(player, message)
                     fics_client.tell_to(opponent, 
-                        'Please execute command "set %s %d" before playing '
-                        'a SnailBucket game and "t snailbot play" again.' %
-                        (var, value))
+                        'Please execute command "set {0} {1}" before playing ' +
+                        'a SnailBucket game and "t snailbot play" again.'.format(var, value))
 
             print('vars_ok: %s' % str(vars_ok))
             if vars_ok:
                 yield fics_client.run_command("+gnotify %s" % (player.name))
                 color = "white" if player_index == 0 else "black"
-		command = "rmatch %s %s %s %s" % (player_name, opponent, time_control, color)
-		print('running command: %s' % command)
+                command = "rmatch %s %s %s %s" % (player_name, opponent, time_control, color)
+                print('running command: %s' % command)
                 rmatch_res = yield fics_client.run_command(command)
                 my_bot.on_fics_unknown(str(rmatch_res))
 
@@ -460,13 +462,16 @@ class MyBot(
             "Find all info on http://www.snailbucket.org/wiki/TourneyGuide"))
 
     def _notify_ch101(self):
-        self.run_command("t 101 %s" % self.GetChannelMessage())
+      pass
+        #self.run_command("t 101 %s" % self.GetChannelMessage())
 
     def _notify_ch90(self):
-        self.run_command("t 90 %s" % self.GetChannelMessage())
+      pass
+        #self.run_command("t 90 %s" % self.GetChannelMessage())
 
     def _notify_cshout(self):
-        self.run_command("cshout %s" % self.GetChannelMessage())
+      pass
+        #self.run_command("cshout %s" % self.GetChannelMessage())
 
     def on_login(self, my_username):
         print('I am logged as %s, use "tell %s help" to start conversation on '
@@ -537,8 +542,8 @@ class MyBot(
                         m.group("white"), "1970-11-27 14:00:05")
             except Exception as e:
                 print ("GAME START FAILED!!")
-		print(e)
-	else:
+                print(e)
+        else:
             print("Unknown message: %s" % what)
 
 
@@ -547,9 +552,8 @@ class MyBot(
     def on_game_finished(self, game):
         x = yield self.clock_statistician.get_game_data(game.white_name.name)
         self.run_command(
-	    "t 101 Snailbucket game has ended: %s vs. %s -- Round %d: %s {%s}" %
-	    (game.white_name.name, game.black_name.name, x[3], game.result,
-	    game.result_desc))
+                                                "t 101 Snailbucket game has ended: %s vs. %s -- Round %d: %s {%s}" %
+                                                (game.white_name.name, game.black_name.name, x[3], game.result, game.result_desc))
         self.clock_statistician.updateGameStatus(
             game.white_name.name, "2014-11-27 14:00:05")
 
@@ -565,10 +569,9 @@ class MyBot(
             he_page = response.read()
 
         for gm in self.ongoing_games:
-            if gm['white'] == game.white_name.name:
-                our_game = gm
-
-        self.ongoing_games.remove(our_game)
+            if gm['white'] == game.white_name.name and gm['black'] == game.black_name.name:
+                self.ongoing_games.remove(gm)
+                break
 
     def on_logout(self):
         if hasattr(self, '_gamenotify_task'):
