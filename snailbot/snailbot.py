@@ -32,7 +32,7 @@ logger = logging.getLogger("snail")
 from mekk.fics import FICS_HOST, FICS_PORT
 
 FICS_USER='snailbot'
-FICS_PASSWORD='n11urt'
+FICS_PASSWORD=''
 
 FINGER_TEXT = """Snailbot v.20150831 
 
@@ -586,13 +586,25 @@ class MyBot(
 # TODO: --silent with no logging except errors
 
 options, remainders = getopt.getopt(
-    args = sys.argv[1:], shortopts=[], longopts=["debug"])
+    args = sys.argv[1:], shortopts=[], longopts=["debug", "creds="])
 
 if "--debug" in [name for name,_ in options]:
     logging_level = logging.DEBUG
 else:
     #logging_level = logging.WARN
     logging_level = logging.INFO
+
+for (name, value) in options:
+    if name == '--creds':
+    	try:
+	    f = open(value, 'r')
+	    FICS_PASSWORD = f.read().strip()
+	except:
+	    print('Error opening password file: {0}'.format(value))
+	    sys.exit()
+if len(FICS_PASSWORD) == 0:
+    print("Password file path missing on the command-line.")
+    sys.exit()
 
 logging.basicConfig(level=logging_level)
 
