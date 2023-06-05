@@ -31,7 +31,7 @@ logger = logging.getLogger("snail")
 
 from mekk.fics import FICS_HOST, FICS_PORT
 
-FICS_USER='snailbot'
+FICS_USER='guest'
 FICS_PASSWORD=''
 
 FINGER_TEXT = """Snailbot v.20150831 
@@ -265,7 +265,7 @@ class JoinCommand(TellCommand):
 
     def help(self, fics_client):
         return ("Initiates the join to SnailBucket. "
-                "See more at http://snailbucket.org/wiki/FAQ")
+                "See more at https://snailbucket.org/wiki/FAQ")
     
 
 
@@ -562,7 +562,7 @@ class MyBot(
             self.run_command("-gnotify %s" % (game.black_name.name))
             time.sleep(15)
             req = urllib2.Request(
-                'http://snailbucket.org/tourney/updateforums/monthly15:R' + 
+                'https://snailbucket.org/tourney/updateforums/monthly15:R' +
                 str(x[3]) + '_' + str(game.white_name.name) + '-' + 
                 str(game.black_name.name))
             response = urllib2.urlopen(req)

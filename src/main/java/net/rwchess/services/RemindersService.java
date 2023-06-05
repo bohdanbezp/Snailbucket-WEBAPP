@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class RemindersService {
     private TourneyDAO tourneyDAO;
@@ -27,7 +29,7 @@ public class RemindersService {
 
     public static Logger log = Logger.getLogger(RemindersService.class.getName());
 
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     public RemindersService(TourneyDAO tourneyDAO, GameForumPostService gameForumPostService,
                             Mailer mailer, PythonBucketsGenerationService bucketsGenerationService) {
@@ -40,7 +42,7 @@ public class RemindersService {
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("E, MMM d HH:mm");
 
     private static String getCorrectDateFormat(DateTime date) {
-        return formatter.print(date.withZone(DateTimeZone.forID("GMT"))) + " GMT";
+        return formatter.print(date.withZone(DateTimeZone.forID("America/New_York"))) + " America/New_York";
     }
 
     private static final String[] SO = {"Good luck", "Best", "Regards", "Yours Truly", "Thanks", "Thank you",
@@ -106,158 +108,160 @@ public class RemindersService {
                                                 String tdName, String gameForumName) {
         //String signOff = getRandomSignoff();
         String contents = "You play "+color+" against "+against+" in round "+round+" of "+tourneyName+". Please access your Game forum at " +
-                "http://snailbucket.org/tourney/forum/"+gameForumName+" and begin negotiations soon.\n" +
+                "https://snailbucket.org/tourney/forum/"+gameForumName+" and begin negotiations soon.\n" +
                 '\n' +
                 "This is an automatic reminder. Please ask TD "+tdName+" if you have any questions.";
         return contents /*+ "\n\n"+signOff+",\nsnailbot."*/;
     }
 
     public void runService() {
-        executor.submit(new Runnable() {
+        executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                while (true) {
-                    log.debug("Started RemindersService date local: " + new Date());
-                    List<Tournament> tourneys = tourneyDAO.getAllTourneys();
+                log.debug("Started RemindersService date local: " + new Date());
+                List<Tournament> tourneys = tourneyDAO.getAllTourneys();
 
-                    DateTime now = DateTime.now(DateTimeZone.forID("GMT"));
-                    for (Tournament tourney : tourneys) {
-                        DateTime end = new DateTime(tourney.getEndDate(), DateTimeZone.forID("GMT"));
-                        DateTime start = new DateTime(tourney.getStartDate(), DateTimeZone.forID("GMT"));
-                        log.debug("Tourney " + tourney.getShortName() + " starts at " + getCorrectDateFormat(start));
+                DateTime now = DateTime.now(DateTimeZone.forID("America/New_York"));
+                for (Tournament tourney : tourneys) {
+                    DateTime end = new DateTime(tourney.getEndDate(), DateTimeZone.forID("America/New_York"));
+                    DateTime start = new DateTime(tourney.getStartDate(), DateTimeZone.forID("America/New_York"));
+                    log.debug("Tourney " + tourney.getShortName() + " starts at " + getCorrectDateFormat(start));
 
-                        if (now.isAfter(start)) {
-                            LocalDate localDate = now.toLocalDate();
-                            log.debug("localDate.getDayOfWeek() " + localDate.getDayOfWeek());
-                            if (localDate.getDayOfWeek() >= DateTimeConstants.WEDNESDAY &&
-                                    localDate.getDayOfWeek() < DateTimeConstants.SATURDAY) {
-                                DateTime roundStart = now.withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(3).withMinuteOfHour(0);
-                                DateTime initContactDeadline = roundStart.plusDays(2);
-                                DateTime finalContactDeadline = roundStart.plusDays(3);
-                                int round = UsefulMethods.getCurrentRound();
+                    if (now.isAfter(start)) {
+                        LocalDate localDate = now.toLocalDate();
+                        log.debug("localDate.getDayOfWeek() " + localDate.getDayOfWeek());
+                        if (localDate.getDayOfWeek() >= DateTimeConstants.WEDNESDAY &&
+                                localDate.getDayOfWeek() < DateTimeConstants.SATURDAY) {
+                            DateTime roundStart = now.withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(3).withMinuteOfHour(0);
+                            DateTime initContactDeadline = roundStart.plusDays(2);
+                            DateTime finalContactDeadline = roundStart.plusDays(3);
+                            int round = UsefulMethods.getCurrentRound();
 
-                                log.warn("round " + round);
-                                List<Bucket> buckets = bucketsGenerationService.generateBuckets(tourneyDAO.getAllPlayersList(tourney.getShortName()));
-                                List<TournamentGame> gameForums = tourneyDAO.getGamesForRound(tourney.getShortName(), round);
-                                for (TournamentGame game : gameForums) {
-                                    String tdName = UsefulMethods.getBucket(buckets, game).getTd();
-                                    log.warn("game " + game.toString() +  "  " + !game.isFirstReminder());
-                                     if (!game.isFirstReminder()) {
+                            log.warn("round " + round);
+                            List<Bucket> buckets = bucketsGenerationService.generateBuckets(tourneyDAO.getAllPlayersList(tourney.getShortName()));
+                            List<TournamentGame> gameForums = tourneyDAO.getGamesForRound(tourney.getShortName(), round);
+                            for (TournamentGame game : gameForums) {
+                                String tdName = UsefulMethods.getBucket(buckets, game).getTd();
+                                log.warn("game " + game.toString() +  "  " + !game.isFirstReminder());
+                                if (!game.isFirstReminder()) {
 
-                                         if ((game.getWhitePlayer().getAssocMember().getRr() <= 0 ||
-                                                 game.getWhitePlayer().getAssocMember().getGroup() < Member.USER) &&
-                                                 (game.getBlackPlayer().getAssocMember().getRr() <= 0 ||
-                                                         game.getBlackPlayer().getAssocMember().getGroup() < Member.USER)) {
-                                             String message = "Both players are no longer participating in the tournament. The game is set to -:-.";
-                                             gameForumPostService.gameForumPost(game, message, "snailbot(TD)");
-                                             tourneyDAO.updateScheduledDate(game, new Date());
-                                             tourneyDAO.updateResult(game, "-:-");
-                                         }
-                                         else if (game.getWhitePlayer().getAssocMember().getRr() <= 0 ||
-                                                 game.getWhitePlayer().getAssocMember().getGroup() < Member.USER) {
-                                             String message = "Player "+game.getWhitePlayer().getAssocMember().getUsername()
-                                                    +" is no longer participating in the tournament. The game is set to -:+.";
+                                    if ((game.getWhitePlayer().getAssocMember().getRr() <= 0 ||
+                                            game.getWhitePlayer().getAssocMember().getGroup() < Member.USER) &&
+                                            (game.getBlackPlayer().getAssocMember().getRr() <= 0 ||
+                                                    game.getBlackPlayer().getAssocMember().getGroup() < Member.USER)) {
+                                        String message = "Both players are no longer participating in the tournament. The game is set to -:-.";
+                                        gameForumPostService.gameForumPost(game, message, "snailbot(TD)");
+                                        tourneyDAO.updateScheduledDate(game, new Date());
+                                        tourneyDAO.updateResult(game, "-:-");
+                                    }
+                                    else if (game.getWhitePlayer().getAssocMember().getRr() <= 0 ||
+                                            game.getWhitePlayer().getAssocMember().getGroup() < Member.USER) {
+                                        String message = "Player "+game.getWhitePlayer().getAssocMember().getUsername()
+                                                +" is no longer participating in the tournament. The game is set to -:+.";
 
-                                             tourneyDAO.updateScheduledDate(game, new Date());
-                                             gameForumPostService.gameForumPost(game, message, "snailbot(TD)");
-                                             tourneyDAO.updateResult(game, "-:+");
+                                        tourneyDAO.updateScheduledDate(game, new Date());
+                                        gameForumPostService.gameForumPost(game, message, "snailbot(TD)");
+                                        tourneyDAO.updateResult(game, "-:+");
 
-                                         }
-                                         else if (game.getBlackPlayer().getAssocMember().getRr() <= 0 ||
-                                                 game.getBlackPlayer().getAssocMember().getGroup() < Member.USER) {
-                                             String message = "Player "+game.getBlackPlayer().getAssocMember().getUsername()
-                                                     +" is no longer participating in the tournament. The game is set to +:-.";
-                                             tourneyDAO.updateScheduledDate(game, new Date());
-                                             gameForumPostService.gameForumPost(game, message, "snailbot(TD)");
-                                             tourneyDAO.updateResult(game, "+:-");
-                                         }
-                                         else {
-                                             String cont = getFirstContactString("white",
-                                                     game.getBlackPlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),
-                                                     game.getTournament().getFullName(), tdName, game.toString());
+                                    }
+                                    else if (game.getBlackPlayer().getAssocMember().getRr() <= 0 ||
+                                            game.getBlackPlayer().getAssocMember().getGroup() < Member.USER) {
+                                        String message = "Player "+game.getBlackPlayer().getAssocMember().getUsername()
+                                                +" is no longer participating in the tournament. The game is set to +:-.";
+                                        tourneyDAO.updateScheduledDate(game, new Date());
+                                        gameForumPostService.gameForumPost(game, message, "snailbot(TD)");
+                                        tourneyDAO.updateResult(game, "+:-");
+                                    }
+                                    else {
+                                        String cont = getFirstContactString("white",
+                                                game.getBlackPlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),
+                                                game.getTournament().getFullName(), tdName, game.toString());
 
-                                             mailer.sendEmail("snailbot", game.getTournament().getFullName() + " game", cont,
-                                                     game.getWhitePlayer().getAssocMember().getEmail());
+                                        mailer.sendEmail("snailbot", game.getTournament().getFullName() + " game", cont,
+                                                game.getWhitePlayer().getAssocMember().getEmail());
 
-                                             cont = getFirstContactString("black",
-                                                     game.getWhitePlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),
-                                                     game.getTournament().getFullName(), tdName, game.toString());
+                                        cont = getFirstContactString("black",
+                                                game.getWhitePlayer().getAssocMember().getUsername(), UsefulMethods.getCurrentRound(),
+                                                game.getTournament().getFullName(), tdName, game.toString());
 
-                                             mailer.sendEmail("snailbot", game.getTournament().getFullName() + " game", cont,
-                                                     game.getBlackPlayer().getAssocMember().getEmail());
-                                         }
-
-
-                                         //gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-
-                                         tourneyDAO.updateFirstReminderSent(game, true);
-                                         continue;
-                                     }
-
-                                    Duration p = new Duration(now, initContactDeadline);
-                                    int hoursDifference = (int) p.getStandardHours();
-                                    if (hoursDifference <= 18 && !game.isInitContReminderSent()) {
-                                        if (game.getSecheduled() != null)
-                                            continue;
-
-                                        if ((game.getWhiteLastPost() == null
-                                                && game.getBlackLastPost() == null)) {
-                                            String cont = getBothDeadlineString(game.getWhitePlayer().getAssocMember().getUsername(),
-                                                    game.getBlackPlayer().getAssocMember().getUsername(), initContactDeadline);
-                                            gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-                                            tourneyDAO.updateInitContReminderSent(game, true);
-                                        } else if (game.getWhiteLastPost() == null) {
-                                            String cont = getPlayerNotPosted(game.getWhitePlayer().getAssocMember().getUsername(), initContactDeadline,
-                                                    tdName);
-                                            gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-                                            tourneyDAO.updateInitContReminderSent(game, true);
-                                        } else if (game.getBlackLastPost() == null) {
-                                            String cont = getPlayerNotPosted(game.getBlackPlayer().getAssocMember().getUsername(), initContactDeadline,
-                                                    tdName);
-                                            gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-                                            tourneyDAO.updateInitContReminderSent(game, true);
-                                        }
-                                        continue;
+                                        mailer.sendEmail("snailbot", game.getTournament().getFullName() + " game", cont,
+                                                game.getBlackPlayer().getAssocMember().getEmail());
                                     }
 
-                                    p = new Duration(now, finalContactDeadline);
-                                    hoursDifference = (int) p.getStandardHours();
-                                    if (initContactDeadline.isAfter(now) && !game.isFirstReminder()) {
-                                        if (game.getWhiteLastPost() == null) {
-                                            String cont = getPlayerNotPostedFinal(game.getWhitePlayer().getAssocMember().getUsername(), initContactDeadline,
-                                                    tdName);
-                                            gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-                                            tourneyDAO.updateFirstReminderSent(game, true);
-                                        } else if (game.getBlackLastPost() == null) {
-                                            String cont = getPlayerNotPostedFinal(game.getBlackPlayer().getAssocMember().getUsername(), initContactDeadline,
-                                                    tdName);
-                                            gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-                                            tourneyDAO.updateFirstReminderSent(game, true);
-                                        }
-                                    } else if (game.getSecheduled() != null && !game.isPreGameReminderSent() && game.getResult() == null) {
-//                                        Duration p2 = new Duration(now, new DateTime(game.getSecheduled(), DateTimeZone.forID("America/Los_Angeles")));
-//                                        hoursDifference = (int) p2.getStandardHours();
-//                                        if (hoursDifference <= 6) {
-//                                            String cont = getPreGameReminder(new DateTime(game.getSecheduled(), DateTimeZone.forID("America/Los_Angeles")), game.getTournament().getFullName());
-//                                            gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
-//                                            tourneyDAO.updatePreGameReminderSent(game, true);
-//                                        }
+
+                                    //gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
+
+                                    tourneyDAO.updateFirstReminderSent(game, true);
+                                    continue;
+                                }
+
+                                Duration p = new Duration(now, initContactDeadline);
+                                int hoursDifference = (int) p.getStandardHours();
+                                if (hoursDifference <= 18 && !game.isInitContReminderSent()) {
+                                    if (game.getSecheduled() != null)
+                                        continue;
+
+                                    if ((game.getWhiteLastPost() == null
+                                            && game.getBlackLastPost() == null)) {
+                                        String cont = getBothDeadlineString(game.getWhitePlayer().getAssocMember().getUsername(),
+                                                game.getBlackPlayer().getAssocMember().getUsername(), initContactDeadline);
+                                        gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
+                                        tourneyDAO.updateInitContReminderSent(game, true);
+                                    } else if (game.getWhiteLastPost() == null) {
+                                        String cont = getPlayerNotPosted(game.getWhitePlayer().getAssocMember().getUsername(), initContactDeadline,
+                                                tdName);
+                                        gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
+                                        tourneyDAO.updateInitContReminderSent(game, true);
+                                    } else if (game.getBlackLastPost() == null) {
+                                        String cont = getPlayerNotPosted(game.getBlackPlayer().getAssocMember().getUsername(), initContactDeadline,
+                                                tdName);
+                                        gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
+                                        tourneyDAO.updateInitContReminderSent(game, true);
+                                    }
+                                    continue;
+                                }
+
+                                p = new Duration(now, finalContactDeadline);
+                                hoursDifference = (int) p.getStandardHours();
+                                if (initContactDeadline.isAfter(now) && !game.isFirstReminder()) {
+                                    if (game.getWhiteLastPost() == null) {
+                                        String cont = getPlayerNotPostedFinal(game.getWhitePlayer().getAssocMember().getUsername(), initContactDeadline,
+                                                tdName);
+                                        gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
+                                        tourneyDAO.updateFirstReminderSent(game, true);
+                                    } else if (game.getBlackLastPost() == null) {
+                                        String cont = getPlayerNotPostedFinal(game.getBlackPlayer().getAssocMember().getUsername(), initContactDeadline,
+                                                tdName);
+                                        gameForumPostService.gameForumPost(game, cont, "snailbot(TD)");
+                                        tourneyDAO.updateFirstReminderSent(game, true);
+                                    }
+                                } else if (game.getSecheduled() != null && !game.isPreGameReminderSent() && game.getResult() == null) {
+                                    Duration p2 = new Duration(now, new DateTime(game.getSecheduled(), DateTimeZone.forID("America/New_York")));
+                                    int hoursDifference2 = (int) p2.getStandardHours();
+                                    if (hoursDifference2 <= 1) {
+                                        sendOneHourReminder(game);
+                                        tourneyDAO.updatePreGameReminderSent(game, true);
                                     }
                                 }
                             }
                         }
                     }
-
-                    try {
-                        Thread.sleep(3600000);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
                 }
-
             }
-        });
+        }, 0, 5, TimeUnit.MINUTES);
 
 
     }
+
+    private void sendOneHourReminder(TournamentGame game) {
+        String subject = "1-hour reminder: " + game.getTournament().getFullName() + " game";
+        String message = "This is a friendly reminder that you have a game scheduled in the " + game.getTournament().getFullName() +
+                " tournament in 1 hour. Please be prepared to participate.\n\n" +
+                "Game details: " + game.toString() + "\n\n" +
+                "Best of luck!";
+
+        mailer.sendEmail("snailbot", subject, message, game.getWhitePlayer().getAssocMember().getEmail());
+        mailer.sendEmail("snailbot", subject, message, game.getBlackPlayer().getAssocMember().getEmail());
+    }
+
 }

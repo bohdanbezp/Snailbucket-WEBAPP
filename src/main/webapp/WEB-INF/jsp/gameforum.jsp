@@ -37,7 +37,6 @@
                	font-size: 90%;
                }
              </style>
-     <jsp:include page="tracking.jsp"></jsp:include>
 </head>
 <body>
 
@@ -83,8 +82,8 @@
 <p>Local time:</p>
 <object type="application/x-shockwave-flash" height="57" width="78" data="http://www.usflashmap.com/component/flash_clock/flash_clock.swf">
 <param name="allowScriptAccess" value="sameDomain" />
-<param name="movie" value="http://www.usflashmap.com/component/flash_clock/flash_clock.swf" />
-<param name="base" value="http://www.usflashmap.com/component/flash_clock/" />
+<param name="movie" value="https://www.usflashmap.com/component/flash_clock/flash_clock.swf" />
+<param name="base" value="https://www.usflashmap.com/component/flash_clock/" />
 <param name="flashvars" value="
       &gmt=local&
       &dl_start=undefined&
@@ -116,11 +115,11 @@
 <param name="bgcolor" value="#ffffff" />
 </object>
 
-<p>GMT:</p>
+<p>EDT:</p>
 <object type="application/x-shockwave-flash" height="57" width="78" data="http://www.usflashmap.com/component/flash_clock/flash_clock.swf">
 <param name="allowScriptAccess" value="sameDomain" />
-<param name="movie" value="http://www.usflashmap.com/component/flash_clock/flash_clock.swf" />
-<param name="base" value="http://www.usflashmap.com/component/flash_clock/" />
+<param name="movie" value="https://www.usflashmap.com/component/flash_clock/flash_clock.swf" />
+<param name="base" value="https://www.usflashmap.com/component/flash_clock/" />
 <param name="flashvars" value="
       &gmt=0&
       &dl_start=3|2SU|2&
@@ -153,7 +152,7 @@
 </object>
 <br/>
 <table border="1" cellpadding="2" cellspacing="0">
-<tr><th colspan="9">Possibly good times (GMT)</th><th colspan="8" bgcolor="orange">Often bad <a href="/wiki/Generally_Bad_Times">times</a> (yellow)</th><th colspan="8" bgcolor="red">Always bad times (red)</th></tr>
+<tr><th colspan="9">Possibly good times (server time)</th><th colspan="8" bgcolor="orange">Often bad <a href="/wiki/Generally_Bad_Times">times</a> (yellow)</th><th colspan="8" bgcolor="red">Always bad times (red)</th></tr>
 ${badTimes}
 </table>
 <br/>

@@ -216,7 +216,7 @@ public class WikiController {
             if (history.size() == 30) {
                 history.remove(0);
             }
-            DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
+            DateTime zoned = DateTime.now(DateTimeZone.forID("America/New_York"));
             String date = UsefulMethods.formatDateWiki(zoned);
             if (!history.isEmpty() && history.peek().contains(((Member) user).getUsername() + "</a>") &&
                     history.peek().contains(pageName)) {
@@ -273,21 +273,26 @@ public class WikiController {
         }
 
         Member ourM = memberDAO.getMemberByUsername(username);
-        if (ourM == null) {
-            model.addAttribute("title", "Error");
-            model.addAttribute("error", "Please log in to FICS and issue command 't snailbot join' before filling in this form.");
-            return "error";
-        }
-        if (ourM.isConfirmed()) {
+        if (ourM != null) {
             model.addAttribute("title", "Error");
             model.addAttribute("error", "User with username " + username + " already registered and is confirmed.");
             return "error";
         }
         String passwordHash = UsefulMethods.getMD5(password);
 
-        memberDAO.updateWithData(username, passwordHash, country, bad_times, hard_times, timeControlPreferrence, email);
+        ourM = new Member();
+        ourM.setUsername(username);
+        ourM.setPasswordHash(passwordHash);
+        ourM.setConfirmed(false);
+        ourM.setGroup(Member.USER);
+        ourM.setCountry(country.toLowerCase());
+        ourM.setInsist(memberDAO.getInsistData(bad_times, hard_times).toString());
+        ourM.setPreference(timeControlPreferrence);
+        ourM.setEmail(email);
 
-        mailer.sendEmail("notify@snailbucket.org", "Snailbucket registration", "Please follow this link: http://snailbucket.org/wiki/Special:Confirm?username=" + username
+        memberDAO.store(ourM);
+
+        mailer.sendEmail("notify@snailbucket.org", "Snailbucket registration", "Please follow this link: https://snailbucket.org/wiki/Special:Confirm?username=" + username
                 + "&hash=" + passwordHash, email);
 
         model.addAttribute("title", "Sucessful registration");
@@ -384,7 +389,7 @@ public class WikiController {
                 downloadFile.setDescription(description);
 
                 ServletContext context = req.getSession().getServletContext();
-                String absPath = context.getRealPath("/") + "/wikiImg/";
+                String absPath = "/home/bodia/snail/wikiImg/";
                 FileOutputStream out = new FileOutputStream(absPath + fileName);
                 IOUtils.write(data, out);
                 IOUtils.closeQuietly(out);
@@ -423,7 +428,11 @@ public class WikiController {
         if (!pageName.startsWith("Private:")) {
             WikiPage edits = wikiDao.getWikiPageByName("Special:RecentEdits");
 
-            Stack<String> list = edits.getHistory();
+            Stack<String> list = null;
+            if (edits != null) {
+                list = edits.getHistory();
+            }
+
             if (list == null)
                 list = new Stack<String>();
 
@@ -435,7 +444,7 @@ public class WikiController {
             if (history.size() == 50) {
                 history.remove(0);
             }
-            DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
+            DateTime zoned = DateTime.now(DateTimeZone.forID("America/New_York"));
             String date = UsefulMethods.formatDateWiki(zoned);
             if (!history.isEmpty() && history.peek().contains(((Member) user).getUsername() + "</a>") &&
                     history.peek().contains(pageName)) {
@@ -457,7 +466,7 @@ public class WikiController {
     @ResponseBody
     public byte[] wikiImgProcessFile(@PathVariable String fileName, HttpServletRequest request, HttpServletResponse response) {
         ServletContext context = request.getSession().getServletContext();
-        String absPath = context.getRealPath("/") + "/wikiImg/";
+        String absPath = "/home/bodia/snail/wikiImg/";
         String filePath = absPath + fileName;
 
         try {
@@ -490,7 +499,7 @@ public class WikiController {
             history.remove(0);
         }
 
-        DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
+        DateTime zoned = DateTime.now(DateTimeZone.forID("America/New_York"));
         String date = UsefulMethods.formatDateWiki(zoned);
         //history.push(date + " by <a href=\"/members/"+username+"\">"+username+"</a>" );
         history.insertElementAt(date + " by <a href=\"/wiki/User:" + username + "\">" + username + "</a>", 0);

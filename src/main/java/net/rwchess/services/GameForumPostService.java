@@ -34,7 +34,7 @@ public class GameForumPostService {
                               String username) {
         log.info("Posted message to " + game.toString());
 
-        DateTime zoned = DateTime.now(DateTimeZone.forID("GMT"));
+        DateTime zoned = DateTime.now(DateTimeZone.forID("America/New_York"));
         String date = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z").print(zoned);
 
         String text = "<p><b>" + username
@@ -69,7 +69,7 @@ public class GameForumPostService {
 
     public String dateSetPost(String month, String day, String hour, String minute, TournamentGame game) {
         Calendar cld = Calendar.getInstance();
-        cld.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cld.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         cld.set(Calendar.YEAR, cld.get(Calendar.YEAR));
         cld.set(Calendar.MONTH, Integer.parseInt(month) - 1);
         cld.set(Calendar.DAY_OF_MONTH, Integer.parseInt(day));
@@ -82,7 +82,7 @@ public class GameForumPostService {
 
         SimpleDateFormat forumFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm",
                 Locale.US);
-        forumFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+        forumFormatter.setTimeZone(TimeZone.getTimeZone("America/New_York"));
 
         String date = forumFormatter.format(dt);
 

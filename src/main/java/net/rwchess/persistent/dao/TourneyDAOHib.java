@@ -38,6 +38,7 @@ public class TourneyDAOHib implements TourneyDAO {
             session.saveOrUpdate(player);
             transaction.commit();
         } catch (Exception e) {
+            e.printStackTrace();
             transaction.rollback();
         } finally {
             session.close();
@@ -183,14 +184,16 @@ public class TourneyDAOHib implements TourneyDAO {
             query.setParameter("shortName", tourneyShort);
             Tournament tournament = (Tournament) query.list().get(0);
 
-            hql = "FROM TournamentPlayer M WHERE M.assocMember.username = :username";
+            hql = "FROM TournamentPlayer M WHERE M.assocMember.username = :username AND M.tournament = :tournament";
             query = session.createQuery(hql);
             query.setParameter("username", white);
+            query.setParameter("tournament", tournament);
             TournamentPlayer whitePlayer = (TournamentPlayer) query.list().get(0);
 
-            hql = "FROM TournamentPlayer M WHERE M.assocMember.username = :username";
+            hql = "FROM TournamentPlayer M WHERE M.assocMember.username = :username AND M.tournament = :tournament";
             query = session.createQuery(hql);
             query.setParameter("username", black);
+            query.setParameter("tournament", tournament);
             TournamentPlayer blackPlayer = (TournamentPlayer) query.list().get(0);
 
             hql = "FROM TournamentGame M WHERE M.tournament = :tournament and " +
@@ -589,6 +592,6 @@ public class TourneyDAOHib implements TourneyDAO {
     }
 
     public void initTimezone() {
-        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
     }
 }

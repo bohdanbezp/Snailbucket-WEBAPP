@@ -33,7 +33,7 @@
                     	padding: 0 0.8em;
                     	font-size: 90%;
                     }
-                  </style>    <jsp:include page="tracking.jsp"></jsp:include>
+                  </style>    
 </head>
 <body>
 
@@ -70,7 +70,7 @@
 <div class="clear"></div>
 
 	<div id="contents" >
-	<h1 id="contents-header">${tournName } Sign Up</h1>
+	<h1 id="contents-header">${tournName} Sign Up</h1>
 
 
 
@@ -80,7 +80,7 @@
 
         	<br/>
         	<ul>
-               ${signedList }
+               ${signedList}
         	</ul>
 
 <div class="clear"></div>

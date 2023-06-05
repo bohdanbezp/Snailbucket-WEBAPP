@@ -1,16 +1,14 @@
 package net.rwchess.utils;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,33 +19,41 @@ public class SendgridMailer implements Mailer {
 
     static Logger log = Logger.getLogger(SendgridMailer.class.getName());
 
-    private ExecutorService taskExecutor = Executors.newFixedThreadPool(2);
+    private ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
+
+    private JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+
+    public SendgridMailer() {
+        mailSender.setHost("localhost");
+        mailSender.setPort(25);
+    }
 
     @Override
-    public void sendEmail(final String from, final String subject, final String contents, final String to) {
-        //        taskExecutor.execute(new Runnable() {
-//            @Override
-//            public void run() {
-//                HttpClient httpclient = new DefaultHttpClient();
-//                HttpPost get = new HttpPost("https://sendgrid.com/api/mail.send.json");
-//                log.info("Preparing email to " + to);
-//                try {
-//                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-//                    nameValuePairs.add(new BasicNameValuePair("to", to));
-//                    nameValuePairs.add(new BasicNameValuePair("toname", "Member"));
-//                    nameValuePairs.add(new BasicNameValuePair("subject", subject));
-//                    nameValuePairs.add(new BasicNameValuePair("text", contents));
-//                    nameValuePairs.add(new BasicNameValuePair("from", from));
-//                    nameValuePairs.add(new BasicNameValuePair("api_user", ""));
-//                    nameValuePairs.add(new BasicNameValuePair("api_key", ""));
-//                    get.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-//                    HttpResponse r = httpclient.execute(get);
-//                    log.info("Response " + r.toString());
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
+    public void sendEmail(final String fromT, final String subject, final String contents, final String toT) {
+                taskExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try
+                {
+                    System.out.println("TO: " + toT + " Subj: " + subject);
+                    System.out.println("contents: " + contents);
+                    MimeMessagePreparator preparator = new MimeMessagePreparator() {
+                        public void prepare(MimeMessage mimeMessage) throws MessagingException {
+                            mimeMessage.setRecipient(Message.RecipientType.TO,
+                                    new InternetAddress(toT));
+                            mimeMessage.setFrom(new InternetAddress(fromT));
+                            mimeMessage.setSubject(subject);
+                            mimeMessage.setText(contents);
+                        }
+                    };
+
+                    mailSender.send(preparator);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
 }

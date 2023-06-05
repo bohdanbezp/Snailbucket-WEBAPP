@@ -38,7 +38,7 @@ public class WikiImageController {
         Matcher m = scalePatt.matcher(imgName);
 
         ServletContext context = request.getSession().getServletContext();
-        String absPath = context.getRealPath("/") + "/wikiImg/";
+        String absPath = "/home/bodia/snail/wikiImg/";
         String filePath = absPath + imgName;
 
         try {

@@ -24,7 +24,7 @@
                  	padding: 0 0.8em;
                  	font-size: 90%;
                  }
-               </style>  <jsp:include page="tracking.jsp"></jsp:include>
+               </style>  
 </head>
 <body>
 

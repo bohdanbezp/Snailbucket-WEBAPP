@@ -31,4 +31,10 @@ public class Bucket {
     public void setTd(String td) {
         this.td = td;
     }
+
+    public int getNumRounds() {
+        if (playerList.size() == 5) return 4;
+        else if (playerList.size() == 6) return 5;
+        else return 6;
+    }
 }

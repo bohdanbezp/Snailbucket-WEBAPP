@@ -9,23 +9,15 @@
         </property>
         <!-- Assume test is the database name -->
         <property name="hibernate.connection.url">
-            jdbc:mysql://localhost/test_db
+            jdbc:mysql://localhost/test_db?useSSL=false&amp;autoReconnect=true&amp;allowPublicKeyRetrieval=true
         </property>
         <property name="hibernate.connection.username">
             bodia
         </property>
         <property name="hibernate.connection.password">
-            pass
+            Pass123!
         </property>
         <!--<property name="hbm2ddl.auto">create-drop</property>-->
-
-        <property name="hibernate.connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property>
-<property name="hibernate.c3p0.min_size">1</property>
-<property name="hibernate.c3p0.max_size">20</property>
-<property name="hibernate.c3p0.timeout">100</property>
-<property name="hibernate.c3p0.max_statements">50</property>
-<property name="hibernate.c3p0.idle_test_period">1000</property>
-<property name="hibernate.c3p0.validate">true</property>
  
 
         <mapping class="net.rwchess.persistent.Member" />

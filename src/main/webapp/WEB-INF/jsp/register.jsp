@@ -196,7 +196,7 @@
                                                   	font-size: 90%;
                                                   }
                                                 </style>
-</head>                                         <jsp:include page="tracking.jsp"></jsp:include>
+</head>                                         
 <body>
 
 <div id="wiki-page">
@@ -495,7 +495,7 @@
                         <br/>
                         <br/>
                         <hr style="height:1px;border:none;color:#333;background-color:#333;"/>
-                        <p>Below, please mark times (*in GMT*) <a href="/wiki/Generally_Bad_Times">that are bad for you</a> - this will help your opponent schedule the game with you.</p>
+                        <p>Below, please mark times (*in server time*) <a href="/wiki/Generally_Bad_Times">that are bad for you</a> - this will help your opponent schedule the game with you.</p>
 
 
                            <p>The following times are <font color="#C00000">always bad</font> (all 7 days of the week, e.g. sleeping times):</p>

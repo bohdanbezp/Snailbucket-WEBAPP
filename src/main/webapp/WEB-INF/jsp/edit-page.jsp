@@ -62,7 +62,6 @@
                	font-size: 90%;
                }
              </style>
-             <jsp:include page="tracking.jsp"></jsp:include>
 </head>
 <body>
 

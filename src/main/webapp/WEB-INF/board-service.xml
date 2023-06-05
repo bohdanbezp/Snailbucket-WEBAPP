@@ -4,14 +4,14 @@
 http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 
     <bean id="memberDao"
-          class="net.rwchess.persistent.dao.MemberDAOHib" />
+          class="net.rwchess.persistent.dao.MemberDAOHib"/>
 
     <bean id="wikiDao"
-          class="net.rwchess.persistent.dao.WikiPageDAOHib" />
+          class="net.rwchess.persistent.dao.WikiPageDAOHib"/>
 
     <bean id="downDao"
-          class="net.rwchess.persistent.dao.DownloadFileDAOHib" />
+          class="net.rwchess.persistent.dao.DownloadFileDAOHib"/>
 
     <bean id="tourneyDao"
-          class="net.rwchess.persistent.dao.TourneyDAOHib" init-method="initTimezone" />
+          class="net.rwchess.persistent.dao.TourneyDAOHib" init-method="initTimezone"/>
 </beans>

@@ -33,4 +33,6 @@ public interface MemberDAO {
     public void updateInsist(Long key, String badTimes, String hardTimes);
     
     public InsistData getInsistData(String insist);
+
+    InsistData getInsistData(String badTimes, String hardTimes);
 }

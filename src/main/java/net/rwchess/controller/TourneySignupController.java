@@ -11,7 +11,7 @@ import net.rwchess.persistent.dao.TourneyDAO;
 import net.rwchess.services.*;
 import net.rwchess.utils.UsefulMethods;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
@@ -204,37 +204,51 @@ public class TourneySignupController {
 //            }
 //        }
 
-        List<String> greenFont = Arrays.asList("erusin", "mejker", "Relu", "Maxmagnus", "Mahog", "BethanyGrace",
-                "IMOEC");
 
+        Tournament tourney = tourneyDAO.getByShortName(tourneyShortName);
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
 
-        List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
-
-        int iBucket = 0;
-        for (Bucket bucket : buckets) {
-            signedList.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
+        if (tourney.getFullName().contains("Swiss")) {
+            signedList.append("<h2>Players list</h2>");
             signedList.append("<ul>");
-
-            for (TournamentPlayer player : bucket.getPlayerList()) {
+            for (TournamentPlayer player : sorted) {
                 signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(
-                        greenFont.contains(player.getAssocMember().getUsername()) ? "<font color=\"green\">" +player.getAssocMember().getUsername()+"</font>" :
-                                player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
+                        player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
                 if (!(user instanceof String)) {
                     if (player.getAssocMember().getUsername().equals(((Member) user).getUsername()))
                         signedUp = true;
                 }
-
             }
-
             signedList.append("</ul>");
             signedList.append("<br/><br/>");
+        } else {
+            List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
+
+            int iBucket = 0;
+            for (Bucket bucket : buckets) {
+                signedList.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
+                signedList.append("<ul>");
+
+                for (TournamentPlayer player : bucket.getPlayerList()) {
+                    signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(
+                            player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
+                    if (!(user instanceof String)) {
+                        if (player.getAssocMember().getUsername().equals(((Member) user).getUsername()))
+                            signedUp = true;
+                    }
+
+                }
+
+                signedList.append("</ul>");
+                signedList.append("<br/><br/>");
+            }
         }
 
 
-        DateTime today = DateTime.now(DateTimeZone.forID("GMT"));
-        DateTime signupFrom = new DateTime(tournament.getSignupFrom(), DateTimeZone.forID("GMT"));
-        DateTime signupTo = new DateTime(tournament.getSignupTo(), DateTimeZone.forID("GMT"));
+
+        DateTime today = DateTime.now(DateTimeZone.forID("America/New_York"));
+        DateTime signupFrom = new DateTime(tournament.getSignupFrom(), DateTimeZone.forID("America/New_York"));
+        DateTime signupTo = new DateTime(tournament.getSignupTo(), DateTimeZone.forID("America/New_York"));
 
         if (signupFrom.isAfter(today)) {
             signupMessage = "<p>The registration will start at " + UsefulMethods.formatDateWiki(signupFrom) + "</p>";
@@ -346,7 +360,7 @@ public class TourneySignupController {
                     }
                     DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
                     DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
-                    DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("GMT"));
+                    DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York"));
 
                     if (gameDate.isBefore(startDate)) {
                          continue;
@@ -484,7 +498,7 @@ public class TourneySignupController {
                 }
                 DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
                 DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
-                DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("GMT"));
+                DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York"));
 
                 if (gameDate.isBefore(startDate)) {
                     modelMap.addAttribute("title", "Error");
@@ -520,8 +534,8 @@ public class TourneySignupController {
             DateTime now = DateTime.now();
             DateTime dateTime = new DateTime(now.getYear(), Integer.parseInt(req.getParameter("month")),
                     Integer.parseInt(req.getParameter("day")), Integer.parseInt(req.getParameter("hour")),
-                    Integer.parseInt(req.getParameter("minute")), DateTimeZone.forID("GMT"));
-            if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("GMT")))) {
+                    Integer.parseInt(req.getParameter("minute")), DateTimeZone.forID("America/New_York"));
+            if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York")))) {
                 modelMap.addAttribute("title", "Error");
                 modelMap.addAttribute("error", "The date before tourney start.");
                 return "error";
@@ -628,8 +642,8 @@ public class TourneySignupController {
             if (scheduledGame.getSecheduled().getYear() < 100)
                 sched = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
 
-            DateTime now = DateTime.now(DateTimeZone.forID("GMT"));
-            Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("GMT")));
+            DateTime now = DateTime.now(DateTimeZone.forID("America/New_York"));
+            Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("America/New_York")));
             if (p2.getStandardHours() <= 4) {
                 if (p2.getStandardHours() > 0) {
                     String[] arr = DurationFormatUtils.formatDuration(p2.getMillis(), "H#m").split("#");
@@ -675,9 +689,9 @@ public class TourneySignupController {
 
         StringBuilder wikiTable = new StringBuilder();
 
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i <= buckets.get(0).getNumRounds(); i++) {
             List<TournamentGame> games = tourneyDAO.getGamesForRound(shortName, i);
-            if (games == null || games.isEmpty()){
+            if (games == null || games.isEmpty()) {
                 modelMap.addAttribute("title", "Pairings All Rounds");
                 modelMap.addAttribute("error", "No pairings yet.");
                 return "error";
@@ -859,6 +873,7 @@ public class TourneySignupController {
     @RequestMapping(value = "/forum/{forumString}", method = RequestMethod.GET)
     public String tourneyForumGet(@PathVariable String forumString, ModelMap modelMap) {
         TournamentGame game = tourneyDAO.getGameByForumString(forumString);
+        System.out.println("game " + game);
         if (game == null)
             return "not-found";
 
