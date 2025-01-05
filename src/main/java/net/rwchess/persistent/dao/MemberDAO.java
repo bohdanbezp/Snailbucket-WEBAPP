@@ -30,6 +30,8 @@ public interface MemberDAO {
 
     public void updateTimeorder(Long key, String timeOrder);
 
+    void updateCountry(Long key, String country);
+
     public void updateInsist(Long key, String badTimes, String hardTimes);
     
     public InsistData getInsistData(String insist);

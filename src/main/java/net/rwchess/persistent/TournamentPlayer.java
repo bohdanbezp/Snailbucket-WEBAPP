@@ -28,6 +28,9 @@ public class TournamentPlayer {
     @Column(name = "TOURNEY_GROUP")
     private String tourneyGroup;
 
+    @Column(name = "BUCKET")
+    private String bucket;
+
     public Long getKey() {
         return key;
     }
@@ -74,6 +77,14 @@ public class TournamentPlayer {
 
     public void setTourneyGroup(String tourneyGroup) {
         this.tourneyGroup = tourneyGroup;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
     }
 
 

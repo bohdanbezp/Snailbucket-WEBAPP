@@ -32,6 +32,8 @@ http://www.springframework.org/schema/security/spring-security-3.2.xsd">
                        access="hasRole('admin')"/>
         <intercept-url pattern="/tourney/**"
                        access="permitAll"/>
+        <intercept-url pattern="/email/send"
+                       access="hasRole('admin')"/>
 
     </http>
 

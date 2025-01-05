@@ -39,21 +39,10 @@
 
 <div id="wiki-page">
 <div id="wiki-navigation">
-	<div id="logo">
-
-	<jsp:include page="logoArea.jsp"></jsp:include>
-	</div>
-	<br />
-
-	<div id="nav-menu">
-	<jsp:include page="leftMenu.jsp"></jsp:include>
-	</div>
 
 </div>
 <div id="wiki-content">
-   <div id="user-menu1">
-             	<jsp:include page="top-menu.jsp"></jsp:include>
-                 </div>
+
 
 <jsp:include page="reg.jsp"></jsp:include>
 

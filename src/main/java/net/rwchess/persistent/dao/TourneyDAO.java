@@ -24,6 +24,8 @@ public interface TourneyDAO {
 
     public List<TournamentPlayer> getAllPlayersListSorted(String shortName);
 
+    TournamentPlayer getPlayerByName(String username);
+
     public boolean isSignedUp(Member member);
 
     public List<TournamentGame> getGamesForRound(String shortTourneyName, int round);

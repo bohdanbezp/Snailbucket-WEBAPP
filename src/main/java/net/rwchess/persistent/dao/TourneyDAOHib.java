@@ -145,6 +145,39 @@ public class TourneyDAOHib implements TourneyDAO {
     }
 
     @Override
+    public TournamentPlayer getPlayerByName(String username) {
+        Session session = HibernateUtils.getInstance().openSession();
+        Transaction transaction = session.beginTransaction();
+        TournamentPlayer player = null;
+
+        try {
+            // First, find the Member with the given username
+            String memberHql = "FROM Member M WHERE M.username = :username";
+            Query memberQuery = session.createQuery(memberHql);
+            memberQuery.setParameter("username", username);
+            Member member = (Member) memberQuery.uniqueResult(); // Assuming usernames are unique
+
+            if (member != null) {
+                // Now find the TournamentPlayer associated with this Member
+                String playerHql = "FROM TournamentPlayer TP WHERE TP.assocMember = :member";
+                Query playerQuery = session.createQuery(playerHql);
+                playerQuery.setParameter("member", member);
+                player = (TournamentPlayer) playerQuery.uniqueResult();
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+        return player;
+    }
+
+
+    @Override
     public void updateRating(String username, int rating, String tournId) {
         Session session = HibernateUtils.getInstance().openSession();
         Transaction transaction = session.beginTransaction();

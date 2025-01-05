@@ -118,4 +118,19 @@ public class Member implements Serializable {
     public void setRr(int rr) {
         this.rr = rr;
     }
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "key=" + key +
+                ", username='" + username + '\'' +
+                ", group=" + group +
+                ", country='" + country + '\'' +
+                ", confirmed=" + confirmed +
+                ", preference='" + preference + '\'' +
+                ", insist='" + insist + '\'' +
+                ", email='" + email + '\'' +
+                ", rr=" + rr +
+                '}';
+    }
 }

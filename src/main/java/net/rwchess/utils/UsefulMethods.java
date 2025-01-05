@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * Created by bodia on 10/12/14.
@@ -35,6 +36,7 @@ public final class UsefulMethods {
         public boolean isMathtranRenderer() {
             return true;
         }
+        public boolean isNoToc() { return true; }
     };
 
     private static DateTimeFormatter dateFormat;
@@ -263,13 +265,26 @@ public final class UsefulMethods {
                 }
             }
         }
+        if (bestTc.isEmpty()) {
+            bestTc = "45_45";
+        }
         return bestTc;
     }
 
-    public static int getCurrentRound() {
-        DateTime dateTime = new DateTime(2015, 1, 21, 3, 0, DateTimeZone.forID("America/New_York"));
+    public static int getLastRound(List<TournamentGame> games) {
+        int lastRound = 0;
+        for (TournamentGame game : games) {
+            if (game.getRound() > lastRound) {
+                lastRound = game.getRound();
+            }
+        }
+        return lastRound;
+    }
 
-        return Weeks.weeksBetween(dateTime, DateTime.now(DateTimeZone.forID("America/New_York"))).getWeeks() + 1;
+    public static List<TournamentGame> filterGamesByRound(List<TournamentGame> games, int round) {
+        return games.stream()
+                .filter(game -> game.getRound() == round)  // Filter games where round matches
+                .collect(Collectors.toList());  // Collect the results into a List
     }
 
     public static List<String> sortToSortables(String preference) {

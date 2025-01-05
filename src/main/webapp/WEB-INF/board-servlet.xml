@@ -18,16 +18,16 @@
         <constructor-arg ref="memberDao"></constructor-arg>
     </bean>
 
-    <bean id="tourneyController" class="net.rwchess.controller.TourneySignupController"
-          init-method="startRemindersService">
+    <bean id="tourneyController" class="net.rwchess.controller.TourneySignupController">
         <constructor-arg ref="tourneyDao"></constructor-arg>
         <constructor-arg ref="memberDao"></constructor-arg>
         <constructor-arg ref="ratingsService"></constructor-arg>
-        <constructor-arg ref="bucketsGenerator"></constructor-arg>
         <constructor-arg ref="pairingsGenerator"></constructor-arg>
         <constructor-arg ref="gameForumService"></constructor-arg>
         <constructor-arg ref="remindersService"></constructor-arg>
         <constructor-arg ref="standingsGenerator"></constructor-arg>
+        <constructor-arg ref="mailer"></constructor-arg>
+        <constructor-arg ref="tournByeDao"></constructor-arg>
     </bean>
 
 
@@ -51,13 +51,10 @@
         <constructor-arg ref="tourneyDao"></constructor-arg>
         <constructor-arg ref="gameForumService"></constructor-arg>
         <constructor-arg ref="mailer"></constructor-arg>
-        <constructor-arg ref="bucketsGenerator"></constructor-arg>
     </bean>
 
     <bean id="imageScaler" class="net.rwchess.utils.ImageMagickImageScaler"/>
     <bean id="mailer" class="net.rwchess.utils.SendgridMailer"/>
-    <bean id="bucketsGenerator" class="net.rwchess.services.PythonBucketsGenerationService">
-    </bean>
     <bean id="pairingsGenerator" class="net.rwchess.services.PythonPairingsService">
     </bean>
 
@@ -66,6 +63,10 @@
 
     <bean id="ratingsService" class="net.rwchess.services.CheckRatingsService">
         <constructor-arg ref="tourneyDao"></constructor-arg>
+    </bean>
+
+    <bean id="emailManagementController" class="net.rwchess.controller.EmailManagementController">
+        <constructor-arg ref="mailer"></constructor-arg>
     </bean>
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">

@@ -7,8 +7,10 @@ import chesspresso.pgn.PGNSyntaxError;
 import net.rwchess.persistent.*;
 import net.rwchess.persistent.dao.InsistData;
 import net.rwchess.persistent.dao.MemberDAO;
+import net.rwchess.persistent.dao.TournByeDAO;
 import net.rwchess.persistent.dao.TourneyDAO;
 import net.rwchess.services.*;
+import net.rwchess.utils.Mailer;
 import net.rwchess.utils.UsefulMethods;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -21,9 +23,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -33,6 +39,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static net.rwchess.utils.UsefulMethods.getLastRound;
 
 @Controller
 @RequestMapping("/tourney")
@@ -41,26 +50,30 @@ public class TourneySignupController {
     private TourneyDAO tourneyDAO;
     private MemberDAO memberDAO;
     private CheckRatingsService ratingsService;
-    private PythonBucketsGenerationService bucketsGenerationService;
     private PythonPairingsService pairingsService;
     private GameForumPostService gameForumPostService;
     private RemindersService remindersService;
     private PythonStandingsService standingsService;
+    private final Mailer mailService;
+    private final TournByeDAO tournByeDAO;
 
     private static SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy h:mm");
 
     public TourneySignupController(TourneyDAO tourneyDAO, MemberDAO memberDAO, CheckRatingsService ratingsService,
-                                   PythonBucketsGenerationService bucketsGenerationService,
                                    PythonPairingsService pairingsService, GameForumPostService gameForumPostService,
-                                   RemindersService remindersService, PythonStandingsService standingsService) {
+                                   RemindersService remindersService, PythonStandingsService standingsService,
+                                   Mailer mailService, TournByeDAO tournByeDAO) {
         this.tourneyDAO = tourneyDAO;
         this.memberDAO = memberDAO;
         this.ratingsService = ratingsService;
-        this.bucketsGenerationService = bucketsGenerationService;
         this.pairingsService = pairingsService;
         this.gameForumPostService = gameForumPostService;
         this.remindersService = remindersService;
         this.standingsService = standingsService;
+        this.mailService = mailService;
+        this.tournByeDAO = tournByeDAO;
+        startRemindersService();
+        System.out.println("TourneySignupController constructor remindersService");
     }
 
     void startRemindersService() {
@@ -74,7 +87,11 @@ public class TourneySignupController {
     }
 
     @RequestMapping(value = "/manage/{tourneyShortName}", method = RequestMethod.POST)
-    public String tourneyManagePost(@PathVariable String tourneyShortName, @RequestParam(value = "submType") String submitVal, ModelMap modelMap) {
+    public String tourneyManagePost(@PathVariable String tourneyShortName,
+                                    @RequestParam(value = "submType") String submitVal,
+                                    @RequestParam(value = "pairingsFile", required = false) MultipartFile pairingsFile,
+                                    ModelMap modelMap,
+                                    HttpSession session) {
         if (submitVal.startsWith("Update ratings")) {
             ratingsService.checkRatings(tourneyShortName);
 
@@ -88,56 +105,90 @@ public class TourneySignupController {
 
             Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
+            List<TournamentGame> games = new ArrayList<>();
+            List<TournBye> byes = new ArrayList<>();
+            List<TournamentGame> existingGames = tourneyDAO.getGamesForTourney(tourneyShortName);
+            Tournament tournament = tourneyDAO.getByShortName(tourneyShortName);
 
-            List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
+            int lastRound = getLastRound(existingGames);
+            if (pairingsFile != null && !pairingsFile.isEmpty()) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(pairingsFile.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        // Skip headers or any line that doesn't start with a board number
+                        if (line.length() > 0 && Character.isDigit(line.charAt(0))) {
+                            // Split the line into parts
+                            String[] parts = line.split(";");
 
-            int lastRound = 0;
-            Random random = new Random((long) user.getUsername().hashCode());
-            for (Bucket bucket : buckets) {
-                body.append("<h2>Bucket ").append(bucket.getName()).append("</h2><br/>");
-                List<TournamentGame> games = pairingsService.allRoundsGame(bucket, tourneyDAO.getByShortName(tourneyShortName), random);
-                for (TournamentGame game : games) {
-                    if (game.getRound() != lastRound) {
-                        if (lastRound != 0)
-                            body.append("</ul>");
+                            // Extract data from the parsed parts
+                            String player1Name = parts[4];
+                            String player2Name = parts[17];
+                            int round = lastRound+1;
+                            if (player1Name.equals("BYE")) {
+                                TournamentPlayer player2 = findPlayerByName(sorted, player2Name);
+                                TournBye tournBye = new TournBye(tournament, round, player2, "FULL");
+                                body.append("<li>").append(tournBye.toString()).append("</li>");
+                                byes.add(tournBye);
+                            } else if (player2Name.equals("BYE")) {
+                                TournamentPlayer player1 = findPlayerByName(sorted, player1Name);
+                                TournBye tournBye = new TournBye(tournament, round, player1, "FULL");
+                                body.append("<li>").append(tournBye.toString()).append("</li>");
+                                byes.add(tournBye);
+                            } else {
+                                TournamentPlayer player1 = findPlayerByName(sorted, player1Name);
+                                TournamentPlayer player2 = findPlayerByName(sorted, player2Name);
 
-                        body.append("<h3>Round ").append(game.getRound()).append("</h3><br/>");
-                        body.append("<ul>");
-
-                        lastRound = game.getRound();
+                                if (player1 != null && player2 != null) {
+                                    TournamentGame game = new TournamentGame();
+                                    game.setWhitePlayer(player1);
+                                    game.setBlackPlayer(player2);
+                                    game.setTournament(tourneyDAO.getByShortName(tourneyShortName));
+                                    game.setRound(round);
+                                    games.add(game);
+                                    body.append("<li>").append(game.toString()).append("</li>");
+                                }
+                            }
+                        }
                     }
-
-                    body.append("<li>").append(game.toString()).append("</li>");
+                } catch (IOException e) {
+                    modelMap.addAttribute("title", "Error");
+                    modelMap.addAttribute("error", "Failed to process the pairings file. Please try again.");
+                    return "error";
                 }
-                body.append("</ul><br/>");
-
-
+            } else {
+                body.append("<p>No pairings file uploaded.</p>");
             }
+
+            body.append("</ul><br/>");
+
+            session.setAttribute("games", games);
+            session.setAttribute("byes", byes);
+
             modelMap.addAttribute("title", "Notice");
             modelMap.addAttribute("error", body.toString());
             return "error";
         } else if (submitVal.startsWith("Save pairings")) {
-            if (tourneyDAO.tourneyHasPairings(tourneyShortName)) {
-                modelMap.addAttribute("title", "Error");
-                modelMap.addAttribute("error", "<p>Somebody has already created pairings for the tourney.</p>");
-                return "error";
+//            if (tourneyDAO.tourneyHasPairings(tourneyShortName)) {
+//                modelMap.addAttribute("title", "Error");
+//                modelMap.addAttribute("error", "<p>Somebody has already created pairings for the tourney.</p>");
+//                return "error";
+//            }
+
+            List<TournamentGame> games = (List<TournamentGame>) session.getAttribute("games");
+            List<TournBye> byes = (List<TournBye>) session.getAttribute("byes");
+            System.out.println("Games size: " + games.size());
+
+            for (TournamentGame game : games) { // Assuming games is a class-level or method-level variable holding the pairings
+                System.out.println("GAME: " + game);
+                tourneyDAO.storeGame(game);
             }
 
-            Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
-
-            List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
-
-            Random random = new Random((long) user.getUsername().hashCode());
-            for (Bucket bucket : buckets) {
-
-                List<TournamentGame> games = pairingsService.allRoundsGame(bucket, tourneyDAO.getByShortName(tourneyShortName), random);
-                for (TournamentGame game : games) {
-                    tourneyDAO.storeGame(game);
-                }
-
+            int round = games.get(0).getRound();
+            for (TournBye bye: byes) {
+                TournamentPlayer player = bye.getPlayer();
+                mailService.sendEmail("notify@snailbucket.org", "SB Rapid 1: Round " + round + " BYE", getByeMessage(round), player.getAssocMember().getEmail());
+                tournByeDAO.store(bye);
             }
-
 
             modelMap.addAttribute("title", "Notice");
             modelMap.addAttribute("error", "<p>The pairings have been created. Consult TD guide to find links to pairings.</p>");
@@ -145,6 +196,67 @@ public class TourneySignupController {
         }
         return "not-found";
     }
+
+    private static String getByeMessage(int round) {
+        return "You have a BYE in round " + round + " of the SB Rapid 1.";
+    }
+
+
+    private TournamentPlayer findPlayerByName(List<TournamentPlayer> players, String name) {
+        for (TournamentPlayer player : players) {
+            if (player.getAssocMember().getUsername().equalsIgnoreCase(name)) {
+                return player;
+            }
+        }
+        return null; // Return null if no player with the given name is found.
+    }
+
+    /**
+     * Displays an HTML form that lets the TD enter text-based pairings.
+     * Submits (POST) to the existing `/manage/{tourneyShortName}/text-input` endpoint.
+     */
+    @RequestMapping(value = "/manage/{tourneyShortName}/text-input", method = RequestMethod.GET)
+    public String createTextPairingsForm(@PathVariable String tourneyShortName,
+                                         ModelMap modelMap) {
+        Tournament tournament = tourneyDAO.getByShortName(tourneyShortName);
+        if (tournament == null) {
+            modelMap.addAttribute("title", "Error");
+            modelMap.addAttribute("error", "Tournament not found: " + tourneyShortName);
+            return "error";
+        }
+
+        // Build a small HTML form that the user can fill out in the browser.
+        // This is just a demo of embedding HTML inside a String.
+        // In a real app, you might use a .jsp or .thymeleaf template instead.
+        StringBuilder formHtml = new StringBuilder();
+        formHtml.append("<h2>Create Text-Based Pairings for Tournament: ")
+                .append(tourneyShortName).append("</h2>");
+        formHtml.append("<p>Enter pairings line-by-line in the following format:</p>");
+        formHtml.append("<ul>");
+        formHtml.append("  <li><code>PLAYER1 - PLAYER2</code> for a game</li>");
+        formHtml.append("  <li><code>PLAYER1 BYE</code> for a full bye (1 point)</li>");
+        formHtml.append("  <li><code>PLAYER1 HALF_BYE</code> for a half-bye (0.5 point)</li>");
+        formHtml.append("</ul>");
+
+        // The form will POST back to the same path, but method=POST
+        formHtml.append("<form method=\"post\" action=\"/tourney/manage/")
+                .append(tourneyShortName).append("/text-input\">")
+                .append("    <br/><br/>")
+                .append("    <textarea name=\"inputText\" rows=\"10\" cols=\"60\" placeholder=\"e.g.\n")
+                .append("Technetium - AsDaGo\n")
+                .append("Maras BYE\n")
+                .append("mindlin HALF_BYE\n")
+                .append("...\"></textarea>")
+                .append("    <br/><br/>")
+                .append("    <input type=\"submit\" value=\"Create Pairings\"/>")
+                .append("</form>");
+
+        // Put our form in the "error" attribute to reuse your "error" template
+        modelMap.addAttribute("title", "Text-Based Pairings");
+        modelMap.addAttribute("error", formHtml.toString());
+        return "error";
+    }
+
 
     @RequestMapping(value = "/manage/{tourneyShortName}", method = RequestMethod.GET)
     public String tourneyManageGet(@PathVariable String tourneyShortName, ModelMap modelMap) {
@@ -155,29 +267,33 @@ public class TourneySignupController {
 
         if (user.getGroup() >= Member.ADMIN) {
             if (currTourney.getSignupTo().after(new Date())) {
-                body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Update ratings\"></form><br/><br/>");
+                body.append("<form name=\"input\" action=\"\" method=\"post\" enctype=\"multipart/form-data\">")
+                        .append("<input name=\"submType\" type=\"submit\" value=\"Update ratings\">")
+                        .append("</form><br/><br/>");
             }
 
-            body.append("<form name=\"input\" action=\"\" method=\"post\"><input name=\"submType\" type=\"submit\" value=\"Create pairings\"></form><br/><br/>");
+            // Form to create pairings and upload CSV file
+            body.append("<form name=\"input\" action=\"\" method=\"post\" enctype=\"multipart/form-data\">\n" +
+                    "    <input type=\"hidden\" name=\"submType\" value=\"Create pairings\">\n" +
+                    "    <input type=\"file\" name=\"pairingsFile\" accept=\".csv\" required>\n" +
+                    "    <input type=\"submit\" value=\"Create pairings\">\n" +
+                    "</form>\n" +
+                    "<br/><br/>\n");
         }
 
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
 
-        List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
+        // Removed bucket generation and listed all players in a single space
+        body.append("<h3>All Players</h3><br/>");
+        body.append("<ul>");
 
-        int iBucket = 0;
-        for (Bucket bucket : buckets) {
-            body.append("<h3>Bucket ").append(bucket.getName()).append("</h3><br/>");
-            body.append("<ul>");
-
-            for (TournamentPlayer player : bucket.getPlayerList()) {
-                body.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
-
-            }
-
-            body.append("</ul>");
-            body.append("<br/><br/>");
+        for (TournamentPlayer player : sorted) {
+            body.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ")
+                    .append(player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
         }
+
+        body.append("</ul>");
+        body.append("<br/><br/>");
 
         modelMap.addAttribute("title", "Manage " + tourneyShortName);
         modelMap.addAttribute("error", body.toString());
@@ -187,65 +303,68 @@ public class TourneySignupController {
     @RequestMapping(value = "/signup/{tourneyShortName}", method = RequestMethod.GET)
     public String tourneySignupGet(@PathVariable String tourneyShortName, ModelMap modelMap) {
         Tournament tournament = tourneyDAO.getByShortName(tourneyShortName);
-        if (tournament == null)
+        if (tournament == null) {
             return "not-found";
+        }
 
-        String signupMessage;
         Object user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         boolean signedUp = false;
 
-        StringBuilder signedList = new StringBuilder();
-//        List<TournamentPlayer> playerList = tourneyDAO.getAllPlayersList(tourneyShortName);
-//        for (TournamentPlayer player: playerList) {
-//            signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(player.getAssocMember().getUsername()).append("</li>");
-//            if (!(user instanceof String)) {
-//               if (player.getAssocMember().getUsername().equals(((Member) user).getUsername()))
-//                   signedUp = true;
-//            }
-//        }
-
-
-        Tournament tourney = tourneyDAO.getByShortName(tourneyShortName);
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
+        boolean allBucketsNull = sorted.stream().allMatch(player -> player.getBucket() == null);
 
-        if (tourney.getFullName().contains("Swiss")) {
-            signedList.append("<h2>Players list</h2>");
+        StringBuilder signedList = new StringBuilder("<h2>Players list</h2>");
+
+        if (allBucketsNull) {
             signedList.append("<ul>");
             for (TournamentPlayer player : sorted) {
-                signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(
-                        player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
+                signedList.append("<li><img src=\"/static/images/flags/")
+                        .append(player.getAssocMember().getCountry())
+                        .append(".png\" border=\"0\"> ")
+                        .append(player.getAssocMember().getUsername())
+                        .append(' ')
+                        .append(player.getFixedRating())
+                        .append("</li>");
                 if (!(user instanceof String)) {
-                    if (player.getAssocMember().getUsername().equals(((Member) user).getUsername()))
+                    if (player.getAssocMember().getUsername().equalsIgnoreCase(((Member) user).getUsername())) {
                         signedUp = true;
+                    }
                 }
             }
             signedList.append("</ul>");
-            signedList.append("<br/><br/>");
         } else {
-            List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
-
-            int iBucket = 0;
-            for (Bucket bucket : buckets) {
-                signedList.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
+            Map<String, List<TournamentPlayer>> bucketMap = new LinkedHashMap<>();
+            for (TournamentPlayer player : sorted) {
+                String bucket = (player.getBucket() != null) ? player.getBucket() : "No bucket";
+                bucketMap.putIfAbsent(bucket, new ArrayList<>());
+                bucketMap.get(bucket).add(player);
+            }
+            for (Map.Entry<String, List<TournamentPlayer>> entry : bucketMap.entrySet()) {
+                String bucketName = entry.getKey();
+                List<TournamentPlayer> playersInBucket = entry.getValue();
+                signedList.append("<h3>").append(bucketName).append("</h3>");
                 signedList.append("<ul>");
-
-                for (TournamentPlayer player : bucket.getPlayerList()) {
-                    signedList.append("<li><img src=\"/static/images/flags/").append(player.getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(
-                            player.getAssocMember().getUsername()).append(' ').append(player.getFixedRating()).append("</li>");
+                for (TournamentPlayer player : playersInBucket) {
+                    signedList.append("<li><img src=\"/static/images/flags/")
+                            .append(player.getAssocMember().getCountry())
+                            .append(".png\" border=\"0\"> ")
+                            .append(player.getAssocMember().getUsername())
+                            .append(' ')
+                            .append(player.getFixedRating())
+                            .append("</li>");
                     if (!(user instanceof String)) {
-                        if (player.getAssocMember().getUsername().equals(((Member) user).getUsername()))
+                        if (((Member) user).getUsername().equalsIgnoreCase(player.getAssocMember().getUsername())) {
                             signedUp = true;
+                        }
                     }
-
                 }
-
                 signedList.append("</ul>");
-                signedList.append("<br/><br/>");
             }
         }
 
+        signedList.append("<br/><br/>");
 
-
+        String signupMessage;
         DateTime today = DateTime.now(DateTimeZone.forID("America/New_York"));
         DateTime signupFrom = new DateTime(tournament.getSignupFrom(), DateTimeZone.forID("America/New_York"));
         DateTime signupTo = new DateTime(tournament.getSignupTo(), DateTimeZone.forID("America/New_York"));
@@ -260,10 +379,10 @@ public class TourneySignupController {
             } else if (!signedUp) {
                 signupMessage = "<p>Please read the tourney guide before signing up.</p>\n" +
                         "<form id=\"Sign\" action=\"\" method=\"post\">\n" +
-                        "               <p>\n" +
-                        "            <input id=\"SaveAccount\" type=\"submit\" value=\"Sign up to tourney\" />\n" +
-                        "        </p>\n" +
-                        "        </form>";
+                        "    <p>\n" +
+                        "       <input id=\"SaveAccount\" type=\"submit\" value=\"Sign up to tourney\" />\n" +
+                        "    </p>\n" +
+                        "</form>";
             } else {
                 signupMessage = "<p>You are already signed up to the tourney</p>";
             }
@@ -274,6 +393,8 @@ public class TourneySignupController {
         modelMap.addAttribute("signedList", signedList.toString());
         return "signup";
     }
+
+
 
     @RequestMapping(value = "/players", method = RequestMethod.POST)
     public String tourneyPlayersPost(@RequestParam(value = "submit") String submitVal, ModelMap modelMap, HttpServletRequest req) {
@@ -313,7 +434,7 @@ public class TourneySignupController {
         try {
             TournamentGame game = tourneyDAO.getGameByForumString(forumString);
 
-            URL urll = new URL("http://www.ficsgames.org/cgi-bin/search.cgi?player="+game.getBlackPlayer().getAssocMember().getUsername()+"&action=History");
+            URL urll = new URL("https://www.ficsgames.org/cgi-bin/search.cgi?player="+game.getBlackPlayer().getAssocMember().getUsername()+"&action=History");
             URLConnection con = urll.openConnection();
             InputStream inn = con.getInputStream();
             String encoding = con.getContentEncoding();
@@ -321,7 +442,7 @@ public class TourneySignupController {
             String body = IOUtils.toString(inn, encoding);
             Matcher m = ficsGamesLinkMod.matcher(body);
             while (m.find()) {
-                String s = "http://www.ficsgames.org" + m.group(0);
+                String s = "https://www.ficsgames.org" + m.group(0);
 
                 URL url = new URL(s);
                 String pgn = IOUtils.toString(new InputStreamReader(
@@ -354,8 +475,10 @@ public class TourneySignupController {
                     ga.setTag("Event", game.getTournament().getFullName());
                     result = ga.getResultStr();
 
-                    if (!ga.getWhite().equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername()) ||
-                            !ga.getBlack().equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
+                    String whiteNameFromGame = ga.getWhite().replaceAll("\\(.*?\\)", "");
+                    String blackNameFromGame = ga.getBlack().replaceAll("\\(.*?\\)", "");
+                    if (!whiteNameFromGame.equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername()) ||
+                            !blackNameFromGame.equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
                          continue;
                     }
                     DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
@@ -386,6 +509,156 @@ public class TourneySignupController {
         modelMap.addAttribute("title", "Error");
         modelMap.addAttribute("error", "Not Set.");
         return "error";
+    }
+
+    @RequestMapping(value = "/manage/{tourneyShortName}/text-input", method = RequestMethod.POST)
+    public String createTextPairings(@PathVariable String tourneyShortName,
+                                     @RequestParam(value = "round", required = false) Integer specifiedRound,
+                                     @RequestParam(value = "inputText") String inputText,
+                                     ModelMap modelMap,
+                                     HttpSession session) {
+
+        // 1) Fetch the tournament
+        Tournament tournament = tourneyDAO.getByShortName(tourneyShortName);
+        if (tournament == null) {
+            modelMap.addAttribute("title", "Error");
+            modelMap.addAttribute("error", "Tournament not found: " + tourneyShortName);
+            return "error";
+        }
+
+        // 2) Get existing games to figure out lastRound
+        List<TournamentGame> existingGames = tourneyDAO.getGamesForTourney(tourneyShortName);
+        int lastRound = getLastRound(existingGames);
+        int roundToCreate = (specifiedRound != null) ? specifiedRound : (lastRound + 1);
+
+        // 3) Retrieve all players
+        List<TournamentPlayer> allPlayers = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
+
+        // 4) Prepare containers for the new games/byes
+        List<TournamentGame> newGames = new ArrayList<>();
+        List<TournBye> newByes = new ArrayList<>();
+
+        // 5) Prepare a list to collect errors
+        List<String> parseErrors = new ArrayList<>();
+
+        // 6) Parse input text line-by-line
+        String[] lines = inputText.split("\\r?\\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) {
+                continue; // skip blank lines
+            }
+
+            // Check if it's a game line: "PLAYER1 - PLAYER2"
+            if (line.contains(" - ")) {
+                // e.g. "PlayerA - PlayerB"
+                String[] parts = line.split("-", 2); // split only once
+                if (parts.length != 2) {
+                    parseErrors.add("Invalid game line (missing dash): " + line);
+                    continue;
+                }
+                String player1Name = parts[0].trim();
+                String player2Name = parts[1].trim();
+
+                TournamentPlayer white = findPlayerByName(allPlayers, player1Name);
+                TournamentPlayer black = findPlayerByName(allPlayers, player2Name);
+
+                if (white == null || black == null) {
+                    parseErrors.add("Cannot find player(s) in line: " + line);
+                    continue;
+                }
+
+                // Create a new game
+                TournamentGame game = new TournamentGame();
+                game.setWhitePlayer(white);
+                game.setBlackPlayer(black);
+                game.setTournament(tournament);
+                game.setRound(roundToCreate);
+                newGames.add(game);
+
+            } else {
+                // Could be "PLAYER1 BYE" or "PLAYER1 HALF_BYE"
+                String[] parts = line.split("\\s+");
+                if (parts.length < 2) {
+                    parseErrors.add("Invalid bye line (missing token): " + line);
+                    continue;
+                }
+
+                // Last token is either BYE or HALF_BYE
+                String lastToken = parts[parts.length - 1].trim().toUpperCase();
+                // The rest is the player's name
+                String playerName = String.join(" ",
+                        Arrays.copyOf(parts, parts.length - 1)).trim();
+
+                TournamentPlayer player = findPlayerByName(allPlayers, playerName);
+                if (player == null) {
+                    parseErrors.add("Cannot find player in line: " + line);
+                    continue;
+                }
+
+                String byeType;
+                if ("BYE".equals(lastToken)) {
+                    byeType = "FULL";
+                } else if ("HALF_BYE".equals(lastToken)) {
+                    byeType = "HALF";
+                } else {
+                    parseErrors.add("Unrecognized bye type (must be BYE or HALF_BYE) in line: " + line);
+                    continue;
+                }
+
+                TournBye tournBye = new TournBye(tournament, roundToCreate, player, byeType);
+                newByes.add(tournBye);
+            }
+        }
+
+        // 7) Check if there were any parse errors
+        if (!parseErrors.isEmpty()) {
+            // We do NOT store anything if there's at least one error.
+            StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append("<h3>Failed to create pairings due to errors:</h3>");
+            errorMsg.append("<ul>");
+            for (String err : parseErrors) {
+                errorMsg.append("<li>").append(err).append("</li>");
+            }
+            errorMsg.append("</ul>");
+            errorMsg.append("<p>Please correct these lines and try again.</p>");
+
+            modelMap.addAttribute("title", "Error Parsing Pairings");
+            modelMap.addAttribute("error", errorMsg.toString());
+            return "error";
+        }
+
+        // 8) If no errors, store the new games and byes in the DB
+        for (TournamentGame g : newGames) {
+            tourneyDAO.storeGame(g);
+        }
+        for (TournBye b : newByes) {
+            tournByeDAO.store(b);
+        }
+
+        // 9) Build a success message
+        StringBuilder msg = new StringBuilder();
+        msg.append("<h3>Successfully created round ")
+                .append(roundToCreate)
+                .append(" pairings:</h3>")
+                .append("<ul>");
+        for (TournamentGame g : newGames) {
+            msg.append("<li>Game: ")
+                    .append(g.getWhitePlayer().getAssocMember().getUsername())
+                    .append(" - ")
+                    .append(g.getBlackPlayer().getAssocMember().getUsername())
+                    .append("</li>");
+        }
+        for (TournBye b : newByes) {
+            msg.append("<li>Bye: ")
+                    .append(b.getPlayer().getAssocMember().getUsername())
+                    .append(" (").append(b.getByeType()).append(")</li>");
+        }
+        msg.append("</ul>");
+
+        modelMap.addAttribute("title", "Text Pairings Created");
+        modelMap.addAttribute("error", msg.toString());  // reusing "error" for the display
+        return "error";  // or your own template
     }
 
     @RequestMapping(value = "/players", method = RequestMethod.GET)
@@ -432,93 +705,136 @@ public class TourneySignupController {
         return "error";
     }
 
-    Pattern ficsGamesLink = Pattern.compile("http:\\/\\/(www\\.)?ficsgames\\.org\\/cgi-bin\\/show\\.cgi\\?ID=[0-9]+;action=save");
+    Pattern ficsGamesLink = Pattern.compile("https:\\/\\/(www\\.)?ficsgames\\.org\\/cgi-bin\\/show\\.cgi\\?ID=[0-9]+;action=save");
 
     @RequestMapping(value = "/forum/{forumString}", method = RequestMethod.POST)
-    public String tourneyForumPost(@PathVariable String forumString, ModelMap modelMap, HttpServletRequest req) throws Exception {
+    public String tourneyForumPost(@PathVariable String forumString, ModelMap modelMap, @RequestParam Map<String, String> params) throws Exception {
         TournamentGame game = tourneyDAO.getGameByForumString(forumString);
         if (game == null)
             return "not-found";
 
 
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (game.getRound() > UsefulMethods.getCurrentRound()) {
-            modelMap.addAttribute("title", "Error");
-            modelMap.addAttribute("error", "You cannot negotiate about next round yet.");
-            return "error";
-        }
+//        if (game.getRound() > UsefulMethods.getCurrentRound()) {
+//            modelMap.addAttribute("title", "Error");
+//            modelMap.addAttribute("error", "You cannot negotiate about next round yet.");
+//            return "error";
+//        }
 
-        String content = req.getParameter("contents");
+        String content = params.get("contents");
+        String buttonName = params.get("name");
 
-        Matcher matcher = ficsGamesLink.matcher(content);
-        if (matcher.matches()) {
-            if (game.getResult() != null) {
-                modelMap.addAttribute("title", "Error");
-                modelMap.addAttribute("error", "The result of the game has already been set.");
-                return "error";
+        if (buttonName.equals("Submit text")) {
+            Matcher matcher = ficsGamesLink.matcher(content);
+            List<String> links = new ArrayList<>();
+
+// Find all matching links and add them to the list
+            while (matcher.find()) {
+                links.add(matcher.group());
             }
 
+            if (links.size() > 0) {
+                StringBuilder pngs = new StringBuilder();
 
-            URL url = new URL(matcher.group());
-            String pgn = IOUtils.toString(new InputStreamReader(
-                    url.openStream()));
+                int whiteWins = 0;
+                int blackWins = 0;
+                int draws = 0;
 
-            boolean in = false;
-            char last = ' ';
-            StringBuilder buff = new StringBuilder();
-            for (char c : pgn.toCharArray()) {
-                if (c == ']' && in)
-                    in = false;
+                String expectedWhitePlayer = game.getWhitePlayer().getAssocMember().getUsername();
+                String expectedBlackPlayer = game.getBlackPlayer().getAssocMember().getUsername();
 
-                if (in)
-                    continue;
+                for (String link : links) {
+                    URL url = new URL(link);
+                    String pgn = IOUtils.toString(new InputStreamReader(url.openStream()));
 
-                if (c == '[' && last == '{')
-                    in = true;
+                    boolean in = false;
+                    char last = ' ';
+                    StringBuilder buff = new StringBuilder();
+                    for (char c : pgn.toCharArray()) {
+                        if (c == ']' && in) in = false;
+                        if (in) continue;
+                        if (c == '[' && last == '{') in = true;
+                        last = c;
+                        buff.append(c);
+                    }
+                    pgn = buff.toString().replace("{[]}", "");
+                    pngs.append('\n');
+                    pngs.append(pgn);
 
-                last = c;
-                buff.append(c);
-            }
-            pgn = buff.toString().replace("{[]}", "");
+                    PGNReader reader = new PGNReader(IOUtils.toInputStream(pgn), game.getTournament().getShortName() + ".pgn");
+                    Game ga;
+                    try {
+                        ga = reader.parseGame();
+                    } catch (PGNSyntaxError e) {
+                        modelMap.addAttribute("title", "Error");
+                        modelMap.addAttribute("error", "PGN Syntax Error: " + e.getMessage());
+                        return "error";
+                    }
 
-            String result;
+                    String whitePlayer = ga.getWhite();
+                    String blackPlayer = ga.getBlack();
+                    String result = ga.getResultStr();
+                    String timeControl = ga.getTag("TimeControl");
 
-            PGNReader red = new PGNReader(IOUtils.toInputStream(pgn), game.getTournament().getShortName() + ".pgn");
-            try {
-                Game ga = red.parseGame();
-                ga.setTag("Round", Integer.toString(game.getRound()));
-                ga.setTag("Event", game.getTournament().getFullName());
-                result = ga.getResultStr();
+                    // Verify opponent names
+                    if (!(extractBaseName(whitePlayer).equalsIgnoreCase(expectedWhitePlayer) &&
+                            extractBaseName(blackPlayer).equalsIgnoreCase(expectedBlackPlayer)) &&
+                            !(extractBaseName(whitePlayer).equalsIgnoreCase(expectedBlackPlayer) &&
+                                    extractBaseName(blackPlayer).equalsIgnoreCase(expectedWhitePlayer))) {
+                        modelMap.addAttribute("title", "Error");
+                        modelMap.addAttribute("error", "You posted the wrong game.");
+                        return "error";
+                    }
 
-                if (!ga.getWhite().equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername()) ||
-                        !ga.getBlack().equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
-                    modelMap.addAttribute("title", "Error");
-                    modelMap.addAttribute("error", "You posted the wrong game");
-                    return "error";
+                    // Count the results based on actual players, not the color in the game
+                    if (result.equals("1-0")) {
+                        if (extractBaseName(whitePlayer).equalsIgnoreCase(expectedWhitePlayer)) {
+                            whiteWins++;
+                        } else {
+                            blackWins++;
+                        }
+                    } else if (result.equals("0-1")) {
+                        if (extractBaseName(blackPlayer).equalsIgnoreCase(expectedBlackPlayer)) {
+                            blackWins++;
+                        } else {
+                            whiteWins++;
+                        }
+                    } else if (result.equals("1/2-1/2")) {
+                        draws++;
+                    } else {
+                        modelMap.addAttribute("title", "Error");
+                        modelMap.addAttribute("error", "Unknown game result: " + result);
+                        return "error";
+                    }
                 }
-                DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
-                DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
-                DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York"));
 
-                if (gameDate.isBefore(startDate)) {
-                    modelMap.addAttribute("title", "Error");
-                    modelMap.addAttribute("error", "Game date is before tha date of tournament start.");
-                    return "error";
+                // Determine the final result based on points
+                String finalResult;
+                if (whiteWins > blackWins) {
+                    finalResult = "1-0";
+                } else if (blackWins > whiteWins) {
+                    finalResult = "0-1";
+                } else {
+                    finalResult = "1/2-1/2";
                 }
 
-                pgn = UsefulMethods.getPgnRepresentation(ga);
-                gameForumPostService.gameForumPost(game, "Game ended as " + result, "snailbot(TD)");
-                tourneyDAO.updatePgn(game, pgn);
-                tourneyDAO.updatePlayedDate(game, gameDate.toDate());
-                tourneyDAO.updateResult(game, result);
-                return "redirect:/tourney/forum/" + forumString;
-            } catch (PGNSyntaxError e) {
-                e.printStackTrace();
+// Process the result and update the database
+                gameForumPostService.gameForumPost(game, "Game ended as " + finalResult, "snailbot(TD)");
+                tourneyDAO.updatePgn(game, pngs.toString());
+                tourneyDAO.updatePlayedDate(game, new Date());
+                tourneyDAO.updateResult(game, finalResult);
+            } else {
+                if (content.startsWith("Game adjudicated as") &&
+                        !content.endsWith(".") && user.getGroup() >= Member.TD) {
+                    String result = content.substring("Game adjudicated as ".length()).trim();
+                    tourneyDAO.updateResult(game, result);
+                }
+
+                gameForumPostService.gameForumPost(game, content, user.getUsername());
             }
-        } else if (content.startsWith("Game adjudicated as") &&
-                !content.endsWith(".") && user.getGroup() >= Member.TD) {
-            String result = content.substring("Game adjudicated as ".length()).trim();
-            tourneyDAO.updateResult(game, result);
+
+            return "redirect:/tourney/forum/" + forumString;
+
         }
 
 
@@ -528,25 +844,34 @@ public class TourneySignupController {
 
         if (!content.isEmpty()) {
             gameForumPostService.gameForumPost(game, content, user.getUsername() + tag);
-        }
+        } else if (buttonName.equals("Set clock")) {
+            if (!params.get("month").equals("0") && (forumString.contains(user.getUsername()) || user.getGroup() >= Member.TD)) {
+                DateTime now = DateTime.now();
+                DateTime dateTime = new DateTime(now.getYear(), Integer.parseInt(params.get("month")),
+                        Integer.parseInt(params.get("day")), Integer.parseInt(params.get("hour")),
+                        Integer.parseInt(params.get("minute")), DateTimeZone.forID("America/New_York"));
+                if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York")))) {
+                    modelMap.addAttribute("title", "Error");
+                    modelMap.addAttribute("error", "The date before tourney start.");
+                    return "error";
+                }
 
-        if (!req.getParameter("month").equals("0") && (forumString.contains(user.getUsername()) || user.getGroup() >= Member.TD)) {
-            DateTime now = DateTime.now();
-            DateTime dateTime = new DateTime(now.getYear(), Integer.parseInt(req.getParameter("month")),
-                    Integer.parseInt(req.getParameter("day")), Integer.parseInt(req.getParameter("hour")),
-                    Integer.parseInt(req.getParameter("minute")), DateTimeZone.forID("America/New_York"));
-            if (dateTime.isBefore(new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York")))) {
-                modelMap.addAttribute("title", "Error");
-                modelMap.addAttribute("error", "The date before tourney start.");
-                return "error";
+                content = gameForumPostService.dateSetPost(params.get("month"), params.get("day"),
+                        params.get("hour"), params.get("minute"), game);
+                gameForumPostService.gameForumPost(game, content, user.getUsername() + tag);
             }
-
-            content = gameForumPostService.dateSetPost(req.getParameter("month"), req.getParameter("day"),
-                    req.getParameter("hour"), req.getParameter("minute"), game);
-            gameForumPostService.gameForumPost(game, content, user.getUsername() + tag);
+        } else if (buttonName.equals("Unset clock")) {
+            if (forumString.contains(user.getUsername()) || user.getGroup() >= Member.TD) {
+                content = gameForumPostService.dateUnsetPost(game);
+                gameForumPostService.gameForumPost(game, content, user.getUsername() + tag);
+            }
         }
 
         return "redirect:/tourney/forum/" + forumString;
+    }
+
+    public static String extractBaseName(String input) {
+        return input.replaceAll("\\s*\\(.*?\\)", "").trim();
     }
 
     SimpleDateFormat forumFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm",
@@ -556,7 +881,9 @@ public class TourneySignupController {
     @RequestMapping(value = "/standing/{shortName}", method = RequestMethod.GET)
     public String tourneyStandingGet(@PathVariable String shortName, ModelMap modelMap) {
         List<TournamentGame> gameWithResults = tourneyDAO.getGamesByResult(shortName);
+        List<TournamentGame> allGames = tourneyDAO.getGamesForTourney(shortName);
         List<TournamentPlayer> players = tourneyDAO.getAllPlayersList(shortName);
+        List<TournBye> byes = tournByeDAO.getByTourneyShortName(shortName);
 
         if (players == null || players.isEmpty()) {
             modelMap.addAttribute("title", "Standings");
@@ -564,39 +891,45 @@ public class TourneySignupController {
             return "error";
         }
 
-        List<Bucket> buckets = bucketsGenerationService.generateBuckets(players);
         StringBuilder wikiTable = new StringBuilder();
+        wikiTable.append("<p><i>Standings were created using the ")
+                .append("<a href=\"https://www.vegachess.com/ns/home\" target=\"_blank\">Vega Chess</a>")
+                .append(" software.</i></p><br/>");
+        List<PythonStandingsService.StandingRecord> records
+                = standingsService.generateStandings(gameWithResults, allGames, players, byes);
 
-        for (Bucket bucket : buckets) {
+        wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
+        wikiTable.append("<tr>\n" +
+                "         <th>No</th>\n" +
+                "         <th width=\"150px\">Name</th>\n" +
+                "         <th>Points</th>\n" +
+                "         <th>HTH</th>\n" +
+                "         <th>Wins</th>\n" +
+                "         <th>White</th>\n" +
+                "         <th>Rating</th>\n" +
+                "         <th>Games</th>\n" +
+                "      </tr>");
 
-            List<PythonStandingsService.StandingRecord> records
-                    = standingsService.generateStandings(gameWithResults, players, bucket);
-
-
-            wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
-            wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
-            wikiTable.append("<tr>\n" +
-                    "         <th>No</th>\n" +
-                    "         <th width=\"150px\">Name</th>\n" +
-                    "         <th>Points</th>\n" +
-                    "         <th>HTH</th>\n" +
-                    "         <th>Wins</th>\n" +
-                    "         <th>White</th>\n" +
-                    "         <th>Rating</th>\n" +
-                    "         <th>Games</th>\n" +
-                    "      </tr>");
-
-            int i = 1;
-            for (PythonStandingsService.StandingRecord record : records) {
-                wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(record.player.getAssocMember().getCountry()).append(".png\"/> ").append(record.player.getAssocMember().getUsername()).append("</td>\n").append("         <td>").append(record.points).append("</td>\n").append("         <td>").append(record.hth).append("</td>\n").append("         <td>").append(record.won).append("</td>\n").append("         <td>").append(record.white).append("</td>\n").append("         <td>").append(record.rating).append("</td>\n").append("         <td>").append(record.games).append("</td>\n").append("      </tr>");
-            }
-            wikiTable.append("</table><br/>");
+        int i = 1;
+        for (PythonStandingsService.StandingRecord record : records) {
+            wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n")
+                    .append("         <td><img src=\"/static/images/flags/").append(record.player.getAssocMember().getCountry())
+                    .append(".png\"/> ").append(record.player.getAssocMember().getUsername()).append("</td>\n")
+                    .append("         <td>").append(record.points).append("</td>\n")
+                    .append("         <td>").append(record.hth).append("</td>\n")
+                    .append("         <td>").append(record.won).append("</td>\n")
+                    .append("         <td>").append(record.white).append("</td>\n")
+                    .append("         <td>").append(record.rating).append("</td>\n")
+                    .append("         <td>").append(record.games).append("</td>\n")
+                    .append("      </tr>");
         }
+        wikiTable.append("</table><br/>");
 
-        modelMap.addAttribute("title", "Standing for " + players.get(0).getTournament().getFullName());
+        modelMap.addAttribute("title", "Standings for " + players.get(0).getTournament().getFullName());
         modelMap.addAttribute("error", wikiTable);
         return "error";
     }
+
 
     @RequestMapping(value = "/pending/{shortName}", method = RequestMethod.GET)
     public String tourneyPendingGet(@PathVariable String shortName, ModelMap modelMap) {
@@ -609,14 +942,11 @@ public class TourneySignupController {
             return "error";
         }
 
-        List<Bucket> buckets = bucketsGenerationService.generateBuckets(players);
-
         if (games == null || games.isEmpty()) {
             modelMap.addAttribute("title", "Pending games");
             modelMap.addAttribute("error", "No games yet.");
             return "error";
         }
-
 
         StringBuilder wikiTable = new StringBuilder();
         wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
@@ -627,20 +957,15 @@ public class TourneySignupController {
                 "         <th width=\"150px\">Black player</th>\n" +
                 "         <th>Time control</th>\n" +
                 "         <th>Round</th>\n" +
-                "         <th>Bucket</th>\n" +
                 "      </tr>");
+
         int i = 1;
         for (TournamentGame scheduledGame : games) {
-            String bucketName = "";
-            for (Bucket bucket : buckets) {
-                if (bucket.getPlayerList().contains(scheduledGame.getWhitePlayer()))
-                    bucketName = bucket.getName();
-            }
-
             String sched = forumFormatter.format(scheduledGame.getSecheduled());
 
-            if (scheduledGame.getSecheduled().getYear() < 100)
+            if (scheduledGame.getSecheduled().getYear() < 100) {
                 sched = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+            }
 
             DateTime now = DateTime.now(DateTimeZone.forID("America/New_York"));
             Duration p2 = new Duration(now, new DateTime(scheduledGame.getSecheduled(), DateTimeZone.forID("America/New_York")));
@@ -648,9 +973,8 @@ public class TourneySignupController {
                 if (p2.getStandardHours() > 0) {
                     String[] arr = DurationFormatUtils.formatDuration(p2.getMillis(), "H#m").split("#");
                     sched += " (in " + arr[0] + (arr[0].equals("1") ? " hour " : " hours ");
-                    sched +=  arr[1] + (arr[1].equals("1") ? " minute)" : " minutes)");
-                }
-                else if (p2.getStandardHours() == 0) {
+                    sched += arr[1] + (arr[1].equals("1") ? " minute)" : " minutes)");
+                } else if (p2.getStandardHours() == 0) {
                     if (p2.getStandardMinutes() > 0)
                         sched += " (in " + p2.getStandardMinutes() + " minutes)";
                 }
@@ -666,7 +990,8 @@ public class TourneySignupController {
                     .append("         <td><img src=\"/static/images/flags/")
                     .append(scheduledGame.getBlackPlayer().getAssocMember().getCountry())
                     .append(".png\" border=\"0\"> ").append(scheduledGame.getBlackPlayer().getAssocMember().getUsername())
-                    .append("</td>\n").append("<td><center>").append(timeControl.replaceAll("_", " ")).append("</center></td>").append("<td><center>").append(scheduledGame.getRound()).append("</center></td><td>").append(bucketName).append("</td></tr>");
+                    .append("</td>\n").append("<td><center>").append(timeControl.replaceAll("_", " ")).append("</center></td>")
+                    .append("<td><center>").append(scheduledGame.getRound()).append("</center></td></tr>");
         }
         wikiTable.append("</table>");
 
@@ -675,141 +1000,286 @@ public class TourneySignupController {
         return "error";
     }
 
+
     @RequestMapping(value = "/pairings/all/{shortName}", method = RequestMethod.GET)
     public String tourneyPairingsAll(@PathVariable String shortName, ModelMap modelMap) {
 
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(shortName);
-        if (sorted == null || sorted.isEmpty()){
+        if (sorted == null || sorted.isEmpty()) {
             modelMap.addAttribute("title", "Pairings All Rounds");
             modelMap.addAttribute("error", "No pairings yet.");
             return "error";
         }
 
-        List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
-
         StringBuilder wikiTable = new StringBuilder();
+        wikiTable.append("<p><i>Pairings were created using the ")
+                .append("<a href=\"https://www.vegachess.com/ns/home\" target=\"_blank\">Vega Chess</a>")
+                .append(" software.</i></p><br/>");
 
-        for (int i = 1; i <= buckets.get(0).getNumRounds(); i++) {
-            List<TournamentGame> games = tourneyDAO.getGamesForRound(shortName, i);
-            if (games == null || games.isEmpty()) {
-                modelMap.addAttribute("title", "Pairings All Rounds");
-                modelMap.addAttribute("error", "No pairings yet.");
-                return "error";
-            }
+        List<TournamentGame> games = tourneyDAO.getGamesForTourney(shortName);
 
-            wikiTable.append("<h1>Round ").append(i).append("</h2>");
+        if (games == null || games.isEmpty()) {
+            modelMap.addAttribute("title", "Pairings All Rounds");
+            modelMap.addAttribute("error", "No pairings yet.");
+            return "error";
+        }
 
-            for (Bucket bucket : buckets) {
-                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
-                wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
-                wikiTable.append("<tr>\n" +
-                        "         <th>No</th>\n" +
-                        "         <th width=\"150px\">White player</th>\n" +
-                        "         <th width=\"125px\">Date/Result</th>\n" +
-                        "         <th width=\"150px\">Black player</th>\n" +
-                        "      </tr>");
+        Map<Integer, List<TournamentGame>> gamesByRound = games.stream()
+                .collect(Collectors.groupingBy(TournamentGame::getRound));
 
-                int id = 1;
-                List<TournamentGame> bucketGames = UsefulMethods.getBucketGames(bucket, games);
-                for (TournamentGame game : bucketGames) {
-                    String result = "";
-                    if (game.getSecheduled() != null) {
-                        if (game.getSecheduled().getYear() < 100)
-                            result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
-                        else
-                            result = forumFormatter.format(game.getSecheduled());
+        // Looping through each round
+        for (Map.Entry<Integer, List<TournamentGame>> entry : gamesByRound.entrySet()) {
+            int round = entry.getKey();
+            List<TournBye> byes = tournByeDAO.getByTourneyShortNameAndRound(shortName, round);
+            List<TournamentGame> gamesInRound = entry.getValue();
+
+            wikiTable.append("<h1>Round ").append(round).append("</h1>");
+            wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
+            wikiTable.append("<tr>\n" +
+                    "         <th>No</th>\n" +
+                    "         <th width=\"150px\">White player</th>\n" +
+                    "         <th width=\"125px\">Date/Result</th>\n" +
+                    "         <th width=\"150px\">Black player</th>\n" +
+                    "      </tr>");
+
+            int id = 1;
+            for (TournamentGame game : gamesInRound) {
+                String result = "";
+                if (game.getSecheduled() != null) {
+                    if (game.getSecheduled().getYear() < 100)
+                        result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+                    else
+                        result = forumFormatter.format(game.getSecheduled());
+                }
+                if (game.getResult() != null) {
+                    result = game.getResult();
+
+                    if (game.getPng() != null) {
+                        result = "<a href=\"/tourney/pgn/" + game.getGameForumString() + "\">" + result + "</a>";
                     }
-                    if (game.getResult() != null) {
-                        result = game.getResult();
-
-                        if (game.getPng() != null) {
-                            result = "<a href=\"/tourney/pgn/" + game.toString() + "\">"+result+"</a>";
-                        }
-                    }
-
-                    wikiTable.append("<tr>\n" + "         <td>").append(id++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(result).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("      </tr>");
                 }
 
-                wikiTable.append("</table><br/>");
+                wikiTable.append("<tr>\n")
+                        .append("         <td>").append(id++).append("</td>\n")
+                        .append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n")
+                        .append("         <td><center>").append(result).append("</center></td>\n")
+                        .append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n")
+                        .append("      </tr>");
             }
+
+            if (byes != null && !byes.isEmpty()) {
+                for (TournBye bye : byes) {
+                    wikiTable.append("<tr>\n")
+                            .append("         <td>").append(id++).append("</td>\n")
+                            .append("         <td><img src=\"/static/images/flags/")
+                            .append(bye.getPlayer().getAssocMember().getCountry())
+                            .append(".png\" border=\"0\"> ")
+                            .append(bye.getPlayer().getAssocMember().getUsername())
+                            .append("</td>\n")
+                            .append("         <td><center>+:-</center></td>\n")
+                            .append("         <td>BYE</td><td></td>\n")
+                            .append("      </tr>");
+                }
+            }
+
+            wikiTable.append("</table><br/>");
         }
+
         modelMap.addAttribute("title", "Pairings All Rounds");
         modelMap.addAttribute("error", wikiTable);
         return "error";
     }
 
+
     Pattern gameForumPattern = Pattern.compile("([^:]+):R([0-9]+)");
 
-    @RequestMapping(value = "/pairings/{pairString}", method = RequestMethod.GET)
-    public String tourneyPairingsGet(@PathVariable String pairString, ModelMap modelMap) {
-        String tourneyShortName = null;
-        int round = 0;
-        Matcher m = gameForumPattern.matcher(pairString);
-        if (m.matches()) {
-            tourneyShortName = m.group(1);
-            round = Integer.parseInt(m.group(2));
+    @RequestMapping(value = "/pairings/{tourneyShortName}", method = RequestMethod.GET)
+    public String tourneyPairingsGet(@PathVariable String tourneyShortName, ModelMap modelMap) {
+        List<TournamentGame> allGames = tourneyDAO.getGamesForTourney(tourneyShortName);
+        int round = UsefulMethods.getLastRound(allGames);
+        List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
+        if (sorted == null || sorted.isEmpty()) {
+            modelMap.addAttribute("title", "Pairings");
+            modelMap.addAttribute("error", "No pairings yet.");
+            return "error";
+        }
 
+        boolean allBucketsNull = sorted.stream().allMatch(p -> p.getBucket() == null);
 
-            List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
-            if (sorted == null || sorted.isEmpty()) {
-                modelMap.addAttribute("title", "Pairings");
-                modelMap.addAttribute("error", "No pairings yet.");
-                return "error";
-            }
+        StringBuilder content = new StringBuilder();
+        content.append("<p><i>Pairings were created using the ")
+                .append("<a href=\"https://www.vegachess.com/ns/home\" target=\"_blank\">Vega Chess</a>")
+                .append(" software.</i></p><br/>");
 
-            List<Bucket> buckets = bucketsGenerationService.generateBuckets(sorted);
+        List<TournamentGame> games = tourneyDAO.getGamesForRound(tourneyShortName, round);
+        if (games == null || games.isEmpty()) {
+            modelMap.addAttribute("title", "Pairings");
+            modelMap.addAttribute("error", "No pairings yet.");
+            return "error";
+        }
 
-            StringBuilder wikiTable = new StringBuilder();
-            List<TournamentGame> games = tourneyDAO.getGamesForRound(tourneyShortName, round);
-            if (games == null || games.isEmpty()) {
-                modelMap.addAttribute("title", "Pairings");
-                modelMap.addAttribute("error", "No pairings yet.");
-                return "error";
-            }
+        List<TournBye> byes = tournByeDAO.getByTourneyShortNameAndRound(tourneyShortName, round);
 
-            for (Bucket bucket : buckets) {
-                wikiTable.append("<h2>Bucket ").append(bucket.getName()).append("</h2>" + "<p>TD: ").append(bucket.getTd()).append("</p>");
-                wikiTable.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
-                wikiTable.append("<tr>\n" +
-                        "         <th>No</th>\n" +
-                        "         <th width=\"150px\">White player</th>\n" +
-                        "         <th width=\"125px\">Date/Result</th>\n" +
-                        "         <th width=\"150px\">Black player</th>\n" +
-                        "         <th></th>\n" +
-                        "      </tr>");
+        if (allBucketsNull) {
+            content.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
+            content.append("<tr>")
+                    .append("<th>No</th>")
+                    .append("<th width=\"150px\">White player</th>")
+                    .append("<th width=\"125px\">Date/Result</th>")
+                    .append("<th width=\"150px\">Black player</th>")
+                    .append("<th></th>")
+                    .append("</tr>");
 
-                int id = 1;
-                List<TournamentGame> bucketGames = UsefulMethods.getBucketGames(bucket, games);
-                for (TournamentGame game : bucketGames) {
-                    String result = "";
-                    if (game.getSecheduled() != null) {
-                        if (game.getSecheduled().getYear() < 100)
-                            result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
-                        else
-                            result = forumFormatter.format(game.getSecheduled());
+            int id = 1;
+            for (TournamentGame game : games) {
+                String result = "";
+                if (game.getSecheduled() != null) {
+                    if (game.getSecheduled().getYear() < 100) {
+                        result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+                    } else {
+                        result = forumFormatter.format(game.getSecheduled());
                     }
-                    if (game.getResult() != null) {
-                        result = game.getResult();
+                }
+                if (game.getResult() != null) {
+                    result = game.getResult();
+                    if (game.getPng() != null) {
+                        result = "<a href=\"/tourney/pgn/" + game.getGameForumString() + "\">" + result + "</a>";
+                    }
+                }
+                content.append("<tr>")
+                        .append("<td>").append(id++).append("</td>")
+                        .append("<td><img src=\"/static/images/flags/")
+                        .append(game.getWhitePlayer().getAssocMember().getCountry())
+                        .append(".png\" border=\"0\"> ")
+                        .append(game.getWhitePlayer().getAssocMember().getUsername())
+                        .append("</td>")
+                        .append("<td><center>").append(result).append("</center></td>")
+                        .append("<td><img src=\"/static/images/flags/")
+                        .append(game.getBlackPlayer().getAssocMember().getCountry())
+                        .append(".png\" border=\"0\"> ")
+                        .append(game.getBlackPlayer().getAssocMember().getUsername())
+                        .append("</td>")
+                        .append("<td><a href=\"/tourney/forum/")
+                        .append(tourneyShortName).append(":R").append(round).append('_')
+                        .append(game.getWhitePlayer().getAssocMember().getUsername()).append('-')
+                        .append(game.getBlackPlayer().getAssocMember().getUsername())
+                        .append("\">Game forum</a></td>")
+                        .append("</tr>");
+            }
 
-                        if (game.getPng() != null) {
-                            result = "<a href=\"/tourney/pgn/" + game.toString() + "\">"+result+"</a>";
+            if (byes != null && !byes.isEmpty()) {
+                for (TournBye byeItem : byes) {
+                    content.append("<tr>")
+                            .append("<td>").append(id++).append("</td>")
+                            .append("<td><img src=\"/static/images/flags/")
+                            .append(byeItem.getPlayer().getAssocMember().getCountry())
+                            .append(".png\" border=\"0\"> ")
+                            .append(byeItem.getPlayer().getAssocMember().getUsername())
+                            .append("</td>")
+                            .append("<td><center>+:-</center></td>")
+                            .append("<td>BYE</td><td></td>")
+                            .append("</tr>");
+                }
+            }
+
+            content.append("</table><br/>");
+            modelMap.addAttribute("title", "Pairings for " + games.get(0).getTournament().getFullName() + " Round " + round);
+            modelMap.addAttribute("error", content);
+            return "error";
+        } else {
+            Map<String, List<TournamentGame>> bucketGames = new LinkedHashMap<>();
+            Map<String, List<TournBye>> bucketByes = new LinkedHashMap<>();
+            for (TournamentGame g : games) {
+                String bucketW = g.getWhitePlayer().getBucket();
+                String bucketB = g.getBlackPlayer().getBucket();
+                String bucket = (bucketW != null) ? bucketW : bucketB;
+                if (bucket == null) {
+                    bucket = "No bucket";
+                }
+                bucketGames.putIfAbsent(bucket, new ArrayList<>());
+                bucketGames.get(bucket).add(g);
+            }
+            if (byes != null) {
+                for (TournBye bItem : byes) {
+                    String bucket = bItem.getPlayer().getBucket();
+                    if (bucket == null) {
+                        bucket = "No bucket";
+                    }
+                    bucketByes.putIfAbsent(bucket, new ArrayList<>());
+                    bucketByes.get(bucket).add(bItem);
+                }
+            }
+
+            for (String bucketName : bucketGames.keySet()) {
+                content.append("<h3>Bucket: ").append(bucketName).append("</h3>");
+                content.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"0\">");
+                content.append("<tr>")
+                        .append("<th>No</th>")
+                        .append("<th width=\"150px\">White player</th>")
+                        .append("<th width=\"125px\">Date/Result</th>")
+                        .append("<th width=\"150px\">Black player</th>")
+                        .append("<th></th>")
+                        .append("</tr>");
+                int id = 1;
+                for (TournamentGame g : bucketGames.get(bucketName)) {
+                    String result = "";
+                    if (g.getSecheduled() != null) {
+                        if (g.getSecheduled().getYear() < 100) {
+                            result = "<img src=\"/static/images/sn.gif\" width=\"20\"/>";
+                        } else {
+                            result = forumFormatter.format(g.getSecheduled());
                         }
                     }
-
-                    wikiTable.append("<tr>\n" + "         <td>").append(id++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(result).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><a href=\"/tourney/forum/").append(tourneyShortName).append(":R").append(round).append('_').append(game.getWhitePlayer().getAssocMember().getUsername()).append('-').append(game.getBlackPlayer().getAssocMember().getUsername()).append("\">Game forum</a></td>\n").append("      </tr>");
+                    if (g.getResult() != null) {
+                        result = g.getResult();
+                        if (g.getPng() != null) {
+                            result = "<a href=\"/tourney/pgn/" + g.getGameForumString() + "\">" + result + "</a>";
+                        }
+                    }
+                    content.append("<tr>")
+                            .append("<td>").append(id++).append("</td>")
+                            .append("<td><img src=\"/static/images/flags/")
+                            .append(g.getWhitePlayer().getAssocMember().getCountry())
+                            .append(".png\" border=\"0\"> ")
+                            .append(g.getWhitePlayer().getAssocMember().getUsername())
+                            .append("</td>")
+                            .append("<td><center>").append(result).append("</center></td>")
+                            .append("<td><img src=\"/static/images/flags/")
+                            .append(g.getBlackPlayer().getAssocMember().getCountry())
+                            .append(".png\" border=\"0\"> ")
+                            .append(g.getBlackPlayer().getAssocMember().getUsername())
+                            .append("</td>")
+                            .append("<td><a href=\"/tourney/forum/")
+                            .append(tourneyShortName).append(":R").append(round).append('_')
+                            .append(g.getWhitePlayer().getAssocMember().getUsername()).append('-')
+                            .append(g.getBlackPlayer().getAssocMember().getUsername())
+                            .append("\">Game forum</a></td>")
+                            .append("</tr>");
                 }
-
-                wikiTable.append("</table><br/>");
+                if (bucketByes.containsKey(bucketName)) {
+                    for (TournBye byeItem : bucketByes.get(bucketName)) {
+                        content.append("<tr>")
+                                .append("<td>").append(id++).append("</td>")
+                                .append("<td><img src=\"/static/images/flags/")
+                                .append(byeItem.getPlayer().getAssocMember().getCountry())
+                                .append(".png\" border=\"0\"> ")
+                                .append(byeItem.getPlayer().getAssocMember().getUsername())
+                                .append("</td>")
+                                .append("<td><center>+:-</center></td>")
+                                .append("<td>BYE</td><td></td>")
+                                .append("</tr>");
+                    }
+                }
+                content.append("</table><br/>");
             }
 
             modelMap.addAttribute("title", "Pairings for " + games.get(0).getTournament().getFullName() + " Round " + round);
-            modelMap.addAttribute("error", wikiTable);
+            modelMap.addAttribute("error", content.toString());
             return "error";
-
         }
-
-        return "not-found";
     }
+
+
 
     @RequestMapping(value = "/pgn/all/{shortName}", method = RequestMethod.GET, produces = "application/pgn")
     @ResponseBody
@@ -861,7 +1331,7 @@ public class TourneySignupController {
 
         int i = 1;
         for (TournamentGame game : games) {
-            wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(game.getResult()).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><a href=\"/tourney/pgn/").append(game.toString()).append("\">pgn</a></td></tr>");
+            wikiTable.append("<tr>\n" + "         <td>").append(i++).append("</td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getWhitePlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getWhitePlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><center>").append(game.getResult()).append("</center></td>\n").append("         <td><img src=\"/static/images/flags/").append(game.getBlackPlayer().getAssocMember().getCountry()).append(".png\" border=\"0\"> ").append(game.getBlackPlayer().getAssocMember().getUsername()).append("</td>\n").append("         <td><a href=\"/tourney/pgn/").append(game.getGameForumString()).append("\">pgn</a></td></tr>");
         }
         wikiTable.append("</table>");
 
@@ -883,9 +1353,11 @@ public class TourneySignupController {
         StringBuilder blackPlayerRow = this.getPlayerTimesRow(game.getBlackPlayer().getAssocMember().getUsername(), memberDAO.getInsistData(game.getBlackPlayer().getAssocMember().getInsist()));
         badTimes.append(blackPlayerRow);
 
+
         String propTime = UsefulMethods.recommendTime(game.getWhitePlayer().getAssocMember().getPreference(),
                 game.getBlackPlayer().getAssocMember().getPreference());
         modelMap.addAttribute("title", game.toString());
+        modelMap.addAttribute("tourneyShort", forumString.split(":")[0]);
         modelMap.addAttribute("proposedTime", propTime);
         modelMap.addAttribute("badTimes", badTimes.toString());
         modelMap.addAttribute("htmlText", game.getGameforumHtml());
@@ -900,9 +1372,28 @@ public class TourneySignupController {
             return "not-found";
 
         Object user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = ((Member) user).getUsername(); // Assuming getUsername() exists in Member class
+
+        // Define a map of usernames to their corresponding fixed ratings
+        Map<String, Integer> ratingsMap = new HashMap<>();
+        ratingsMap.put("Technetium", 2546);
+        ratingsMap.put("Maras", 2226);
+        ratingsMap.put("mindlin", 2079);
+        ratingsMap.put("AsDaGo", 2051);
+        ratingsMap.put("HaStudent", 2003);
+        ratingsMap.put("pchesso", 1984);
+        ratingsMap.put("mccannj", 1894);
+        ratingsMap.put("morphology", 1806);
+        ratingsMap.put("carlosvalero", 1762);
+        ratingsMap.put("WitPion", 1517);
+        ratingsMap.put("Bodia", 1432);
+        ratingsMap.put("IAHMCOL", 1304);
+
+        // Determine the fixed rating for the player, default to 0 if not in the list
+        int fixedRating = ratingsMap.getOrDefault(username, 0);
 
         TournamentPlayer player = new TournamentPlayer();
-        player.setFixedRating(0);
+        player.setFixedRating(fixedRating);
         player.setAssocMember(((Member) user));
         player.setEmailForum(true);
         player.setTournament(tournament);

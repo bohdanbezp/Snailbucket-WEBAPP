@@ -182,40 +182,104 @@
                                 		});
                                 		</script>
                                       <style>
-                                                  #user-menu1 {
-                                                  	float: left;
-                                                  	margin-right: 2em;
-                                                  	padding: 0;
-                                                  	text-align: center;
-                                                  }
-                                                  #user-menu1 li {
-                                                  	display: inline;
-                                                  	list-style-type: none;
-                                                  	list-style-image: none;
-                                                  	padding: 0 0.8em;
-                                                  	font-size: 90%;
-                                                  }
-                                                </style>
+                                                          #panel1, #flip {
+                                                              background-color: #e5eecc;
+                                                          }
+                                                          #panel1 {
+                                                              padding: 10px;
+                                                              display: none;
+                                                          }
+                                                          #sortable, #sortable2 {
+                                                              list-style-type: none;
+                                                              margin: 0;
+                                                              padding: 0;
+                                                              text-align: right;
+                                                              background: #eee;
+                                                              padding: 5px;
+                                                              width: 143px;
+                                                          }
+                                                          #sortable li, #sortable2 li {
+                                                              margin: 5px;
+                                                              padding: 5px;
+                                                              font-size: 1.2em;
+                                                              width: 120px;
+                                                          }
+                                                          #user-menu1 {
+                                                              float: left;
+                                                              margin-right: 2em;
+                                                              padding: 0;
+                                                              text-align: center;
+                                                              height: 20px; /* Adjusted height */
+                                                              overflow: hidden; /* Prevents increasing overall size */
+                                                          }
+                                                          #user-menu1 li {
+                                                              display: inline;
+                                                              list-style-type: none;
+                                                              list-style-image: none;
+                                                              padding: 5px 0.8em 0 0.8em; /* Added top padding */
+                                                              font-size: 100%; /* Increased font size */
+                                                          }
+                                                          /* Added CSS for login text */
+                                                          .login-text {
+                                                              font-size: 100%; /* Increased font size */
+                                                          }
+                                                          /* Existing responsiveness CSS */
+                                                          #wiki-content {
+                                                              margin: 0 auto;
+                                                              max-width: 1300px;
+                                                              padding: 0 15px;
+                                                          }
+                                                          @media screen and (max-width: 600px) {
+                                                              #wiki-content {
+                                                                  padding: 0 10px;
+                                                                  max-width: none;
+                                                              }
+                                                          }
+                                                              #user-menu1 ul {
+                                                                list-style: none;
+                                                                margin: 0;
+                                                                padding: 0;
+                                                              }
+                                                              #user-menu1 ul li {
+                                                                position: relative;
+                                                                display: inline-block;
+                                                              }
+                                                              #user-menu1 ul li a {
+                                                                text-decoration: none;
+                                                                display: block;
+                                                                padding: 10px;
+                                                                color: #000;
+                                                              }
+                                                              #user-menu1 ul li ul {
+                                                                display: none;
+                                                                position: absolute;
+                                                                background-color: #e5eecc;
+                                                                min-width: 160px;
+                                                                list-style: none;
+                                                                padding: 0;
+                                                                margin: 0;
+                                                              }
+                                                              #user-menu1 ul li:hover > ul {
+                                                                display: block;
+                                                              }
+                                                              #user-menu1 ul li ul li {
+                                                                display: block;
+                                                              }
+                                                              #user-menu1 ul li ul li a {
+                                                                padding: 10px;
+                                                              }
+                                                              #user-menu1 ul li ul li a:hover {
+                                                                background-color: #ddd;
+                                                              }
+                                                      </style>
 </head>                                         
 <body>
 
 <div id="wiki-page">
 <div id="wiki-navigation">
-	<div id="logo">
-
-	<jsp:include page="logoArea.jsp"></jsp:include>
-	</div>
-	<br />
-
-	<div id="nav-menu">
-	<jsp:include page="leftMenu.jsp"></jsp:include>
-	</div>
 
 </div>
 <div id="wiki-content">
-       <div id="user-menu1">
-                	<jsp:include page="top-menu.jsp"></jsp:include>
-                    </div>
 
 <jsp:include page="reg.jsp"></jsp:include>
 

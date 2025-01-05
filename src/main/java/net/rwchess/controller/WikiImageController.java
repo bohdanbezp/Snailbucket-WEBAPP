@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 @RequestMapping("/wikiImg")
 public class WikiImageController {
 
-    private ImageScaler imageScaler;
+    private final ImageScaler imageScaler;
 
     public WikiImageController(ImageScaler imageScaler) {
         this.imageScaler = imageScaler;
@@ -48,10 +48,20 @@ public class WikiImageController {
                 if (!res.exists() && !res.isDirectory()) {
                     imageScaler.scale(absPath + m.group(2), absPath + imgName, size);
                 }
-
             }
 
             File file = new File(filePath);
+            if (!file.exists()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return null;
+            }
+
+            // Set cache headers
+            response.setHeader("Cache-Control", "public, max-age=31536000"); // Cache for 1 year
+            response.setDateHeader("Expires", System.currentTimeMillis() + 31536000000L); // Expires in 1 year
+            response.setHeader("Last-Modified", String.valueOf(file.lastModified()));
+            response.setHeader("ETag", String.valueOf(file.hashCode()));
+
             FileInputStream is = new FileInputStream(file);
             byte[] array = IOUtils.toByteArray(is);
             IOUtils.closeQuietly(is);

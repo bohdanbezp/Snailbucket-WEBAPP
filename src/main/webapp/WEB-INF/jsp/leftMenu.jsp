@@ -9,7 +9,7 @@
  if (pgg != null) {
 %>
 
-<%=pgg.getHtmlText().replaceAll("CURR_ROUND", Integer.toString(UsefulMethods.getCurrentRound())).replaceAll("PREV_ROUND", Integer.toString(UsefulMethods.getCurrentRound()-1))%>
+<%=pgg.getHtmlText().replaceAll("CURR_ROUND", Integer.toString(1)).replaceAll("PREV_ROUND", Integer.toString(0))%>
 
 <br/>
 <center>

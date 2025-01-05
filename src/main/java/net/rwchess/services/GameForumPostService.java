@@ -37,32 +37,40 @@ public class GameForumPostService {
         DateTime zoned = DateTime.now(DateTimeZone.forID("America/New_York"));
         String date = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z").print(zoned);
 
+        String frmHtml = "";
+        if (game.getGameforumHtml() != null) {
+            frmHtml = game.getGameforumHtml();
+        }
         String text = "<p><b>" + username
                 + "</b> (" + date + "):<br/>"
                 + content.replaceAll("\n", "<br/>") + "</p><hr/>\n"
-                + game.getGameforumHtml();
+                + frmHtml;
         tourneyDAO.updateHtml(game, text);
-        game.setGameforumHtml(text);
+
+        String forumLink = "https://snailbucket.org/tourney/forum/" + game.getGameForumString();
+
+        String footer = "<hr/><p><a href=\"" + forumLink + "\" target=\"_blank\">View Game Forum</a></p>";
+        content = username +":\n\n" + content + "\n\n" + footer;
 
         if (username.equals(game.getWhitePlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateWhiteLastPost(game, new Date());
 
             if (game.getBlackPlayer().getAssocMember().getRr() > 0 && game.getBlackPlayer().getAssocMember().getGroup() >= Member.USER)
-                mailer.sendEmail(game.getWhitePlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+                mailer.sendEmail("notify@snailbucket.org", game.getTournament().getFullName() + " game forum message",
                         content, game.getBlackPlayer().getAssocMember().getEmail());
 
         } else if (username.equals(game.getBlackPlayer().getAssocMember().getUsername())) {
             tourneyDAO.updateBlackLastPost(game, new Date());
 
             if (game.getWhitePlayer().getAssocMember().getRr() > 0 && game.getWhitePlayer().getAssocMember().getGroup() >= Member.USER)
-                mailer.sendEmail(game.getBlackPlayer().getAssocMember().getUsername(), game.getTournament().getFullName() + " game forum message",
+                mailer.sendEmail("notify@snailbucket.org", game.getTournament().getFullName() + " game forum message",
                         content, game.getWhitePlayer().getAssocMember().getEmail());
 
         }
         else {
-            mailer.sendEmail(username, game.getTournament().getFullName() + " game forum message",
+            mailer.sendEmail("notify@snailbucket.org", game.getTournament().getFullName() + " game forum message",
                     content, game.getBlackPlayer().getAssocMember().getEmail());
-            mailer.sendEmail(username, game.getTournament().getFullName() + " game forum message",
+            mailer.sendEmail("notify@snailbucket.org", game.getTournament().getFullName() + " game forum message",
                     content, game.getWhitePlayer().getAssocMember().getEmail());
         }
     }
@@ -90,4 +98,11 @@ public class GameForumPostService {
         return "Has set the scheduled time to " + date;
     }
 
+    public String dateUnsetPost(TournamentGame game) {
+        tourneyDAO.updateScheduledDate(game, null);
+        game.setSecheduled(null);
+
+        log.info("Unset date of " + game.toString());
+        return "Has unset the scheduled time";
+    }
 }

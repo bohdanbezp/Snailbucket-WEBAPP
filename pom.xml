@@ -13,7 +13,7 @@
         <appengine.target.version>1.9.13</appengine.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <datanucleus.jpa.version>3.1.1</datanucleus.jpa.version>
-        <spring.version>5.2.19.RELEASE</spring.version>
+        <spring.version>5.3.39</spring.version>
 	<spring.security.version>3.2.3.RELEASE</spring.security.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>info.bliki.wiki</groupId>
             <artifactId>bliki-core</artifactId>
-            <version>3.0.19</version>
+            <version>3.1.0</version>
         </dependency>
 
         <dependency>
@@ -185,7 +185,12 @@
             <artifactId>activation</artifactId>
             <version>1.1.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>13.0</version>
+            <scope>compile</scope>
+        </dependency>
 
 
         <!--<dependency>-->
@@ -203,8 +208,8 @@
                 <version>2.5.1</version>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>7</source>
-                    <target>7</target>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
 

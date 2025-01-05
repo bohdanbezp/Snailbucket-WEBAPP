@@ -253,6 +253,13 @@ public class WikiController {
             memberDAO.toggleConfirmed(username);
             model.addAttribute("title", "Confirmed");
             model.addAttribute("error", "The email has been successfully confirmed!");
+            String adminMessage = "Hello Admin Team,\n\n"
+                    + "A new user has registered on Snailbucket.org. Below are the details:\n\n"
+                    + "- Username: " + username + "\n"
+                    + "- Email: " + user.getEmail() + "\n"
+                    + "- Country: " + user.getCountry() + "\n\n";
+
+            //mailer.sendEmail("bvk256@gmail.com", "New User Registration Notification", adminMessage, "notify@snailbucket.org");
             return "error";
         } else {
             model.addAttribute("title", "Error");
@@ -266,12 +273,6 @@ public class WikiController {
                                  @RequestParam(value = "Email") String email,
                                  @RequestParam(value = "Password") String password, @RequestParam(value = "Country") String country,
                                  @RequestParam(value = "time_order") String time_order, @RequestParam(value = "bad_times") String bad_times, @RequestParam(value = "hard_times") String hard_times) {
-        String timeControlPreferrence = "45 45";
-        
-        if (request.getParameter("def_time") == null) {
-            timeControlPreferrence = time_order.replace(",", ", ");
-        }
-
         Member ourM = memberDAO.getMemberByUsername(username);
         if (ourM != null) {
             model.addAttribute("title", "Error");
@@ -287,7 +288,7 @@ public class WikiController {
         ourM.setGroup(Member.USER);
         ourM.setCountry(country.toLowerCase());
         ourM.setInsist(memberDAO.getInsistData(bad_times, hard_times).toString());
-        ourM.setPreference(timeControlPreferrence);
+        ourM.setPreference("");
         ourM.setEmail(email);
 
         memberDAO.store(ourM);
@@ -296,7 +297,7 @@ public class WikiController {
                 + "&hash=" + passwordHash, email);
 
         model.addAttribute("title", "Sucessful registration");
-        model.addAttribute("error", "You should confirm your email address by following the link we have sent you. If there are any problems please contact admins or TDs.");
+        model.addAttribute("error", "You should confirm your email address by following the link we have sent you. Please be sure to check the spam folder. If there are any problems please contact admins or TDs.");
         return "error";
     }
 

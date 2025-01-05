@@ -72,19 +72,23 @@ public class MainController {
 		modelMap.addAttribute("bad_times", insistData.getBadTimes());
 		modelMap.addAttribute("hard_times", insistData.getHardTimes());
         modelMap.addAttribute("key", user.getKey());
+        modelMap.addAttribute("country", ourM.getCountry());
         return "profile";
     }
 
     @RequestMapping(value = "/profile/time", method = RequestMethod.POST)
     public String profileTimePost(@RequestParam(value = "time_order") String time_order,
-                                  @RequestParam(value = "bad_times") String badTimes, @RequestParam(value = "hard_times") String hardTimes, Model modelMap) {
+                                  @RequestParam(value = "bad_times") String badTimes, @RequestParam(value = "hard_times") String hardTimes,
+                                  @RequestParam(value = "country") String country,
+                                  Model modelMap) {
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         memberDAO.updateTimeorder(user.getKey(), time_order.replace(",", ", "));
         memberDAO.updateInsist(user.getKey(), badTimes, hardTimes);
+        memberDAO.updateCountry(user.getKey(), country);
 
         modelMap.addAttribute("title", "");
-        modelMap.addAttribute("error", "Your time preferences have been updated.");
+        modelMap.addAttribute("error", "Your settings have been updated.");
         return "error";
     }
 

@@ -33,6 +33,11 @@ http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
         <servlet-class>
             org.springframework.web.servlet.DispatcherServlet
         </servlet-class>
+        <multipart-config>
+            <max-file-size>20848820</max-file-size>
+            <max-request-size>418018841</max-request-size>
+            <file-size-threshold>1048576</file-size-threshold>
+        </multipart-config>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>

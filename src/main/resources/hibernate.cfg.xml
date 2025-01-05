@@ -12,10 +12,10 @@
             jdbc:mysql://localhost/test_db?useSSL=false&amp;autoReconnect=true&amp;allowPublicKeyRetrieval=true
         </property>
         <property name="hibernate.connection.username">
-            bodia
+            [PUTHERE]
         </property>
         <property name="hibernate.connection.password">
-            Pass123!
+            [PUTHERE]
         </property>
         <!--<property name="hbm2ddl.auto">create-drop</property>-->
  
@@ -26,5 +26,6 @@
         <mapping class="net.rwchess.persistent.DownloadFile" />
         <mapping class="net.rwchess.persistent.TournamentPlayer" />
         <mapping class="net.rwchess.persistent.TournamentGame" />
+        <mapping class="net.rwchess.persistent.TournBye" />
     </session-factory>
 </hibernate-configuration>

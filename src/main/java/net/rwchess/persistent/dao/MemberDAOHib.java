@@ -235,6 +235,26 @@ public class MemberDAOHib implements MemberDAO {
     }
 
     @Override
+    public void updateCountry(Long key, String country) {
+        Session session = HibernateUtils.getInstance().openSession();
+        Transaction transaction = session.beginTransaction();
+        String hql = "FROM Member M WHERE M.key = :key";
+        Query query = session.createQuery(hql);
+        query.setParameter("key", key);
+
+        Member m = null;
+        try {
+            m = (Member) query.list().get(0);
+            m.setCountry(country);
+            transaction.commit();
+        } catch (IndexOutOfBoundsException e) {
+            transaction.rollback();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public void updateInsist(Long key, String badTimes, String hardTimes) {
         Session session = HibernateUtils.getInstance().openSession();
         Transaction transaction = session.beginTransaction();

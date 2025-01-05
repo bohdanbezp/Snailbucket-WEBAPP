@@ -43,14 +43,14 @@ public class SendgridMailer implements Mailer {
                                     new InternetAddress(toT));
                             mimeMessage.setFrom(new InternetAddress(fromT));
                             mimeMessage.setSubject(subject);
-                            mimeMessage.setText(contents);
+                            mimeMessage.setContent(contents, "text/html; charset=utf-8");
                         }
                     };
 
                     mailSender.send(preparator);
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+
                 }
             }
         });

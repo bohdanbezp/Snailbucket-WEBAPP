@@ -9,12 +9,15 @@ based on mekk.fics library.
 """
 from __future__ import print_function
 
-import urllib2
+import configparser
+import urllib.request
+import urllib.parse
 import urllib
 import re
 import getopt, sys, logging, os
-import MySQLdb
+import mysql.connector
 import time
+import traceback
 from twisted.internet import defer, reactor, task
 from twisted.enterprise import adbapi
 from twisted.python import log
@@ -31,10 +34,21 @@ logger = logging.getLogger("snail")
 
 from mekk.fics import FICS_HOST, FICS_PORT
 
-FICS_USER='guest'
-FICS_PASSWORD=''
+# Read credentials from the properties file
+script_dir = os.path.dirname(os.path.abspath(__file__))
+properties_file = os.path.join(script_dir, "snailbot.properties")
 
-FINGER_TEXT = """Snailbot v.20150831 
+config = configparser.ConfigParser()
+config.read(properties_file)
+
+FICS_USER = config.get('DEFAULT', 'fics_user')
+FICS_PASSWORD = config.get('DEFAULT', 'fics_password')
+DB_USER = config.get('DEFAULT', 'db_user')
+DB_PASSWORD = config.get('DEFAULT', 'db_password')
+DB_HOST = config.get('DEFAULT', 'db_host')
+DB_DATABASE = config.get('DEFAULT', 'db_database')
+
+FINGER_TEXT = """Snailbot v.20241113
 
 Join Snail Bucket http://snailbucket.org/ \
 FICS chess community for some loooong time controls.
@@ -43,39 +57,11 @@ This bot is run by Bodia
 More about supported commands:
     tell %s help
 
-If snailbot is logged off, please message Bodia, BethanyGrace, \
-PankracyRozumek, or pchesso, or (preferrably) email us at tds@snailbucket.org \
+If snailbot is logged off, please message Bodia, or pchesso, or (preferrably) email us at tds@snailbucket.org \
 - thanks!
 """ % (FICS_USER)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-
-
-class ReconnectingConnectionPool(adbapi.ConnectionPool):
-    """Reconnecting adbapi connection pool for MySQL.
-
-    This class improves on the solution posted at
-    http://www.gelens.org/2008/09/12/reinitializing-twisted-connectionpool/
-    by checking exceptions by error code and only disconnecting the current
-    connection instead of all of them.
-
-    Also see:
-    http://twistedmatrix.com/pipermail/twisted-python/2009-July/020007.html
-
-    """
-    def _runInteraction(self, interaction, *args, **kw):
-        try:
-            return adbapi.ConnectionPool._runInteraction(self, interaction,
-                                                         *args, **kw)
-        except MySQLdb.OperationalError, e:
-            if e[0] not in (2006, 2013):
-                raise
-            print("RCP: got error %s, retrying operation" %(e))
-            conn = self.connections.get(self.threadID())
-            self.disconnect(conn)
-            # try the interaction again
-            return adbapi.ConnectionPool._runInteraction(self, interaction,
-                                                         *args, **kw)
 
 ################################################################################
 # ”Business logic” (processing not directly bound to FICS interface)
@@ -141,7 +127,7 @@ class SnailBot(object):
                 "where MEMBERS.username = %s "
                 "and TOURN_PLAYERS.TOURNEY_ID = "
                 "  (select max(ID) from TOURNAMENTS) ",
-                caller)
+                (caller,))
             (player_id,) = tx.fetchone()
 
             # TODO: update to fetch all pending games of the player.
@@ -163,7 +149,7 @@ class SnailBot(object):
                 "on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID "
                 "where TOURN_PLAYERS.ID = "
                 "  (select WHITEPL_ID from TOURN_GAMES where ID=%s) ",
-                game_id)
+                (game_id,))
             (white_username, white_preference) = tx.fetchone()
 
             tx.execute(
@@ -173,7 +159,7 @@ class SnailBot(object):
                 "on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID "
                 "where TOURN_PLAYERS.ID = "
                 "  (select BLACKPL_ID from TOURN_GAMES where ID=%s) ",
-                game_id)
+                (game_id,))
             black_username, black_preference = tx.fetchone()
 
             print('get_game: %s %s %s' % (white_username, black_username, rnd))
@@ -193,7 +179,7 @@ class SnailBot(object):
                 " join MEMBERS on MEMBERS.ID = TOURN_PLAYERS.MEMBER_ID"
                 " where MEMBERS.username = %s and"
                 " TOURN_PLAYERS.TOURNEY_ID = (select max(ID) from TOURNAMENTS)",
-                caller)
+                (caller,))
             (player_id,) = tx.fetchone()
             tx.execute("select ID from TOURN_GAMES where"
                 " (BLACKPL_ID = %s or WHITEPL_ID = %s)"
@@ -243,9 +229,9 @@ class JoinCommand(TellCommand):
                 'api_key': ''}
 
             data = urllib.urlencode(values)
-            req = urllib2.Request(
+            req = urllib.Request(
                 "https://sendgrid.com/api/mail.send.json", data)
-            response = urllib2.urlopen(req)
+            response = urllib.urlopen(req)
             the_page = response.read()
 
         def errorHandler(e):
@@ -273,7 +259,7 @@ class SetmessageCommand(TellCommand):
     @defer.inlineCallbacks
     def run(self, fics_client, player, *args, **kwargs):
         if str(player.name) not in [
-                "Bodia", "pchesso", "BethanyGrace", "PankracyRozumek"]:
+                "Bodia", "pchesso"]:
             yield fics_client.tell_to(player, "You're not the admin, sorry!")
             return
         state.state['channel_message'] = ' '.join(args[0])
@@ -287,7 +273,7 @@ class SetmessageCommand(TellCommand):
     
 class ExecuteCommand(TellCommand):
     """
-    Join snailbucket community
+    Exectutes admin's command on behalf of the bot account
     """
 
     def __init__(self, clock_statistician):
@@ -295,9 +281,10 @@ class ExecuteCommand(TellCommand):
     @defer.inlineCallbacks
     def run(self, fics_client, player, *args, **kwargs):
         if str(player.name) in [
-                "Bodia", "pchesso", "BethanyGrace", "PankracyRozumek"]:
+                "Bodia", "pchesso"]:
             command_to_exec = ' '.join(args[0])
             resu = yield fics_client.run_command(command_to_exec)
+            print("Command result: %s" % resu)
             if (resu is not None):
                 fics_client.tell_to(player, "Success")
         else:
@@ -330,8 +317,8 @@ class PlayCommand(TellCommand):
             player_name = res[player_index]
             opponent = res[1 - player_index]
             time_control = res[2]
-            required_vars = [('noescape', 0), ('rated', 1), ('kibitz', 0),
-                             ('notakeback', 1), ('private', 0)]
+            required_vars = [('noescape', 0), ('kibitz', 0),
+                             ('notakeback', 1), ('private', 0), ('autoflag', 1)]
             player_vars = yield fics_client.run_command("var %s" % (player))
             opponent_vars = yield fics_client.run_command("var %s" % (opponent))
             print("player_vars: %s", player_vars)
@@ -357,12 +344,15 @@ class PlayCommand(TellCommand):
 
             print('vars_ok: %s' % str(vars_ok))
             if vars_ok:
-                yield fics_client.run_command("+gnotify %s" % (player.name))
+                try:
+                    yield fics_client.run_command("+gnotify %s" % (player.name))
+                except Exception as e:
+                    print(f"Failed to run +gnotify for player {player.name}: {e}")
+
                 color = "white" if player_index == 0 else "black"
                 command = "rmatch %s %s %s %s" % (player_name, opponent, time_control, color)
                 print('running command: %s' % command)
                 rmatch_res = yield fics_client.run_command(command)
-                my_bot.on_fics_unknown(str(rmatch_res))
 
         if not self.clock_statistician.processing:
             self.clock_statistician.processing = True
@@ -372,10 +362,12 @@ class PlayCommand(TellCommand):
                 yield x
             except Exception as e:
                 fics_client.tell_to(player, "Error starting the game. "
-                    "Please contact Bodia if the problem persists.")
+                                    "Please contact Bodia if the problem persists.")
+                # Print full traceback to the console
                 print("PlayCommand of user %s failed with: %s" % (player, e))
-
-            self.clock_statistician.processing = False
+                print(traceback.format_exc())  # Outputs the full traceback
+            finally:
+                self.clock_statistician.processing = False
 
     def help(self, fics_client):
         return "Start a snailbucket game"
@@ -440,11 +432,13 @@ class MyBot(
             # For rich info about game started
             ]
 
-        self.register_command(JoinCommand(self.clock_statistician))
+        #self.register_command(JoinCommand(self.clock_statistician))
         self.register_command(PlayCommand(self.clock_statistician))
         self.register_command(ExecuteCommand(self.clock_statistician))
         self.register_command(SetmessageCommand())
         self.register_command(HelpCommand())
+
+        self.on_game_started = self.on_fics_unknown
 
         self.ongoing_games = []        
 
@@ -455,23 +449,13 @@ class MyBot(
                 '-- Round {round} "observe {game_no}'.format(**game))
             self.clock_statistician.processing = False
 
-    def GetChannelMessage(self):
-        return str(state.state.get('channel_message',
-            "Registration to Snail Bucket 3, a Slow time control "
-            "Tournament for individuals on FICS, will open on May 6th. "
-            "Find all info on http://www.snailbucket.org/wiki/TourneyGuide"))
 
-    def _notify_ch101(self):
-      pass
-        #self.run_command("t 101 %s" % self.GetChannelMessage())
+    def send_channel_messages(self):
+        message = ("Interested in playing slow time control tournaments on FICS? "
+                   "Check out https://www.snailbucket.org !")
+        self.run_command('t 101 %s' % message)
+        self.run_command('t 90 %s' % message)
 
-    def _notify_ch90(self):
-      pass
-        #self.run_command("t 90 %s" % self.GetChannelMessage())
-
-    def _notify_cshout(self):
-      pass
-        #self.run_command("cshout %s" % self.GetChannelMessage())
 
     def on_login(self, my_username):
         print('I am logged as %s, use "tell %s help" to start conversation on '
@@ -480,98 +464,75 @@ class MyBot(
         self._gamenotify_task = task.LoopingCall(self._notify_finger)
         self._gamenotify_task.start(1200, now=False)
 
-        self._notify_ch101 = task.LoopingCall(self._notify_ch101)
-        self._notify_ch101.start(3600, now=False)
+        self._channel_notify_task = task.LoopingCall(self.send_channel_messages)
+        self._channel_notify_task.start(3600, now=False)
 
-    #self._notify_cshout = task.LoopingCall(self._notify_cshout)
-        #self._notify_cshout.start(3600, now=False)
-
-    #def f(s):
-    #   self._notify_ch90 = task.LoopingCall(self._notify_ch90)
-        #   self._notify_ch90.start(3600, now=False)
-
-    #reactor.callLater(1800, f, "hello, world")
 
         # Normal post-login processing
         return defer.DeferredList([
-                self.set_finger(FINGER_TEXT),
-                # Commands below are unnecessary as variables_to_set_after_login
-                # above defines them. Still, this form may be useful if we
-                # dynamically enable/disable things.
-                #  self.enable_seeks(),
-                #  self.enable_guest_tells(),
-                #  self.enable_games_tracking(),
-                #  self.enable_users_tracking(),
-                self.subscribe_channel(101),
-                self.unsubscribe_channel(49), # TODO: tournament stats
-                self.unsubscribe_channel(50),
-                self.unsubscribe_channel(2),
-                # self.subscribe_channel(90),
-                self.run_command("+censor relay")
+                self.set_finger(FINGER_TEXT)
                 ])
 
     @defer.inlineCallbacks
     def on_fics_unknown(self, what):
-        m = re.search(
-            "Game notification:\s(?P<white>\w+)\s"
-            "\(\s*(?P<white_rank>\d+|\-+|\++)\)\svs.\s"
-            "(?P<black>\w+)\s\(\s*(?P<black_rank>\d+|\-+|\++)\)\s"
-            "(?P<is_rated>rated|unrated)\s(?P<variant>[^\s]+)\s"
-            "(?P<clock_base>\d+)\s(?P<clock_inc>\d+):\sGame\s(?P<game_no>\d+)",
-            what)
-        if m:
             try:
+                print(f"GAME STARTED!! {what!r}")
                 x = yield self.clock_statistician.get_game_data(
-                    m.group("white"))
-                if (m.group("variant").lower() == "standard" and
-                        x[0].lower() == m.group("white").lower() and
-                        x[1].lower() == m.group("black").lower() and
-                        x[2] == (m.group("clock_base") + " " +
-                                 m.group("clock_inc"))):
-                    curr_game = m.groupdict()
-                    curr_game['round'] = x[3]
-                    self.run_command('t 101 Snailbucket game has started: '
-                        '{white}({white_rank}) vs. {black}({black_rank}) -- '
-                        'Round {round} "observe {game_no}" to watch'
-                        .format(**curr_game))
-                    self.start_observing_game(m.group("game_no"))
+                    str(what.black_name))
+                if (str(what.game_spec.game_type).lower() == "standard" and
+                                    x[0].lower() == str(what.white_name).lower() and
+                                    x[1].lower() == str(what.black_name).lower() and
+                                    x[2] == (str(what.game_spec.clock.base_min) + " " + str(what.game_spec.clock.inc_sec))):
+                    curr_game = {
+                                    'white': str(what.white_name),
+                                    'white_rank': what.white_rating,
+                                    'black': str(what.black_name),
+                                    'black_rank': what.black_rating,
+                                    'game_no': what.game_no,
+                                    'round': x[3]
+                    }
+                    self.run_command(f't 101 SB Monthly 2 game has started: '
+                                                 f"{curr_game['white']}({curr_game['white_rank']}) vs. "
+                                                 f"{curr_game['black']}({curr_game['black_rank']}) -- "
+                                                 f"Round {curr_game['round']} 'observe {curr_game['game_no']}' to watch")
+                    self.start_observing_game(curr_game['game_no'])
 
                     self.ongoing_games.append(curr_game)
-
-                    self.clock_statistician.updateGameStatus(
-                        m.group("white"), "1970-11-27 14:00:05")
             except Exception as e:
-                print ("GAME START FAILED!!")
+                print(f"GAME START FAILED!! {what!r}")
                 print(e)
-        else:
-            print("Unknown message: %s" % what)
 
 
 
     @defer.inlineCallbacks
     def on_game_finished(self, game):
-        x = yield self.clock_statistician.get_game_data(game.white_name.name)
+        x = yield self.clock_statistician.get_game_data(str(game.black_name))
         self.run_command(
-                                                "t 101 Snailbucket game has ended: %s vs. %s -- Round %d: %s {%s}" %
+                                                "t 101 SB Monthly 2 game has ended: %s vs. %s -- Round %d: %s {%s}" %
                                                 (game.white_name.name, game.black_name.name, x[3], game.result, game.result_desc))
-        self.clock_statistician.updateGameStatus(
-            game.white_name.name, "2014-11-27 14:00:05")
+#         self.clock_statistician.updateGameStatus(
+#             game.white_name.name, "2014-11-27 14:00:05")
 
         if "lost connection" not in game.result_desc:
-            self.run_command("-gnotify %s" % (game.white_name.name))
-            self.run_command("-gnotify %s" % (game.black_name.name))
             time.sleep(15)
-            req = urllib2.Request(
-                'https://snailbucket.org/tourney/updateforums/monthly15:R' +
-                str(x[3]) + '_' + str(game.white_name.name) + '-' + 
-                str(game.black_name.name))
-            response = urllib2.urlopen(req)
+            req = urllib.request.Request(  # Use 'urllib.request.Request' instead of 'urllib.Request'
+                'https://snailbucket.org/tourney/updateforums/monthly2:R' +
+                str(x[3]) + '_' + str(game.white_name.name) + '-' +
+                str(game.black_name.name)
+            )
+            response = urllib.request.urlopen(req)  # Use 'urllib.request.urlopen' instead of 'urllib.urlopen'
             he_page = response.read()
 
         for gm in self.ongoing_games:
             if gm['white'] == game.white_name.name and gm['black'] == game.black_name.name:
                 self.ongoing_games.remove(gm)
                 break
+
+        try:
+            self.run_command("-gnotify %s" % str(game.black_name))
+        except Exception as e:
+            print(f"Failed to remove gnotify for black player {game.black_name.name}: {e}")
+
 
     def on_logout(self):
         if hasattr(self, '_gamenotify_task'):
@@ -594,18 +555,6 @@ else:
     #logging_level = logging.WARN
     logging_level = logging.INFO
 
-for (name, value) in options:
-    if name == '--creds':
-    	try:
-	    f = open(value, 'r')
-	    FICS_PASSWORD = f.read().strip()
-	except:
-	    print('Error opening password file: {0}'.format(value))
-	    sys.exit()
-if len(FICS_PASSWORD) == 0:
-    print("Password file path missing on the command-line.")
-    sys.exit()
-
 logging.basicConfig(level=logging_level)
 
 ################################################################################
@@ -614,8 +563,14 @@ logging.basicConfig(level=logging_level)
 
 # TODO: convert back to reconnecting
 
-dbpool = ReconnectingConnectionPool(
-    "MySQLdb", user="bodia", passwd="pass", db="test_db", cp_reconnect=True)
+
+dbpool = adbapi.ConnectionPool(
+    "mysql.connector",
+    user=DB_USER,
+    password=DB_PASSWORD,
+    database=DB_DATABASE,
+    host=DB_HOST
+)
 
 clock_statistician = SnailBot(dbpool)
 my_bot = MyBot(clock_statistician)
