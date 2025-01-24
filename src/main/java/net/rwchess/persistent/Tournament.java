@@ -21,16 +21,41 @@ public class Tournament {
     private int maxCount;
 
     @Column(name = "SIGNUP_FROM")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date signupFrom;
 
     @Column(name = "SIGNUP_TO")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date signupTo;
 
     @Column(name = "START_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
 
     @Column(name = "END_DATE")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
+
+    @Column(name = "TIME_CONTROL", length = 50, nullable = true)
+    private String timeControl;
+
+    // Getters and Setters
+
+    public Long getKey() {
+        return key;
+    }
+
+    public void setKey(Long key) {
+        this.key = key;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
     public String getShortName() {
         return shortName;
@@ -64,22 +89,6 @@ public class Tournament {
         this.signupTo = signupTo;
     }
 
-    public Long getKey() {
-        return key;
-    }
-
-    public void setKey(Long key) {
-        this.key = key;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
     public Date getStartDate() {
         return startDate;
     }
@@ -94,5 +103,28 @@ public class Tournament {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public String getTimeControl() {
+        return timeControl;
+    }
+
+    public void setTimeControl(String timeControl) {
+        this.timeControl = timeControl;
+    }
+
+    @Override
+    public String toString() {
+        return "Tournament{" +
+                "key=" + key +
+                ", fullName='" + fullName + '\'' +
+                ", shortName='" + shortName + '\'' +
+                ", maxCount=" + maxCount +
+                ", signupFrom=" + signupFrom +
+                ", signupTo=" + signupTo +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", timeControl='" + timeControl + '\'' +
+                '}';
     }
 }

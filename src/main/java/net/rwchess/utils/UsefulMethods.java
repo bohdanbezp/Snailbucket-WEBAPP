@@ -12,15 +12,14 @@ import net.rwchess.persistent.TournamentGame;
 import net.rwchess.persistent.TournamentPlayer;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Weeks;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -347,5 +346,20 @@ public final class UsefulMethods {
             content.append("<li class=\"ui-widget-content").append(app).append("\">").append(i).append("</li>");
         }
         return content.toString();
+    }
+
+    public static void runWithTimeoutForcefully(Runnable task, long timeout, TimeUnit unit) throws TimeoutException {
+        Thread worker = new Thread(task);
+        worker.start();
+        try {
+            worker.join(unit.toMillis(timeout));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+        if (worker.isAlive()) {
+            worker.stop();
+            throw new TimeoutException();
+        }
     }
 }

@@ -289,6 +289,7 @@ public class WikiController {
         ourM.setCountry(country.toLowerCase());
         ourM.setInsist(memberDAO.getInsistData(bad_times, hard_times).toString());
         ourM.setPreference("");
+        ourM.setRr(1);
         ourM.setEmail(email);
 
         memberDAO.store(ourM);

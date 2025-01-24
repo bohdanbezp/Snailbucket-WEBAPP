@@ -23,44 +23,39 @@ public class CheckRatingsService {
     }
 
     public void checkRatings(final String tourney) {
-        Runnable checkRunnable = new Runnable() {
+        List<TournamentPlayer> players = tourneyDAO.getAllPlayersList(tourney);
+
+        ChessClient.RatingListener ratingListener = new ChessClient.RatingListener() {
             @Override
-            public void run() {
-                List<TournamentPlayer> players = tourneyDAO.getAllPlayersList(tourney);
-
-                ChessClient.RatingListener ratingListener = new ChessClient.RatingListener() {
-                    @Override
-                    public void ratingChecked(String player, int rating) {
-                        tourneyDAO.updateRating(player, rating, tourney);
-                    }
-                };
-
-                List<String> usernames = new ArrayList<String>();
-
-                for (TournamentPlayer player : players) {
-                    usernames.add(player.getAssocMember().getUsername());
-                }
-
-                ChessClient chessClient = new ChessClient(ratingListener, usernames);
-                try {
-                    chessClient.login("guest", "");
-                    for (String player : usernames) {
-                        chessClient.finger(player);
-                        try {
-                            Thread.sleep(700);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-                    chessClient.cancel();
-
-                } catch (LoginException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            public void ratingChecked(String player, int rating) {
+                System.out.println("Rating for " + player + " is " + rating);
+                tourneyDAO.updateRating(player, rating, tourney);
             }
         };
 
-        new Thread(checkRunnable).start();
+        List<String> usernames = new ArrayList<String>();
+
+        for (TournamentPlayer player : players) {
+            usernames.add(player.getAssocMember().getUsername());
+        }
+
+        ChessClient chessClient = new ChessClient(ratingListener, usernames);
+        try {
+            chessClient.login("guest", "");
+            for (String player : usernames) {
+                chessClient.finger(player);
+                System.out.println("Checking rating for " + player);
+                try {
+                    Thread.sleep(700);
+                } catch (InterruptedException e) {
+                }
+            }
+            chessClient.cancel();
+
+        } catch (LoginException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

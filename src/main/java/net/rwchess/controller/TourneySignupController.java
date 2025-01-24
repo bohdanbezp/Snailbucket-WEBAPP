@@ -28,15 +28,13 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -89,11 +87,18 @@ public class TourneySignupController {
     @RequestMapping(value = "/manage/{tourneyShortName}", method = RequestMethod.POST)
     public String tourneyManagePost(@PathVariable String tourneyShortName,
                                     @RequestParam(value = "submType") String submitVal,
+                                    @RequestParam(value = "player", required = false) String player,
                                     @RequestParam(value = "pairingsFile", required = false) MultipartFile pairingsFile,
                                     ModelMap modelMap,
                                     HttpSession session) {
         if (submitVal.startsWith("Update ratings")) {
-            ratingsService.checkRatings(tourneyShortName);
+            try {
+                UsefulMethods.runWithTimeoutForcefully(() -> {
+                    ratingsService.checkRatings(tourneyShortName);
+                }, 3, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             modelMap.addAttribute("title", "Notice");
             modelMap.addAttribute("error", "Please wait, the ratings are being updated right now. It takes about 1 sec per player to check ratings. Try refreshing this page after a few minutes");
@@ -185,13 +190,23 @@ public class TourneySignupController {
 
             int round = games.get(0).getRound();
             for (TournBye bye: byes) {
-                TournamentPlayer player = bye.getPlayer();
-                mailService.sendEmail("notify@snailbucket.org", "SB Rapid 1: Round " + round + " BYE", getByeMessage(round), player.getAssocMember().getEmail());
+                TournamentPlayer playerT = bye.getPlayer();
+                mailService.sendEmail("notify@snailbucket.org", "SB Rapid 1: Round " + round + " BYE", getByeMessage(round), playerT.getAssocMember().getEmail());
                 tournByeDAO.store(bye);
             }
 
             modelMap.addAttribute("title", "Notice");
             modelMap.addAttribute("error", "<p>The pairings have been created. Consult TD guide to find links to pairings.</p>");
+            return "error";
+        } else if (submitVal.startsWith("Add player manually")) {
+            Member member = memberDAO.getMemberByUsername(player);
+            Tournament tournament = tourneyDAO.getByShortName(tourneyShortName);
+            TournamentPlayer tourneyPlayer = new TournamentPlayer();
+            tourneyPlayer.setAssocMember(member);
+            tourneyPlayer.setTournament(tournament);
+            tourneyDAO.storePlayer(tourneyPlayer);
+            modelMap.addAttribute("title", "Notice");
+            modelMap.addAttribute("error", "<p>The player has been added to the tourney.</p>");
             return "error";
         }
         return "not-found";
@@ -263,14 +278,25 @@ public class TourneySignupController {
         StringBuilder body = new StringBuilder();
 
         Member user = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Tournament currTourney = tourneyDAO.getByShortName(tourneyShortName);
 
         if (user.getGroup() >= Member.ADMIN) {
-            if (currTourney.getSignupTo().after(new Date())) {
+            List<Member> members = memberDAO.getAllConfirmedMembers();
+            List<TournamentPlayer> players = tourneyDAO.getAllPlayersList(tourneyShortName);
+            List<Member> membersNotInTourney = members.stream()
+                    .filter(member -> players.stream().noneMatch(player -> player.getAssocMember().getUsername().equals(member.getUsername())))
+                    .collect(Collectors.toList());
+
+            StringBuilder membersOptions = new StringBuilder();
+
+            for (Member member : membersNotInTourney) {
+                membersOptions.append("<option value=\"").append(member.getUsername()).append("\">").append(member.getUsername()).append("</option>");
+            }
+
+            //if (currTourney.getSignupTo().after(new Date())) {
                 body.append("<form name=\"input\" action=\"\" method=\"post\" enctype=\"multipart/form-data\">")
                         .append("<input name=\"submType\" type=\"submit\" value=\"Update ratings\">")
                         .append("</form><br/><br/>");
-            }
+            //}
 
             // Form to create pairings and upload CSV file
             body.append("<form name=\"input\" action=\"\" method=\"post\" enctype=\"multipart/form-data\">\n" +
@@ -279,6 +305,17 @@ public class TourneySignupController {
                     "    <input type=\"submit\" value=\"Create pairings\">\n" +
                     "</form>\n" +
                     "<br/><br/>\n");
+
+            body.append("<form name=\"input\" action=\"\" method=\"post\">\n" +
+                    "    <input type=\"hidden\" name=\"submType\" value=\"Add player manually\">\n" +
+                    "    <label for=\"player\">Select player:</label>\n" +
+                    "    <select name=\"player\" id=\"player\" required>\n" +
+                    "        " + membersOptions + "\n" +
+                    "    </select>\n" +
+                    "    <input type=\"submit\" value=\"Add player manually\">\n" +
+                    "</form>\n" +
+                    "<br/><br/>\n");
+
         }
 
         List<TournamentPlayer> sorted = tourneyDAO.getAllPlayersListSorted(tourneyShortName);
@@ -434,82 +471,107 @@ public class TourneySignupController {
         try {
             TournamentGame game = tourneyDAO.getGameByForumString(forumString);
 
-            URL urll = new URL("https://www.ficsgames.org/cgi-bin/search.cgi?player="+game.getBlackPlayer().getAssocMember().getUsername()+"&action=History");
+            URL urll = new URL("https://www.ficsgames.org/cgi-bin/search.cgi?player="
+                    + game.getBlackPlayer().getAssocMember().getUsername()
+                    + "&action=History");
             URLConnection con = urll.openConnection();
             InputStream inn = con.getInputStream();
             String encoding = con.getContentEncoding();
-            encoding = encoding == null ? "UTF-8" : encoding;
+            encoding = (encoding == null) ? "UTF-8" : encoding;
             String body = IOUtils.toString(inn, encoding);
+
             Matcher m = ficsGamesLinkMod.matcher(body);
             while (m.find()) {
                 String s = "https://www.ficsgames.org" + m.group(0);
-
                 URL url = new URL(s);
-                String pgn = IOUtils.toString(new InputStreamReader(
-                        url.openStream()));
+                String pgn = IOUtils.toString(new InputStreamReader(url.openStream()));
 
+                // Clean up PGN if necessary
                 boolean in = false;
                 char last = ' ';
                 StringBuilder buff = new StringBuilder();
                 for (char c : pgn.toCharArray()) {
-                    if (c == ']' && in)
+                    if (c == ']' && in) {
                         in = false;
-
-                    if (in)
+                    }
+                    if (in) {
                         continue;
-
-                    if (c == '[' && last == '{')
+                    }
+                    if (c == '[' && last == '{') {
                         in = true;
-
+                    }
                     last = c;
                     buff.append(c);
                 }
                 pgn = buff.toString().replace("{[]}", "");
 
-                String result;
-
-                PGNReader red = new PGNReader(IOUtils.toInputStream(pgn), game.getTournament().getShortName() + ".pgn");
+                // Attempt to parse the PGN
+                PGNReader red = new PGNReader(IOUtils.toInputStream(pgn),
+                        game.getTournament().getShortName() + ".pgn");
                 try {
                     Game ga = red.parseGame();
                     ga.setTag("Round", Integer.toString(game.getRound()));
                     ga.setTag("Event", game.getTournament().getFullName());
-                    result = ga.getResultStr();
 
+                    String result = ga.getResultStr();
                     String whiteNameFromGame = ga.getWhite().replaceAll("\\(.*?\\)", "");
                     String blackNameFromGame = ga.getBlack().replaceAll("\\(.*?\\)", "");
-                    if (!whiteNameFromGame.equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername()) ||
-                            !blackNameFromGame.equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
-                         continue;
+
+                    // Check that players match
+                    if (!whiteNameFromGame.equalsIgnoreCase(game.getWhitePlayer().getAssocMember().getUsername())
+                            || !blackNameFromGame.equalsIgnoreCase(game.getBlackPlayer().getAssocMember().getUsername())) {
+                        continue;
                     }
+
+                    // Check date is not before tournament start date
                     DateTimeFormatter df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss");
                     DateTime gameDate = df.parseDateTime(ga.getDate() + ' ' + ga.getTag("Time"));
-                    DateTime startDate = new DateTime(game.getTournament().getStartDate(), DateTimeZone.forID("America/New_York"));
+                    DateTime startDate = new DateTime(game.getTournament().getStartDate(),
+                            DateTimeZone.forID("America/New_York"));
 
                     if (gameDate.isBefore(startDate)) {
-                         continue;
+                        continue;
                     }
 
+                    // Update DB and post to forum
                     pgn = UsefulMethods.getPgnRepresentation(ga);
                     gameForumPostService.gameForumPost(game, "Game ended as " + result, "snailbot(TD)");
                     tourneyDAO.updatePgn(game, pgn);
                     tourneyDAO.updatePlayedDate(game, gameDate.toDate());
                     tourneyDAO.updateResult(game, result);
+
+                    // Success path
                     modelMap.addAttribute("title", "Done");
                     modelMap.addAttribute("error", "Set.");
+                    return "error"; // or your success page
+                } catch (PGNSyntaxError pgnError) {
+                    // Capture full stack trace of PGNSyntaxError
+                    StringWriter sw = new StringWriter();
+                    pgnError.printStackTrace(new PrintWriter(sw));
+                    String fullStackTrace = sw.toString();
+
+                    modelMap.addAttribute("title", "Error");
+                    modelMap.addAttribute("error", fullStackTrace);
                     return "error";
-                } catch (PGNSyntaxError e) {
-                    e.printStackTrace();
                 }
             }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // Capture full stack trace of any other exception
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String fullStackTrace = sw.toString();
+
+            modelMap.addAttribute("title", "Error");
+            modelMap.addAttribute("error", fullStackTrace);
+            return "error";
         }
 
+        // If nothing was updated, indicate it
         modelMap.addAttribute("title", "Error");
         modelMap.addAttribute("error", "Not Set.");
         return "error";
     }
+
 
     @RequestMapping(value = "/manage/{tourneyShortName}/text-input", method = RequestMethod.POST)
     public String createTextPairings(@PathVariable String tourneyShortName,
@@ -1354,8 +1416,13 @@ public class TourneySignupController {
         badTimes.append(blackPlayerRow);
 
 
-        String propTime = UsefulMethods.recommendTime(game.getWhitePlayer().getAssocMember().getPreference(),
-                game.getBlackPlayer().getAssocMember().getPreference());
+        String propTime = game.getTournament().getTimeControl();
+        if (propTime == null) {
+            propTime = UsefulMethods.recommendTime(game.getWhitePlayer().getAssocMember().getPreference(),
+                    game.getBlackPlayer().getAssocMember().getPreference());
+        }
+        propTime = propTime.replaceAll("_", " ");
+
         modelMap.addAttribute("title", game.toString());
         modelMap.addAttribute("tourneyShort", forumString.split(":")[0]);
         modelMap.addAttribute("proposedTime", propTime);
